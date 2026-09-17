@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>超分辨 LED 播控调研 · 多机同步与异形切片</title>
+  <meta name="description" content="国内 Kommander、诺瓦 Kompass、HiRender、GrandShow、hecoos 与 disguise、WATCHOUT 等媒体服务器的多机帧同步与 3D 切片方案对比。" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <a class="skip" href="#main">跳到正文</a>
+  <nav class="nav" aria-label="章节">
+    <div class="brand">LEDPlayControl<small>Survey 2026.09</small></div>
+    <div>
+      <a href="#problem"><span class="nav-index">01</span>问题</a>
+      <a href="#stack"><span class="nav-index">02</span>四层同步</a>
+      <a href="#mapping"><span class="nav-index">03</span>异形切片</a>
+      <a href="#matrix"><span class="nav-index">04</span>对比矩阵</a>
+      <a href="#vendors"><span class="nav-index">05</span>厂商</a>
+      <a href="#patents"><span class="nav-index">06</span>专利</a>
+      <a href="#oss"><span class="nav-index">07</span>开源</a>
+      <a href="#build"><span class="nav-index">08</span>自研建议</a>
+      <a href="#refs"><span class="nav-index">09</span>出处</a>
+    </div>
+    <div class="legend">
+      <b>证据</b><br />
+      A 手册可复核<br />
+      B 规格/BOM 可推断<br />
+      C 营销宣称、协议未公开
+    </div>
+  </nav>
+
+  <div class="wrap" id="main">
+    <header class="hero">
+      <div class="kicker">LED media server · frame sync · 3D mapping</div>
+      <h1>一台机器带不动的屏幕，<br />怎么同步地播</h1>
+      <p class="lede">
+        超分辨 LED 不是「多开几路 HDMI」。单机 GPU 与解码带宽撑不住时，行业的解法是多机多显卡切片输出。真正难的是两件事：相邻箱体必须在同一帧、同一扫出相位上会合；球形和折面必须把平面纹理贴到真实几何上。下面按同一套坐标系，对照国内外播控软件怎么做这两件事。
+      </p>
+      <div class="meta-row">
+        <span class="chip">名称对齐：<strong>kCommander = Kommander</strong></span>
+        <span class="chip">hecos = <strong>hecoos / 澜景</strong></span>
+        <span class="chip">离线可打开 · 无外网字体</span>
+        <span class="chip">资料截止 <strong>2026-09-17</strong></span>
+      </div>
+      <div class="stats">
+        <div class="stat"><div class="n">14</div><div class="l">产品样本（深潜 7 + 对照 7）</div></div>
+        <div class="stat"><div class="n">4</div><div class="l">同步层：钟 / 帧号 / 扫出 / PTP</div></div>
+        <div class="stat"><div class="n">5</div><div class="l">异形屏：模型 → UV → 投影 → 切片 → 锁帧</div></div>
+        <div class="stat"><div class="n">A/B/C</div><div class="l">每条结论带证据等级与出处</div></div>
+      </div>
+    </header>
+
+    <section id="problem">
+      <div class="sec-head"><span class="sec-num">01</span><h2>问题定义</h2></div>
+      <p class="sec-lead">超 8K / 16K 点对点、超长卷、球形屏，单台工作站的解码、PCIe、DP 口数量和 Mosaic 桌面都会先撞墙。多机是扩空间；同步和几何才是扩完之后还像一块屏。</p>
+      <div class="problem-grid">
+        <div class="panel">
+          <h3>单机为什么不够</h3>
+          <ol>
+            <li>解码：H.264/H.265 超 8K@60 或无损序列帧，一张消费级卡吃不满带宽。</li>
+            <li>输出：一块 GPU 的 DP 口数量有上限；Mosaic 把多口拼成超大桌面，驱动与 EDID 变得脆弱。</li>
+            <li>几何：球形、环幕、折面不是矩形裁切，需要按模组 UV 或离轴投影生成切片。</li>
+            <li>链路：LED 处理器、摄像机、音频还要和服务器锁在同一基准上，否则只锁 PC 仍会撕。</li>
+          </ol>
+          <p class="callout">常见失败不是「机器不够快」，而是只做了空间切片，没做帧身份 + 扫出相位，或只做了 NTP 对时，就把相邻箱体交给 LED 发送卡「自己对齐」。</p>
+        </div>
+        <div class="panel">
+          <h3>公开资料里已经写清的边界</h3>
+          <p>WATCHOUT：NTP 把节点钟拉到约 1 ms，但 GPU 仍各自扫出；亚帧相位在 LED 处理器上看就是撕缝。Hardware Sync Group 把计时源切到同步卡帧计数。</p>
+          <p>disguise：Genlock 锁集群与摄像机/LED 设备；Framelock 只锁同一台服务器的多头。IP 输出时 PTP 与 NTP 不是一回事。</p>
+          <p>国内产品大量使用「帧同步级联」一词。能核到卡型的，目前公开页里 HiRender S3 写明需要 Quadro Sync II，Kommander F30 规格书列出同步卡。GrandShow Sync、KFS、Kompass Lora 的线协议仍属 C 级。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="stack">
+      <div class="sec-head"><span class="sec-num">02</span><h2>多机帧同步：四层模型</h2></div>
+      <p class="sec-lead">点选一层，矩阵里用到该层的厂商会亮起。这是全页共用的坐标系，后面每张厂商卡都映射到这里，而不是各说各的「帧同步」。</p>
+
+      <div class="stack-svg" aria-hidden="true">
+        <svg viewBox="0 0 980 220" xmlns="http://www.w3.org/2000/svg">
+          <rect width="980" height="220" fill="#0d1218"/>
+          <g font-family="Microsoft YaHei UI, PingFang SC, Noto Sans SC, Segoe UI, sans-serif" font-size="13" fill="#e7eef5">
+            <rect x="20" y="24" width="200" height="172" fill="#121922" stroke="#3ad7c4"/>
+            <text x="40" y="52" fill="#3ad7c4" font-size="11">L1 时间对齐</text>
+            <text x="40" y="84">NTP / LTC</text>
+            <text x="40" y="106" fill="#8c9aab">节目进度</text>
+            <text x="40" y="150" font-size="11" fill="#8c9aab">WATCHOUT Director</text>
+            <text x="40" y="168" font-size="11" fill="#8c9aab">7thSense Leader</text>
+
+            <rect x="250" y="24" width="200" height="172" fill="#121922" stroke="#3ad7c4"/>
+            <text x="270" y="52" fill="#3ad7c4" font-size="11">L2 帧身份</text>
+            <text x="270" y="84">帧计数 / 校准</text>
+            <text x="270" y="106" fill="#8c9aab">present 同一帧</text>
+            <text x="270" y="150" font-size="11" fill="#8c9aab">Sync Group / Barrier</text>
+            <text x="270" y="168" font-size="11" fill="#8c9aab">诺瓦从端帧指示</text>
+
+            <rect x="480" y="24" width="200" height="172" fill="#121922" stroke="#e2a73a"/>
+            <text x="500" y="52" fill="#e2a73a" font-size="11">L3 扫描相位</text>
+            <text x="500" y="84">Genlock / Framelock</text>
+            <text x="500" y="106" fill="#8c9aab">何时开始扫</text>
+            <text x="500" y="150" font-size="11" fill="#8c9aab">Quadro Sync II</text>
+            <text x="500" y="168" font-size="11" fill="#8c9aab">RJ45 不进交换机</text>
+
+            <rect x="710" y="24" width="250" height="172" fill="#121922" stroke="#314557"/>
+            <text x="730" y="52" fill="#8c9aab" font-size="11">L4 传输时钟</text>
+            <text x="730" y="84">PTP / ST 2110</text>
+            <text x="730" y="106" fill="#8c9aab">IP 包对齐</text>
+            <text x="730" y="150" font-size="11" fill="#8c9aab">disguise IP-VFC</text>
+            <text x="730" y="168" font-size="11" fill="#8c9aab">第一版 DP 可不上</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="layers" id="layer-list"></div>
+
+      <div class="watchout-quote">
+        <p>NTP 把系统钟对齐到约一毫秒，但并不对齐 GPU 输出。各节点仍按自己的钟扫出，相位差一个亚帧。这个差在普通投影上几乎看不见，在已 Genlock 的 LED 处理器上会变成整帧错位和箱体接缝撕裂。Hardware Sync Group 用同步卡帧计数替换 NTP 作为计时源。</p>
+        <cite>Dataton WATCHOUT 7 · Time Synchronization / Show Properties · 证据 A</cite>
+      </div>
+    </section>
+
+    <section id="mapping">
+      <div class="sec-head"><span class="sec-num">03</span><h2>球形与异形屏：3D 切片流水线</h2></div>
+      <p class="sec-lead">2D 多边形切片适合矩形拼缝和折角。球、环、自由曲面更合适的源是三维模型。几何映射和多机同步是两条支线：专利里也是分开的，页面上不混写。</p>
+      <div class="steps" id="map-steps"></div>
+      <div class="problem-grid">
+        <div class="panel">
+          <h3>谁走 3D 主路径</h3>
+          <p><strong>GrandMapping</strong>：预设模型 / AI 推断屏体 → 调观察视角自动切片 → 导入卡莱特发送卡连接关系。公开页把球形、弧形写成目标场景。</p>
+          <p><strong>hecoos</strong>：Studio 三维预演（灯、屏、机械、摄像机）无缝交给 Server。设计端与播放端分离，是国内最接近 disguise 工作流的结构。</p>
+          <p><strong>disguise / PIXERA</strong>：屏是舞台对象。VP 还要求摄像机、跟踪、LED 处理器与服务器同 genlock。</p>
+          <p><strong>VMEET</strong>：自定义模型、球幕 / 隧道 / CAVE、任意多边形重组，作为国内球幕对照。</p>
+        </div>
+        <div class="panel">
+          <h3>谁停在 2D 快路径</h3>
+          <p><strong>Kommander / GrandShow / HiRender / Kompass</strong> 的主交互仍是虚拟屏、网格、变形、融合带。够用折面和超长卷，球形要另接 mapping 模块或离线预畸变。</p>
+          <p>三思球形屏专利走「配置文件 → 经纬度非线性映射」。华院专利走「观察点 + 离轴投影矩阵 → 展开素材」。两者都说明：把普通 16:9 视频直接铺到球上，几何上就不成立。</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="matrix">
+      <div class="sec-head"><span class="sec-num">04</span><h2>对比矩阵</h2></div>
+      <p class="sec-lead">实心青点 = 公开资料可确认；琥珀 = 部分/间接；空心 = 未检索到；暗点 = 明确不是这条路。点行可滚到对应厂商卡。点同步层可过滤。</p>
+      <div class="filters" id="filters"></div>
+      <div class="table-wrap">
+        <table class="heat" id="heat-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="caption">「Quadro Sync」在 HiRender、Kommander F30、WATCHOUT、PIXERA、nDisplay、7thSense、disguise 上可核到卡或手册。GrandShow Sync / KFS / Kompass Lora 未核到等价硬件说明。</p>
+    </section>
+
+    <section id="vendors">
+      <div class="sec-head"><span class="sec-num">05</span><h2>厂商方案</h2></div>
+      <p class="sec-lead">深潜卡片带顶栏青线。对照样本用来把矩阵撑完整，并标出「看起来像播控、其实不是超分辨主路径」的产品。</p>
+      <div class="cards" id="vendor-cards"></div>
+    </section>
+
+    <section id="patents">
+      <div class="sec-head"><span class="sec-num">06</span><h2>专利地图</h2></div>
+      <p class="sec-lead">同步与几何分开列。本次检索未找到与 GrandShow Sync、KFS 同名的授权文本——页面如实写「未定位」，不把营销词补成专利号。</p>
+      <div class="patents" id="patent-list"></div>
+    </section>
+
+    <section id="oss">
+      <div class="sec-head"><span class="sec-num">07</span><h2>开源项目</h2></div>
+      <p class="sec-lead">没有一个开源仓库等于完整的超分辨 LED 播控产品。有用的部分是：集群 present 屏障、穹顶播放、UV 工具。WebSocket 软同步明确标为精度不够。</p>
+      <div class="oss" id="oss-list"></div>
+    </section>
+
+    <section id="build">
+      <div class="sec-head"><span class="sec-num">08</span><h2>LEDPlayControl 可抄的分层</h2></div>
+      <p class="sec-lead">不是产品愿景，是把上面对照完之后仍然成立的约束写成第一版架构。ST 2110 / PTP 明确不做，除非目标改成广播级 IP 输出。</p>
+      <div class="arch">
+        <div>
+          <svg viewBox="0 0 640 420" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="自研参考架构">
+            <rect width="640" height="420" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, Noto Sans SC, Segoe UI, sans-serif" font-size="13" fill="#e7eef5">
+              <rect x="220" y="20" width="200" height="56" fill="#121922" stroke="#3ad7c4"/>
+              <text x="248" y="42">Director</text>
+              <text x="248" y="60" fill="#8c9aab" font-size="11">NTP 源 · 工程 · 预监</text>
+
+              <rect x="20" y="120" width="180" height="56" fill="#121922" stroke="#e2a73a"/>
+              <text x="40" y="142">Backup</text>
+              <text x="40" y="160" fill="#8c9aab" font-size="11">镜像操作 / 热切</text>
+
+              <rect x="230" y="120" width="180" height="56" fill="#121922" stroke="#3ad7c4"/>
+              <text x="248" y="142">Display A</text>
+              <text x="248" y="160" fill="#8c9aab" font-size="11">解码 · UV · present</text>
+
+              <rect x="440" y="120" width="180" height="56" fill="#121922" stroke="#3ad7c4"/>
+              <text x="458" y="142">Display B</text>
+              <text x="458" y="160" fill="#8c9aab" font-size="11">解码 · UV · present</text>
+
+              <rect x="140" y="230" width="360" height="56" fill="#121922" stroke="#e2a73a"/>
+              <text x="170" y="252">Quadro Sync / house-sync</text>
+              <text x="170" y="270" fill="#8c9aab" font-size="11">L2 帧计数 + L3 扫出  与节目网隔离</text>
+
+              <rect x="140" y="330" width="360" height="56" fill="#121922" stroke="#314557"/>
+              <text x="170" y="352">LED 处理器（需能收 genlock）</text>
+              <text x="170" y="370" fill="#8c9aab" font-size="11">发送卡垂直整合可选，不替代 GPU 锁</text>
+
+              <path d="M320 76 L320 120" stroke="#3ad7c4" fill="none"/>
+              <path d="M110 76 L110 120 M110 76 L220 48" stroke="#e2a73a" fill="none"/>
+              <path d="M320 176 L320 230" stroke="#3ad7c4" fill="none"/>
+              <path d="M530 176 L320 230" stroke="#3ad7c4" fill="none"/>
+              <path d="M110 176 L140 258" stroke="#e2a73a" fill="none"/>
+              <path d="M320 286 L320 330" stroke="#8c9aab" fill="none"/>
+            </g>
+          </svg>
+        </div>
+        <div>
+          <ol>
+            <li><strong>播放时钟默认 NTP / 内部时码包。</strong> 超分辨拼接必须可叠加 NVIDIA Sync：Framelock 菊花链 + 可选外置 genlock + present barrier。软件对时不能冒充硬同步。</li>
+            <li><strong>几何以 glTF/FBX + UV 为异形/球形主路径。</strong> 2D 多边形切片只保留给矩形和折面。观察点相机生成预畸变或实时投影，两种模式可切换。</li>
+            <li><strong>切片按输出/GPU/节点生成。</strong> 离线烘焙稳、实时 mesh 投影活。切片清单与同步组名单分开配置。</li>
+            <li><strong>Director 默认不出画。</strong> 出画才进入硬件同步组。Backup 同步的是操作与工程，不是再拉一根 Sync 网到交换机上。</li>
+            <li><strong>第一版不做 ST 2110 / PTP。</strong> 那是 L4。DP/HDMI 点对点先把 L1–L3 做对。</li>
+            <li><strong>发送卡耦合做成适配器。</strong> 可以读诺瓦/卡莱特连接关系文件，但同步栈不绑死一家。</li>
+          </ol>
+        </div>
+      </div>
+      <div id="principles" class="patents" style="margin-top:24px"></div>
+      <div class="panel" style="margin-top:20px">
+        <h3>不从开源项目里抄错的东西</h3>
+        <p>可借鉴 SGCT / Equalizer 的节点描述与 swap barrier，C-Play 的主从播放器结构，nDisplay 文档的 NVIDIA 接线。不要借鉴 Polycast 的 50–150 ms WebSocket 对时来开 LED 墙。MapMap / UV Studio 放在内容管线，不要当成播出内核。</p>
+      </div>
+    </section>
+
+    <section id="refs">
+      <div class="sec-head"><span class="sec-num">09</span><h2>资料出处</h2></div>
+      <p class="sec-lead">只使用公开页、PDF、Google Patents 与 GitHub。未登录厂商后台，未把未公开协议写成可实施步骤。</p>
+      <ol class="sources-all" id="all-sources"></ol>
+    </section>
+
+    <footer>
+      LEDPlayControl 调研页 · 2026-09-17 · 本地打开 research/led-playcontrol-survey/index.html · 结论随厂商改版失效，以出处原文为准。
+    </footer>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
