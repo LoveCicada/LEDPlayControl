@@ -58,6 +58,255 @@
   }
 
   const state = { region: "all", depth: "all" };
+  let activeHop = null;
+  let activeTear = null;
+  let activeScene = null;
+
+  function vendorById(id) {
+    return S.vendors.find((v) => v.id === id);
+  }
+
+  function vendorLabel(id) {
+    const v = vendorById(id);
+    return v ? v.name : id;
+  }
+
+  function highlightIds() {
+    if (activeHop) {
+      const hop = S.chainHops.find((h) => h.id === activeHop);
+      return hop ? hop.vendors : [];
+    }
+    if (activeTear) {
+      const tear = S.tears.find((t) => t.id === activeTear);
+      return tear ? tear.vendors : [];
+    }
+    if (activeScene) {
+      const scene = S.scenes.find((s) => s.id === activeScene);
+      return scene ? scene.vendors : [];
+    }
+    return null;
+  }
+
+  function clearHighlightSources(keep) {
+    if (keep !== "hop") activeHop = null;
+    if (keep !== "tear") activeTear = null;
+    if (keep !== "scene") activeScene = null;
+    document.querySelectorAll(".hop").forEach((n) => {
+      n.classList.remove("active");
+      n.setAttribute("aria-pressed", "false");
+    });
+    document.querySelectorAll(".tear").forEach((n) => {
+      n.classList.remove("active");
+      n.setAttribute("aria-pressed", "false");
+    });
+    document.querySelectorAll(".scene").forEach((n) => {
+      n.classList.remove("active");
+      n.setAttribute("aria-pressed", "false");
+    });
+    document.querySelectorAll("[id^='svg-hop-']").forEach((n) => n.classList.remove("on"));
+  }
+
+  function scrollToCard(id) {
+    const card = document.getElementById("card-" + id);
+    if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function renderHops() {
+    const root = document.getElementById("hop-list");
+    const detail = document.getElementById("hop-detail");
+    if (!root || !S.chainHops) return;
+    S.chainHops.forEach((hop, i) => {
+      const btn = el("button", { class: "hop", type: "button", "data-hop": hop.id, "aria-pressed": "false" });
+      btn.innerHTML =
+        `<div class="n">HOP ${i + 1}</div><h3>${hop.name}</h3>` +
+        `<div class="en">${hop.en}</div><p>${hop.fail}</p>`;
+      btn.addEventListener("click", () => {
+        const same = activeHop === hop.id;
+        clearHighlightSources("hop");
+        if (same) {
+          activeHop = null;
+          if (detail) detail.innerHTML = "<p>点上面一跳。垂直整合解决配屏文件，不替代 Quadro 菊花链；Mosaic 拼桌面时 EDID/刷新不一致，同步组直接失败。</p>";
+        } else {
+          activeHop = hop.id;
+          btn.classList.add("active");
+          btn.setAttribute("aria-pressed", "true");
+          const svg = document.getElementById("svg-hop-" + hop.id);
+          if (svg) svg.classList.add("on");
+          if (detail) {
+            detail.innerHTML =
+              `<div class="en">${hop.en}</div><h3>${hop.name}</h3>` +
+              `<p>${hop.body}</p>` +
+              `<p class="fail">${hop.fail}</p>` +
+              `<p class="who">这一跳对照：${hop.vendors.map(vendorLabel).join(" · ")}</p>`;
+          }
+        }
+        applyFilters();
+      });
+      root.appendChild(btn);
+    });
+    S.chainHops.forEach((hop) => {
+      const svg = document.getElementById("svg-hop-" + hop.id);
+      if (!svg) return;
+      svg.style.cursor = "pointer";
+      svg.addEventListener("click", () => {
+        root.querySelector(`[data-hop="${hop.id}"]`)?.click();
+      });
+    });
+  }
+
+  function renderTears() {
+    const root = document.getElementById("tear-list");
+    if (!root || !S.tears) return;
+    S.tears.forEach((tear) => {
+      const btn = el("button", { class: "tear", type: "button", "data-tear": tear.id, "aria-pressed": "false" });
+      btn.innerHTML =
+        `<div class="tear-head"><span class="grade">证据 ${tear.grade}</span><h3>${tear.name}</h3></div>` +
+        `<p class="symptom">${tear.symptom}</p><p>${tear.body}</p>` +
+        `<div class="who">${tear.vendors.map(vendorLabel).join(" · ")}</div>`;
+      btn.addEventListener("click", () => {
+        const same = activeTear === tear.id;
+        clearHighlightSources("tear");
+        if (same) {
+          activeTear = null;
+        } else {
+          activeTear = tear.id;
+          btn.classList.add("active");
+          btn.setAttribute("aria-pressed", "true");
+        }
+        applyFilters();
+      });
+      root.appendChild(btn);
+    });
+  }
+
+  function renderScenes() {
+    const root = document.getElementById("scene-list");
+    if (!root || !S.scenes) return;
+    S.scenes.forEach((scene) => {
+      const btn = el("button", { class: "scene", type: "button", "data-scene": scene.id, "aria-pressed": "false" });
+      btn.innerHTML =
+        `<h3>${scene.name}</h3><p>${scene.body}</p>` +
+        `<div class="who">${scene.vendors.map(vendorLabel).join(" · ")}</div>`;
+      btn.addEventListener("click", () => {
+        const same = activeScene === scene.id;
+        clearHighlightSources("scene");
+        if (same) {
+          activeScene = null;
+        } else {
+          activeScene = scene.id;
+          btn.classList.add("active");
+          btn.setAttribute("aria-pressed", "true");
+        }
+        applyFilters();
+      });
+      root.appendChild(btn);
+    });
+  }
+
+  function bindRowClick(tr, id) {
+    tr.addEventListener("click", () => scrollToCard(id));
+  }
+
+  function renderRack() {
+    const table = document.getElementById("rack-table");
+    if (!table || !S.rack) return;
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+    const trh = document.createElement("tr");
+    trh.appendChild(el("th", null, "产品"));
+    S.rackKeys.forEach((k) => trh.appendChild(el("th", null, k.label)));
+    trh.appendChild(el("th", null, "证据"));
+    thead.appendChild(trh);
+    S.rack.forEach((row) => {
+      const v = vendorById(row.id);
+      const tr = document.createElement("tr");
+      tr.dataset.id = row.id;
+      if (v) {
+        tr.dataset.region = v.region;
+        tr.dataset.depth = v.depth;
+        tr.dataset.layers = (v.layers || []).join(",");
+      }
+      const name = document.createElement("td");
+      name.innerHTML = `<strong>${vendorLabel(row.id)}</strong>` +
+        `<div class="also" style="display:block;color:var(--faint)">${v && v.role === "processor" ? "处理器" : (v && v.region === "cn" ? "国内" : "国外")}</div>`;
+      tr.appendChild(name);
+      S.rackKeys.forEach((k) => {
+        tr.appendChild(el("td", { class: "cell-text" }, row[k.id] || "—"));
+      });
+      tr.appendChild(el("td", null, row.evidence || "—"));
+      bindRowClick(tr, row.id);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderCodec() {
+    const table = document.getElementById("codec-table");
+    if (!table || !S.rack) return;
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+    const trh = document.createElement("tr");
+    trh.appendChild(el("th", null, "产品"));
+    S.codecKeys.forEach((k) => trh.appendChild(el("th", null, k.label)));
+    thead.appendChild(trh);
+    S.rack.forEach((row) => {
+      const v = vendorById(row.id);
+      const tr = document.createElement("tr");
+      tr.dataset.id = row.id;
+      if (v) {
+        tr.dataset.region = v.region;
+        tr.dataset.depth = v.depth;
+        tr.dataset.layers = (v.layers || []).join(",");
+      }
+      const name = document.createElement("td");
+      name.innerHTML = `<strong>${vendorLabel(row.id)}</strong>`;
+      tr.appendChild(name);
+      S.codecKeys.forEach((k) => {
+        const val = row[k.id] || "unknown";
+        const td = document.createElement("td");
+        td.innerHTML = `<span class="dot ${val}" title="${heatLabel[val] || val}"></span>`;
+        tr.appendChild(td);
+      });
+      bindRowClick(tr, row.id);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderControlHeat() {
+    const table = document.getElementById("control-table");
+    if (!table || !S.controlHeat) return;
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+    const trh = document.createElement("tr");
+    trh.appendChild(el("th", null, "产品"));
+    S.controlKeys.forEach((k) => trh.appendChild(el("th", null, k.label)));
+    thead.appendChild(trh);
+    S.vendors.forEach((v) => {
+      const heat = S.controlHeat[v.id] || {};
+      const tr = document.createElement("tr");
+      tr.dataset.id = v.id;
+      tr.dataset.region = v.region;
+      tr.dataset.depth = v.depth;
+      tr.dataset.layers = (v.layers || []).join(",");
+      const name = document.createElement("td");
+      name.innerHTML = `<strong>${v.name}</strong>`;
+      tr.appendChild(name);
+      S.controlKeys.forEach((k) => {
+        const val = heat[k.id] || "unknown";
+        const td = document.createElement("td");
+        td.innerHTML = `<span class="dot ${val}" title="${heatLabel[val] || val}"></span>`;
+        tr.appendChild(td);
+      });
+      bindRowClick(tr, v.id);
+      tbody.appendChild(tr);
+    });
+  }
+
 
   function renderFilters() {
     const root = document.getElementById("filters");
@@ -105,10 +354,7 @@
         td.innerHTML = `<span class="dot ${val}" title="${heatLabel[val] || val}"></span>`;
         tr.appendChild(td);
       });
-      tr.addEventListener("click", () => {
-        const card = document.getElementById("card-" + v.id);
-        if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
+      bindRowClick(tr, v.id);
       tbody.appendChild(tr);
     });
   }
@@ -210,18 +456,28 @@
     }
   }
 
+  function rowVisible(el) {
+    const regionOk = state.region === "all" || el.dataset.region === state.region;
+    const depthOk = state.depth === "all" || el.dataset.depth === state.depth;
+    const layerOk = !activeLayer || (el.dataset.layers || "").split(",").includes(activeLayer);
+    return regionOk && depthOk && layerOk;
+  }
+
   function applyFilters() {
-    document.querySelectorAll("#heat-table tbody tr").forEach((tr) => {
-      const regionOk = state.region === "all" || tr.dataset.region === state.region;
-      const depthOk = state.depth === "all" || tr.dataset.depth === state.depth;
-      const layerOk = !activeLayer || (tr.dataset.layers || "").split(",").includes(activeLayer);
-      tr.classList.toggle("dim", !(regionOk && depthOk && layerOk));
+    const hits = highlightIds();
+    document.querySelectorAll("#heat-table tbody tr, #rack-table tbody tr, #codec-table tbody tr, #control-table tbody tr").forEach((tr) => {
+      const visible = rowVisible(tr);
+      const matched = !hits || hits.includes(tr.dataset.id);
+      tr.classList.toggle("dim", !visible || !matched);
+      tr.classList.toggle("hit", !!(visible && hits && matched));
     });
     document.querySelectorAll(".card").forEach((card) => {
-      const regionOk = state.region === "all" || card.dataset.region === state.region;
-      const depthOk = state.depth === "all" || card.dataset.depth === state.depth;
-      const layerOk = !activeLayer || (card.dataset.layers || "").split(",").includes(activeLayer);
-      card.style.display = regionOk && depthOk && layerOk ? "" : "none";
+      const id = card.id.replace(/^card-/, "");
+      const visible = rowVisible(card);
+      const matched = !hits || hits.includes(id);
+      card.style.display = visible ? "" : "none";
+      card.classList.toggle("hit", !!(visible && hits && matched));
+      card.classList.toggle("miss", !!(visible && hits && !matched));
     });
   }
 
@@ -231,7 +487,7 @@
       const src = (v.sources || []).map((s) => `<a href="${s.u}" target="_blank" rel="noopener">${s.t}</a>`).join("");
       const shot = firstShotFor(v.id);
       const card = el("article", {
-        class: "card " + v.depth,
+        class: "card " + v.depth + (v.role === "processor" ? " processor" : ""),
         id: "card-" + v.id,
         dataset: {
           region: v.region,
@@ -254,7 +510,7 @@
           </div>
           <div class="badges">
             <span class="badge ${v.evidence.toLowerCase()}">证据 ${v.evidence}</span>
-            <span class="badge">${v.depth === "deep" ? "深潜" : "对照"}</span>
+            <span class="badge">${v.role === "processor" ? "处理器·非播控" : (v.depth === "deep" ? "深潜" : "对照")}</span>
             <span class="badge">${v.region === "cn" ? "国内" : "国外"}</span>
           </div>
         </header>
@@ -340,7 +596,9 @@
     });
     [
       { t: "NVIDIA Quadro Sync II User Guide", u: "https://images.nvidia.com/content/quadro/product-literature/user-guides/Quadro-Sync-II-User-Guide-v07.pdf" },
-      { t: "WATCHOUT ST 2110 / PTP", u: "https://docs.dataton.com/guide/watchout/network-setup/st-2110-video-over-ip.html" }
+      { t: "WATCHOUT ST 2110 / PTP", u: "https://docs.dataton.com/guide/watchout/network-setup/st-2110-video-over-ip.html" },
+      { t: "Brompton Tessera Genlock", u: "https://www.bromptontech.com/features/genlock/" },
+      { t: "NovaStar MX40 Pro User Manual V1.5.0", u: "https://oss.novastar.tech/uploads/2025/10/MX40-Pro-LED-Display-Controller-User-Manual-V1.5.0.pdf" }
     ].forEach((s) => { if (!seen.has(s.u)) list.push(s); });
     (S.uiGallery || []).forEach((g) => {
       if (g.sourceUrl && !seen.has(g.sourceUrl)) {
@@ -372,6 +630,12 @@
   renderLayers();
   renderSteps();
   renderUiGallery();
+  renderHops();
+  renderTears();
+  renderScenes();
+  renderRack();
+  renderCodec();
+  renderControlHeat();
   renderFilters();
   renderTable();
   renderVendors();

@@ -7,8 +7,9 @@
 静态调研站：[research/led-playcontrol-survey/index.html](research/led-playcontrol-survey/index.html)
 
 - 四层同步模型：NTP/时码、帧身份、Genlock/Quadro Sync、PTP（ST 2110）
-- 球形 / 异形屏：模型 → UV → 观察点投影 → 切片 → 锁帧
-- 14 家产品对照（Kommander、Kompass、HiRender、GrandShow、hecoos、disguise、WATCHOUT 等）
+- 播出全链路：素材 → 播控 → GPU → 处理器 → 接收卡 → 箱体
+- 机柜 BOM、编码/直播矩阵、撕缝诊断清单、场景与外部控制热图
+- 18 家产品对照（深潜 7 + 对照 11，含 Brompton / 诺瓦 MX 两家处理器）
 - 公开专利与开源项目分级
 - 文末自研参考架构（Director / Display / Backup + 硬件同步）
 

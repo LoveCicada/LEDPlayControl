@@ -84,6 +84,223 @@ window.SURVEY = {
     { id: "vertical", label: "发送卡垂直整合" }
   ],
 
+  controlKeys: [
+    { id: "artnet", label: "Art-Net/DMX" },
+    { id: "osc", label: "OSC" },
+    { id: "midi", label: "MIDI" },
+    { id: "ltc", label: "LTC/时码" },
+    { id: "ndi", label: "NDI" },
+    { id: "spout", label: "Spout" },
+    { id: "udp", label: "中控 UDP" }
+  ],
+
+  rackKeys: [
+    { id: "gpu", label: "GPU / 一体机" },
+    { id: "sync", label: "Sync 卡" },
+    { id: "heads", label: "输出头" },
+    { id: "capture", label: "采集" },
+    { id: "license", label: "授权" }
+  ],
+
+  codecKeys: [
+    { id: "h26x", label: "H.264/H.265" },
+    { id: "prores", label: "HAP/NotchLC/ProRes" },
+    { id: "seq", label: "序列帧" },
+    { id: "live", label: "NDI/SDI 直播" }
+  ],
+
+  chainHops: [
+    {
+      id: "media",
+      name: "素材与编码",
+      en: "Codec / transcode",
+      fail: "超 8K 用错编码会在解码端先卡死，看起来像「同步坏了」。",
+      body: "H.264/H.265 走硬解；HAP / NotchLC / ProRes / 序列帧走磁盘与 GPU 带宽。转码是播出前的工序，不是现场同步手段。",
+      vendors: ["kommander", "grandshow", "vmeet", "watchout", "pixera", "disguise"]
+    },
+    {
+      id: "server",
+      name: "播控节点",
+      en: "Director / Display",
+      fail: "Director 出画却不进同步组，控制面自己先撕。",
+      body: "控制面管工程与预监，显示节点解码、映射、present。PIXERA / disguise 都写明：出画的机器必须进硬件同步组。",
+      vendors: ["disguise", "watchout", "pixera", "hirender", "kommander", "7thsense"]
+    },
+    {
+      id: "gpu",
+      name: "GPU 输出口",
+      en: "DP / HDMI / Mosaic",
+      fail: "Mosaic 拼成超大桌面后，EDID 或刷新不一致，同步组直接失败。",
+      body: "物理口才是切片边界。nDisplay 要求独立翻转全屏；PIXERA 要求各机分辨率/刷新/EDID 一致。RJ45 Sync 口不是以太网。",
+      vendors: ["ndisplay", "pixera", "watchout", "hirender", "kommander", "pandoras"]
+    },
+    {
+      id: "proc",
+      name: "LED 处理器",
+      en: "Sender / Tessera / COEX",
+      fail: "处理器没进同一 house-sync，服务器锁了、屏端仍撕。",
+      body: "Brompton Tessera 把 genlock 从视频输入一直锁到灯珠刷新。disguise / PIXERA 要求处理器能收 BlackBurst 或 Tri-Level。发送卡「自己对齐」替代不了 GPU 锁。",
+      vendors: ["brompton", "novastar-mx", "disguise", "pixera", "novastar", "grandshow"]
+    },
+    {
+      id: "rx",
+      name: "接收卡与箱体",
+      en: "Receiving card",
+      fail: "配屏文件和切片清单对不上，几何对了相位也对不齐。",
+      body: "诺瓦 / 卡莱特垂直整合的价值在这里：播控可读连接关系文件，降低配屏成本。这是产品策略，不是 L2/L3 同步策略。",
+      vendors: ["novastar", "novastar-mx", "grandshow", "kommander", "brompton"]
+    },
+    {
+      id: "cabinet",
+      name: "箱体扫出",
+      en: "Panel refresh",
+      fail: "摄像机看得到滚动黑条，墙边肉眼却不一定看见。",
+      body: "箱体刷新要和输入帧率成整数倍。Tessera 手册写：输入帧率与参考不一致时会加倍或丢帧；关键同步必须让输入帧率等于参考。",
+      vendors: ["brompton", "novastar-mx", "disguise", "pixera"]
+    }
+  ],
+
+  rack: [
+    { id: "kommander", gpu: "F30：3×Quadro", sync: "Quadro Sync II（规格书）", heads: "9×DP + 3×Type-C", capture: "NDI；SDI 选配", license: "加密授权", h26x: "yes", prores: "unknown", seq: "partial", live: "yes", evidence: "B" },
+    { id: "novastar", gpu: "工作站多显卡（FX1 起优化）", sync: "未公开强制 Sync 卡", heads: "随控制器带载", capture: "云端素材 / 图片直播", license: "临时/永久授权", h26x: "yes", prores: "unknown", seq: "yes", live: "partial", evidence: "A" },
+    { id: "hirender", gpu: "S3 宣传 6 路 4K", sync: "联机帧同步需 Sync II（A）", heads: "多 DP，网格拼接", capture: "采集卡、NDI", license: "加密锁", h26x: "yes", prores: "unknown", seq: "unknown", live: "yes", evidence: "A" },
+    { id: "grandshow", gpu: "CS20-8K / CS16K 一体机", sync: "GrandShow Sync，卡型未写", heads: "点对点多口", capture: "Pad 回显", license: "加密狗", h26x: "yes", prores: "unknown", seq: "yes", live: "partial", evidence: "C" },
+    { id: "hecoos", gpu: "OpenGL / Direct3D 工作站", sync: "未公开", heads: "Studio 默认不出画", capture: "设备库采集", license: "会员 / 输出模块分档", h26x: "partial", prores: "unknown", seq: "unknown", live: "unknown", evidence: "B" },
+    { id: "disguise", gpu: "gx / vx 专业机", sync: "Sync Card；Solo 只能内部锁", heads: "多头 Framelock", capture: "VFC / IP-VFC", license: "节点许可", h26x: "yes", prores: "yes", seq: "yes", live: "yes", evidence: "A" },
+    { id: "watchout", gpu: "WATCHPAX 或自建机", sync: "Hardware Sync Group + NVIDIA Sync", heads: "Runner 多口；SDI 可另开 Genlock", capture: "NDI、ST 2110", license: "软件许可", h26x: "yes", prores: "partial", seq: "yes", live: "yes", evidence: "A" },
+    { id: "vmeet", gpu: "SG-C32 等超高分服务器", sync: "未公开卡型", heads: "宣传 32 路 4K 级", capture: "NDI", license: "软硬件一体", h26x: "yes", prores: "yes", seq: "yes", live: "yes", evidence: "C" },
+    { id: "pixera", gpu: "four 等官方机预装", sync: "Quadro Sync II，CAT 直连", heads: "LED remap 进常规口", capture: "Spout、Live", license: "Director / Client", h26x: "yes", prores: "yes", seq: "partial", live: "yes", evidence: "A" },
+    { id: "7thsense", gpu: "多 GPU + Sync 卡", sync: "Quadro Sync II BNC house-sync", heads: "多口 output locking", capture: "LTC 作时间线", license: "一体机许可", h26x: "partial", prores: "yes", seq: "yes", live: "partial", evidence: "A" },
+    { id: "hippotizer", gpu: "Hippotizer 系列机", sync: "主功能页未展开", heads: "VideoMapper 多分辨率", capture: "CITP / 媒体网", license: "加密狗", h26x: "yes", prores: "partial", seq: "unknown", live: "partial", evidence: "B" },
+    { id: "resolume", gpu: "单机消费/专业卡", sync: "不是这条路", heads: "Advanced Output 切片", capture: "Spout / Syphon", license: "软件许可", h26x: "yes", prores: "partial", seq: "no", live: "yes", evidence: "A" },
+    { id: "ndisplay", gpu: "同规格 NVIDIA 专业卡", sync: "Quadro Sync II + Render Sync Nvidia(2)", heads: "Mosaic 合成主显示", capture: "引擎视口，非播控解码", license: "UE", h26x: "no", prores: "no", seq: "no", live: "partial", evidence: "A" },
+    { id: "touchdesigner", gpu: "多 GPU 自建", sync: "外挂，非产品化", heads: "自定义", capture: "NDI、Spout", license: "Commercial 许可", h26x: "partial", prores: "partial", seq: "partial", live: "yes", evidence: "B" },
+    { id: "pandoras", gpu: "P4000 / RTX A4000 / RTX 6000", sync: "可选 NVIDIA Sync；多 GPU Mosaic 需要", heads: "Server 多口", capture: "SDI / HDMI 输入卡", license: "软件 + 加密", h26x: "yes", prores: "partial", seq: "partial", live: "yes", evidence: "A" },
+    { id: "screenberry", gpu: "自建媒体服务器", sync: "帮助页未写 Quadro 菊花链", heads: "多 Canvas / Display 节点", capture: "NDI 等节点", license: "Server + Panel", h26x: "yes", prores: "partial", seq: "unknown", live: "partial", evidence: "A" },
+    { id: "brompton", gpu: "无（处理器）", sync: "Bi/Tri-level 或视频输入 genlock", heads: "10GbE 到灯具", capture: "HDMI / 12G-SDI", license: "处理器固件", h26x: "no", prores: "no", seq: "no", live: "yes", evidence: "A" },
+    { id: "novastar-mx", gpu: "无（处理器）", sync: "Genlock IN/LOOP：Bi/Tri-level、Blackburst（A）", heads: "20×网口 + 4×10G 光", capture: "HDMI 2.0 / DP 1.2 / 12G-SDI", license: "控制器固件", h26x: "no", prores: "no", seq: "no", live: "yes", evidence: "A" }
+  ],
+
+  tears: [
+    {
+      id: "ntp-only",
+      name: "只 NTP，无帧计数",
+      grade: "A",
+      symptom: "节目进度齐，相邻箱体整帧错位。",
+      body: "WATCHOUT：NTP 把钟拉到约 1 ms，GPU 仍各自扫出。LED 处理器上看就是撕缝。必须把计时源切到同步卡帧计数。",
+      vendors: ["watchout", "7thsense", "hirender", "pixera", "ndisplay"],
+      layers: ["wallClock", "frameId"]
+    },
+    {
+      id: "genlock-no-id",
+      name: "有 Genlock，无 frame identity",
+      grade: "A",
+      symptom: "相位锁住了，内容仍差一帧。",
+      body: "Genlock 只回答「何时开始扫」。WATCHOUT 与 disguise 的 tearing 诊断都把「集群渲染了不同帧」单列。缺 swap barrier / 帧计数就会整帧错位。",
+      vendors: ["watchout", "disguise", "ndisplay", "pixera"],
+      layers: ["frameId", "scanout"]
+    },
+    {
+      id: "director-out",
+      name: "Director 出画却不进 Sync 组",
+      grade: "A",
+      symptom: "预监或控制机自己先撕，显示端是齐的。",
+      body: "PIXERA：Director 若也出画必须进同步组。disguise Dedicated Director 多机时也建议 genlock。控制面默认不应出画。",
+      vendors: ["pixera", "disguise", "watchout"],
+      layers: ["scanout"]
+    },
+    {
+      id: "proc-free",
+      name: "处理器未进同一 house-sync",
+      grade: "A",
+      symptom: "服务器锁了，摄像机或箱体接缝仍撕。",
+      body: "LED 处理器、摄像机必须进同一基准。Brompton：多处理器要 genlock 到同一源或互相锁，并匹配端到端延迟。disguise / PIXERA VP 路径写明处理器要能收 genlock。",
+      vendors: ["brompton", "novastar-mx", "disguise", "pixera", "watchout"],
+      layers: ["scanout"]
+    },
+    {
+      id: "mosaic-edid",
+      name: "Mosaic / EDID / 刷新不一致",
+      grade: "A",
+      symptom: "同步组加不进去，或加进去后随机撕。",
+      body: "PIXERA：分辨率、刷新、EDID 必须一致。nDisplay：Mosaic 拼桌面，PresentMode 需 Independent Flip。Pandoras Box：多 GPU Mosaic 需要 Sync 卡把虚拟桌面锁在一起。",
+      vendors: ["pixera", "ndisplay", "pandoras", "watchout"],
+      layers: ["scanout"]
+    },
+    {
+      id: "backup-cut",
+      name: "主备切错了对象",
+      grade: "B",
+      symptom: "切备后工程丢了，或只镜像了桌面没锁帧。",
+      body: "国内常见主备实时同步输出（Kommander / HiRender）。disguise 是 Director / Understudy。WATCHOUT 是多 Runner，不是镜像桌面。Backup 同步的是操作与工程，不要把 Sync 网接到交换机上。",
+      vendors: ["kommander", "hirender", "disguise", "watchout", "grandshow"],
+      layers: ["wallClock"]
+    },
+    {
+      id: "leader-down",
+      name: "Leader 挂了全组停",
+      grade: "A",
+      symptom: "不是热备失败，是计时源丢失。",
+      body: "7thSense Timing Group：Leader 广播 playhead，Follower 跟帧。Leader 挂了则全组停。这是架构取舍，不要拿国内主备桌面模型去套。",
+      vendors: ["7thsense"],
+      layers: ["wallClock", "frameId"]
+    }
+  ],
+
+  scenes: [
+    {
+      id: "expo",
+      name: "展厅长卷",
+      body: "超宽矩形、点对点、计划任务。垂直整合和预案切点更重要。",
+      vendors: ["novastar", "grandshow", "kommander", "hirender", "watchout"]
+    },
+    {
+      id: "tour",
+      name: "巡演 LED",
+      body: "每天拆装、对象映射、控台联动。3D 舞台 + genlock 处理器是主路径。",
+      vendors: ["disguise", "pixera", "pandoras", "hippotizer", "brompton", "novastar-mx"]
+    },
+    {
+      id: "xr",
+      name: "XR 虚拟制片",
+      body: "摄像机、跟踪、LED 处理器、服务器必须同 genlock。nDisplay 是渲染集群，不是时间线播控。",
+      vendors: ["disguise", "pixera", "ndisplay", "brompton", "novastar-mx"]
+    },
+    {
+      id: "dome",
+      name: "球幕 / 隧道",
+      body: "几何以模型 + UV 为源。国内球幕对照是 VMEET；主题公园长时间循环看 7thSense。",
+      vendors: ["vmeet", "7thsense", "grandshow", "hecoos", "screenberry"]
+    },
+    {
+      id: "facade",
+      name: "楼宇亮化",
+      body: "分辨率极高、刷新可以更低。序列帧与计划任务常见，硬同步文档往往最薄。",
+      vendors: ["vmeet", "grandshow", "resolume", "hippotizer"]
+    }
+  ],
+
+  controlHeat: {
+    kommander: { artnet: "yes", osc: "yes", midi: "yes", ltc: "yes", ndi: "yes", spout: "yes", udp: "yes" },
+    novastar: { artnet: "unknown", osc: "unknown", midi: "unknown", ltc: "partial", ndi: "unknown", spout: "no", udp: "yes" },
+    hirender: { artnet: "yes", osc: "unknown", midi: "unknown", ltc: "partial", ndi: "yes", spout: "unknown", udp: "partial" },
+    grandshow: { artnet: "partial", osc: "unknown", midi: "partial", ltc: "partial", ndi: "unknown", spout: "no", udp: "yes" },
+    hecoos: { artnet: "yes", osc: "unknown", midi: "unknown", ltc: "partial", ndi: "unknown", spout: "no", udp: "yes" },
+    disguise: { artnet: "yes", osc: "yes", midi: "yes", ltc: "yes", ndi: "partial", spout: "no", udp: "partial" },
+    watchout: { artnet: "partial", osc: "partial", midi: "partial", ltc: "yes", ndi: "yes", spout: "no", udp: "yes" },
+    vmeet: { artnet: "unknown", osc: "unknown", midi: "unknown", ltc: "unknown", ndi: "yes", spout: "no", udp: "yes" },
+    pixera: { artnet: "yes", osc: "partial", midi: "unknown", ltc: "partial", ndi: "partial", spout: "yes", udp: "partial" },
+    "7thsense": { artnet: "partial", osc: "unknown", midi: "unknown", ltc: "yes", ndi: "unknown", spout: "no", udp: "partial" },
+    hippotizer: { artnet: "yes", osc: "yes", midi: "yes", ltc: "yes", ndi: "partial", spout: "no", udp: "yes" },
+    resolume: { artnet: "yes", osc: "yes", midi: "yes", ltc: "no", ndi: "partial", spout: "yes", udp: "no" },
+    ndisplay: { artnet: "no", osc: "partial", midi: "no", ltc: "no", ndi: "no", spout: "no", udp: "no" },
+    touchdesigner: { artnet: "yes", osc: "yes", midi: "yes", ltc: "partial", ndi: "yes", spout: "yes", udp: "partial" },
+    pandoras: { artnet: "yes", osc: "partial", midi: "yes", ltc: "yes", ndi: "partial", spout: "no", udp: "partial" },
+    screenberry: { artnet: "unknown", osc: "partial", midi: "yes", ltc: "partial", ndi: "partial", spout: "no", udp: "yes" },
+    brompton: { artnet: "yes", osc: "no", midi: "no", ltc: "no", ndi: "no", spout: "no", udp: "no" },
+    "novastar-mx": { artnet: "unknown", osc: "no", midi: "no", ltc: "no", ndi: "no", spout: "no", udp: "partial" }
+  },
+
   uiArchetypes: [
     {
       id: "window",
@@ -606,6 +823,121 @@ window.SURVEY = {
       evidence: "B",
       sources: [
         { t: "Derivative 产品定位（公开站点）", u: "https://derivative.ca/" }
+      ]
+    },
+    {
+      id: "pandoras",
+      name: "Pandoras Box",
+      also: "Christie Widget Designer",
+      company: "Christie / Coolux",
+      region: "int",
+      depth: "compare",
+      role: "server",
+      product: "Pandoras Box Server；可选 NVIDIA Sync 卡",
+      positioning: "巡演与固定装置媒体服务器。帮助文件把 Mosaic 与 Sync 卡的关系写清楚：多 GPU 拼虚拟桌面必须靠同步卡。",
+      topology: "Server + Widget Designer。多机用 Sync 卡 Frame Lock，可跟外部 house-sync。",
+      single: "多 GPU Mosaic 需要 Sync 卡把各卡显示锁在一起。",
+      multi: "RJ45 菊花链 Frame Lock；BNC 收外部 genlock。NVIDIA 控制面板选 house sync，频率必须匹配刷新。",
+      sync: { wallClock: "软件时间线 / SMPTE 链路（B）", frameId: "Frame Lock 像素行级同步（A 帮助页）", scanout: "NVIDIA Sync；可锁 house-sync（A）", transport: "无作为主路径" },
+      backup: "现场双机常见，不是文档一级热备模型。",
+      irregular: "3D 对象与投影校准是传统强项；LED 墙走输出映射。",
+      coupling: "硬件中立。",
+      control: "DMX、SMPTE、MIDI、Net Link",
+      mapping: ["slice2d", "map3d"],
+      heat: { ntp: "partial", quadro: "yes", genlock: "yes", ptp: "no", map3d: "partial", slice2d: "yes", backup: "partial", vertical: "no" },
+      layers: ["wallClock", "frameId", "scanout"],
+      mappingStage: [3, 4, 5],
+      evidence: "A",
+      evidenceNote: "对照样本。帮助页可复核 Sync 卡与 Frame Lock，用来钉「Mosaic 需要同步卡」。",
+      sources: [
+        { t: "Pandoras Box Sync Card", u: "https://pandorasboxhelpfile.com/home/sync-card.htm" },
+        { t: "Setting up Frame Lock", u: "https://pandorasboxhelpfile.com/home/setting-up-frame-lock_nvidia.htm" }
+      ]
+    },
+    {
+      id: "screenberry",
+      name: "Screenberry",
+      also: "Screenberry Server / Panel",
+      company: "Screenberry",
+      region: "int",
+      depth: "compare",
+      role: "server",
+      product: "节点式多屏播放与投影 mapping",
+      positioning: "穹顶、舞台屏、多媒体装置。帮助文档把播放同步政策写成音视频对齐，不是 GPU present barrier。",
+      topology: "媒体服务器 + 操作端；可一对多管理。",
+      single: "Canvas / Display 节点；LED Stripes Mapper、Dome Transform。",
+      multi: "多服务器由一台 Operator 管理。帮助页未把 Quadro 菊花链写成产品步骤。",
+      sync: { wallClock: "Playback Sync Policy：片源 / 声卡 / 系统钟（A）", frameId: "未检索到 swap barrier 专章", scanout: "未在帮助首页展开 NVIDIA Sync", transport: "无" },
+      backup: "未作为主卖点。",
+      irregular: "Bezier / 三角网格 warp、穹顶变换、3D Scene 投影。偏 mapping 工具链。",
+      coupling: "中立。",
+      control: "JSON API、MIDI、时间线标记",
+      mapping: ["slice2d", "proj3d"],
+      heat: { ntp: "partial", quadro: "unknown", genlock: "unknown", ptp: "no", map3d: "partial", slice2d: "yes", backup: "unknown", vertical: "no" },
+      layers: ["wallClock"],
+      mappingStage: [2, 3, 4],
+      evidence: "A",
+      evidenceNote: "放入矩阵是为了区分「多屏播放软件」和「超分辨 LED 硬同步播控」。音画同步政策 ≠ 箱体帧锁。",
+      sources: [
+        { t: "Screenberry Overview", u: "https://help.screenberry.com/getting-started/screenberry-overview.en" },
+        { t: "Media Player Sync Policy", u: "https://help.screenberry.com/node-reference/primary-nodes/mediaplayer.en" }
+      ]
+    },
+    {
+      id: "brompton",
+      name: "Brompton Tessera",
+      also: "SX40 / S8 / T1 LED Processor",
+      company: "Brompton Technology",
+      region: "int",
+      depth: "compare",
+      role: "processor",
+      product: "Tessera LED 处理器，不是媒体服务器",
+      positioning: "钉「屏端同步」。巡演 LED 和 XR 的处理器侧事实标准之一。不能替代播控机上的 NVIDIA Sync。",
+      topology: "处理器收 HDMI/SDI，10GbE 到灯具。多处理器必须 genlock 到同一参考并匹配端到端延迟。",
+      single: "从视频输入一直 genlock 到灯珠刷新；支持 23.98–250 Hz。",
+      multi: "锁到视频输入、Bi/Tri-level，或互相锁。输入帧率与参考不一致会加倍或丢帧。",
+      sync: { wallClock: "跟输入或外参考（A）", frameId: "输入与参考不一致会丢/加倍帧（A）", scanout: "面板刷新为输入帧率整数倍；Phase Offset 可移摄像条纹（A）", transport: "无" },
+      backup: "处理器冗余取决于系统集成，不是播控主备。",
+      irregular: "接收卡与模组侧校正；几何仍由上游播控或 mapping 完成。",
+      coupling: "灯具生态绑定 Brompton 接收卡。",
+      control: "eDMX / Tessera Control",
+      mapping: ["slice2d"],
+      heat: { ntp: "no", quadro: "no", genlock: "yes", ptp: "no", map3d: "no", slice2d: "partial", backup: "no", vertical: "yes" },
+      layers: ["frameId", "scanout"],
+      mappingStage: [5],
+      evidence: "A",
+      evidenceNote: "不是播控。用来说明：GPU 锁住之后，处理器仍要进同一 house-sync，否则摄像机和箱体照样撕。",
+      sources: [
+        { t: "Tessera Genlock Settings", u: "https://www.bromptontech.com/online-help/Content/Tessera%20User%20Manual/03.%20Features/12.3.1%20-%20Genlock.htm" },
+        { t: "Genlock 产品说明", u: "https://www.bromptontech.com/features/genlock/" }
+      ]
+    },
+    {
+      id: "novastar-mx",
+      name: "诺瓦 MX / COEX",
+      also: "MX40 Pro",
+      company: "西安诺瓦星云",
+      region: "cn",
+      depth: "compare",
+      role: "processor",
+      product: "COEX 系列 LED 显示控制器，不是媒体服务器",
+      positioning: "国内屏端同步样本。和 Brompton 同一层：收 GPU 的 HDMI/DP/SDI，再锁到箱体。不能替代 Kompass 播控机上的 GPU 锁。创凯等拼接器公开手册核不到 genlock 专章，不编造对照卡。",
+      topology: "控制器收视频输入，网口/光口到接收卡。多台可 Genlock 级联，最多约 20 台跟同一参考。",
+      single: "同步源可选当前输入、外置 Genlock、或内部钟。低延迟模式不能同时开 Genlock。",
+      multi: "Genlock IN/LOOP，Bi-level / Tri-level / Blackburst，23.98–60 Hz。未进同一参考时各控制器按内部钟扫，箱体接缝会撕。",
+      sync: { wallClock: "跟输入或外参考（A）", frameId: "同步源决定何时出帧；低延迟与 Genlock 互斥（A）", scanout: "Genlock 从输入锁到网口输出（A）", transport: "无" },
+      backup: "控制器冗余是系统集成问题，不是播控主备。",
+      irregular: "配屏与接收卡连接关系；几何仍由上游播控完成。",
+      coupling: "诺瓦接收卡生态。播控可读连接关系文件，仍不替代 GPU 锁。",
+      control: "VMP、以太网、AUX RS232",
+      mapping: ["slice2d"],
+      heat: { ntp: "no", quadro: "no", genlock: "yes", ptp: "no", map3d: "no", slice2d: "partial", backup: "no", vertical: "yes" },
+      layers: ["frameId", "scanout"],
+      mappingStage: [5],
+      evidence: "A",
+      evidenceNote: "不是播控。手册可复核 Genlock IN/LOOP。用来钉：国产发送卡垂直整合解决配屏，不解决播控机扫出相位。",
+      sources: [
+        { t: "MX40 Pro User Manual V1.5.0", u: "https://oss.novastar.tech/uploads/2025/10/MX40-Pro-LED-Display-Controller-User-Manual-V1.5.0.pdf" }
       ]
     }
   ],
