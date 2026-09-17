@@ -113,6 +113,103 @@
     });
   }
 
+  const archLabel = { window: "窗口 / 预案型", timeline: "时间线型", stage: "3D 舞台型" };
+  let activeArch = null;
+
+  function shotArches(shot) {
+    return [shot.arch].concat(shot.alsoArch || []);
+  }
+
+  function firstShotFor(vendorId) {
+    return (S.uiGallery || []).find((s) => s.vendorId === vendorId && s.file);
+  }
+
+  function applyUiArch() {
+    document.querySelectorAll(".arch-card").forEach((n) => {
+      const on = activeArch === n.dataset.arch;
+      n.classList.toggle("active", on);
+      n.setAttribute("aria-pressed", on ? "true" : "false");
+    });
+    document.querySelectorAll(".ui-shot").forEach((n) => {
+      const match = !activeArch || (n.dataset.arch || "").split(",").includes(activeArch);
+      n.classList.toggle("dim", !match);
+    });
+    document.querySelectorAll(".card").forEach((card) => {
+      const arches = (card.dataset.uiArch || "").split(",").filter(Boolean);
+      const hit = !activeArch || arches.includes(activeArch);
+      card.classList.toggle("ui-hit", !!activeArch && hit);
+      card.classList.toggle("ui-miss", !!activeArch && !hit);
+    });
+  }
+
+  function openLightbox(shot) {
+    const box = document.getElementById("ui-lightbox");
+    if (!box || !shot || !shot.file) return;
+    const img = box.querySelector("img");
+    const cap = box.querySelector("figcaption");
+    img.src = shot.file;
+    img.alt = shot.product + " 主界面";
+    cap.innerHTML =
+      `${shot.product} · ${archLabel[shot.arch] || shot.arch}` +
+      ` · ${(shot.zones || []).join(" / ")}` +
+      `<br>截自公开手册/帮助文档，版权归原厂商，仅作对照。` +
+      ` <a href="${shot.sourceUrl}" target="_blank" rel="noopener">${shot.sourceTitle}</a>`;
+    box.hidden = false;
+  }
+
+  function closeLightbox() {
+    const box = document.getElementById("ui-lightbox");
+    if (box) box.hidden = true;
+  }
+
+  function renderUiGallery() {
+    const root = document.getElementById("ui-gallery");
+    if (!root || !S.uiGallery) return;
+    S.uiGallery.forEach((shot) => {
+      const arches = shotArches(shot);
+      const btn = el("button", {
+        class: "ui-shot",
+        type: "button",
+        id: "shot-" + shot.id,
+        dataset: { arch: arches.join(","), vendor: shot.vendorId, shot: shot.id }
+      });
+      const zones = (shot.zones || []).join(" · ");
+      if (shot.file) {
+        btn.innerHTML =
+          `<img class="thumb" src="${shot.file}" alt="${shot.product} 主界面" />` +
+          `<div class="meta"><div class="kind">${archLabel[shot.arch] || shot.arch}</div>` +
+          `<h3>${shot.product}</h3><div class="zones">${zones}</div></div>`;
+        btn.addEventListener("click", () => openLightbox(shot));
+      } else {
+        btn.innerHTML =
+          `<div class="ui-ph">${shot.note || "公开页无独立主界面图，见布局示意"}</div>` +
+          `<div class="meta"><div class="kind">${archLabel[shot.arch] || shot.arch}</div>` +
+          `<h3>${shot.product}</h3><div class="zones">${zones}</div></div>`;
+        btn.addEventListener("click", () => {
+          document.querySelector(`.arch-card[data-arch="${shot.arch}"]`)?.scrollIntoView({ behavior: "smooth", block: "center" });
+        });
+      }
+      root.appendChild(btn);
+    });
+
+    document.querySelectorAll(".arch-card").forEach((card) => {
+      card.addEventListener("click", () => {
+        const id = card.dataset.arch;
+        activeArch = activeArch === id ? null : id;
+        applyUiArch();
+      });
+    });
+
+    const box = document.getElementById("ui-lightbox");
+    if (box) {
+      box.querySelector(".lightbox-close").addEventListener("click", closeLightbox);
+      box.addEventListener("click", (e) => { if (e.target === box) closeLightbox(); });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && !box.hidden) closeLightbox();
+      });
+    }
+  }
+
   function applyFilters() {
     document.querySelectorAll("#heat-table tbody tr").forEach((tr) => {
       const regionOk = state.region === "all" || tr.dataset.region === state.region;
@@ -132,12 +229,24 @@
     const root = document.getElementById("vendor-cards");
     S.vendors.forEach((v) => {
       const src = (v.sources || []).map((s) => `<a href="${s.u}" target="_blank" rel="noopener">${s.t}</a>`).join("");
+      const shot = firstShotFor(v.id);
       const card = el("article", {
         class: "card " + v.depth,
         id: "card-" + v.id,
-        dataset: { region: v.region, depth: v.depth, layers: (v.layers || []).join(",") }
+        dataset: {
+          region: v.region,
+          depth: v.depth,
+          layers: (v.layers || []).join(","),
+          uiArch: (v.uiArch || []).join(",")
+        }
       });
+      const thumb = shot
+        ? `<button class="card-thumb" type="button" data-shot="${shot.id}" aria-label="查看 ${v.name} 主界面">
+             <img src="${shot.file}" alt="${v.name} 主界面缩略图" />
+           </button>`
+        : "";
       card.innerHTML = `
+        ${thumb}
         <header>
           <div>
             <h3>${v.name}</h3>
@@ -163,6 +272,14 @@
           <dt>证据说明</dt><dd>${v.evidenceNote || "见出处。"}</dd>
         </dl>
         <div class="sources">${src}</div>`;
+      if (shot) {
+        card.querySelector(".card-thumb").addEventListener("click", (e) => {
+          e.stopPropagation();
+          const item = document.getElementById("shot-" + shot.id);
+          if (item) item.scrollIntoView({ behavior: "smooth", block: "center" });
+          openLightbox(shot);
+        });
+      }
       root.appendChild(card);
     });
   }
@@ -225,6 +342,12 @@
       { t: "NVIDIA Quadro Sync II User Guide", u: "https://images.nvidia.com/content/quadro/product-literature/user-guides/Quadro-Sync-II-User-Guide-v07.pdf" },
       { t: "WATCHOUT ST 2110 / PTP", u: "https://docs.dataton.com/guide/watchout/network-setup/st-2110-video-over-ip.html" }
     ].forEach((s) => { if (!seen.has(s.u)) list.push(s); });
+    (S.uiGallery || []).forEach((g) => {
+      if (g.sourceUrl && !seen.has(g.sourceUrl)) {
+        seen.add(g.sourceUrl);
+        list.push({ t: g.sourceTitle, u: g.sourceUrl });
+      }
+    });
     list.forEach((s) => {
       const li = document.createElement("li");
       li.innerHTML = `<a href="${s.u}" target="_blank" rel="noopener">${s.t}</a>`;
@@ -248,6 +371,7 @@
 
   renderLayers();
   renderSteps();
+  renderUiGallery();
   renderFilters();
   renderTable();
   renderVendors();
@@ -256,5 +380,6 @@
   renderPrinciples();
   renderSources();
   applyFilters();
+  applyUiArch();
   spyNav();
 })();

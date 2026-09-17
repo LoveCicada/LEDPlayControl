@@ -15,12 +15,13 @@
       <a href="#problem"><span class="nav-index">01</span>问题</a>
       <a href="#stack"><span class="nav-index">02</span>四层同步</a>
       <a href="#mapping"><span class="nav-index">03</span>异形切片</a>
-      <a href="#matrix"><span class="nav-index">04</span>对比矩阵</a>
-      <a href="#vendors"><span class="nav-index">05</span>厂商</a>
-      <a href="#patents"><span class="nav-index">06</span>专利</a>
-      <a href="#oss"><span class="nav-index">07</span>开源</a>
-      <a href="#build"><span class="nav-index">08</span>自研建议</a>
-      <a href="#refs"><span class="nav-index">09</span>出处</a>
+      <a href="#ui"><span class="nav-index">04</span>主界面</a>
+      <a href="#matrix"><span class="nav-index">05</span>对比矩阵</a>
+      <a href="#vendors"><span class="nav-index">06</span>厂商</a>
+      <a href="#patents"><span class="nav-index">07</span>专利</a>
+      <a href="#oss"><span class="nav-index">08</span>开源</a>
+      <a href="#build"><span class="nav-index">09</span>自研建议</a>
+      <a href="#refs"><span class="nav-index">10</span>出处</a>
     </div>
     <div class="legend">
       <b>证据</b><br />
@@ -141,8 +142,90 @@
       </div>
     </section>
 
+    <section id="ui">
+      <div class="sec-head"><span class="sec-num">04</span><h2>主界面对照</h2></div>
+      <p class="sec-lead">公开手册里的播控主界面其实是三种骨架。先点示意图过滤图库、高亮对应厂商；再看各家手册/帮助页抽出的主界面图。没有独立配图的不留破图。</p>
+
+      <div class="arch-grid" id="ui-archetypes">
+        <button type="button" class="arch-card" data-arch="window" aria-pressed="false">
+          <div class="en">Window / Plan</div>
+          <h3>窗口 / 预案型</h3>
+          <svg viewBox="0 0 320 188" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="320" height="188" fill="#0d1218"/>
+            <rect x="8" y="8" width="304" height="18" fill="#121922" stroke="#314557"/>
+            <text x="14" y="21" fill="#8c9aab" font-size="8" font-family="Microsoft YaHei UI, sans-serif">菜单 · 工具栏</text>
+            <rect x="8" y="30" width="70" height="86" fill="#121922" stroke="#3ad7c4"/>
+            <text x="16" y="48" fill="#3ad7c4" font-size="8" font-family="Microsoft YaHei UI, sans-serif">素材库</text>
+            <rect x="14" y="56" width="58" height="10" fill="#18222d"/>
+            <rect x="14" y="70" width="58" height="10" fill="#18222d"/>
+            <rect x="14" y="84" width="58" height="10" fill="#18222d"/>
+            <rect x="82" y="30" width="154" height="86" fill="#121922" stroke="#3ad7c4"/>
+            <rect x="90" y="38" width="64" height="36" fill="#18222d" stroke="#e2a73a"/>
+            <text x="108" y="60" fill="#e2a73a" font-size="8" font-family="Microsoft YaHei UI, sans-serif">PGM</text>
+            <rect x="162" y="38" width="64" height="36" fill="#18222d" stroke="#314557"/>
+            <text x="180" y="60" fill="#8c9aab" font-size="8" font-family="Microsoft YaHei UI, sans-serif">PVW</text>
+            <rect x="240" y="30" width="72" height="86" fill="#121922" stroke="#314557"/>
+            <text x="252" y="48" fill="#8c9aab" font-size="8" font-family="Microsoft YaHei UI, sans-serif">属性</text>
+            <rect x="8" y="120" width="304" height="60" fill="#121922" stroke="#e2a73a"/>
+            <text x="14" y="136" fill="#e2a73a" font-size="8" font-family="Microsoft YaHei UI, sans-serif">预案 / 节目格子</text>
+            <rect x="14" y="144" width="42" height="26" fill="#18222d" stroke="#3ad7c4"/>
+            <rect x="62" y="144" width="42" height="26" fill="#18222d"/>
+            <rect x="110" y="144" width="42" height="26" fill="#18222d"/>
+            <rect x="158" y="144" width="42" height="26" fill="#18222d"/>
+          </svg>
+          <p>素材库 + PGM/PVW + 预案列表 + 属性。Kompass、GrandShow、HiRender 窗口模式、Kommander 预案模式。</p>
+        </button>
+        <button type="button" class="arch-card" data-arch="timeline" aria-pressed="false">
+          <div class="en">Timeline</div>
+          <h3>时间线型</h3>
+          <svg viewBox="0 0 320 188" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="320" height="188" fill="#0d1218"/>
+            <rect x="8" y="8" width="304" height="16" fill="#121922" stroke="#314557"/>
+            <text x="14" y="19" fill="#8c9aab" font-size="8" font-family="Microsoft YaHei UI, sans-serif">菜单 / 资源 / 输出监看</text>
+            <rect x="8" y="28" width="64" height="78" fill="#121922" stroke="#314557"/>
+            <text x="16" y="46" fill="#8c9aab" font-size="8" font-family="Microsoft YaHei UI, sans-serif">资源</text>
+            <rect x="76" y="28" width="164" height="78" fill="#121922" stroke="#3ad7c4"/>
+            <text x="88" y="46" fill="#3ad7c4" font-size="8" font-family="Microsoft YaHei UI, sans-serif">画布 PGM · PVW</text>
+            <rect x="88" y="54" width="140" height="40" fill="#18222d"/>
+            <rect x="244" y="28" width="68" height="78" fill="#121922" stroke="#314557"/>
+            <text x="254" y="46" fill="#8c9aab" font-size="8" font-family="Microsoft YaHei UI, sans-serif">预案</text>
+            <rect x="8" y="110" width="304" height="70" fill="#121922" stroke="#e2a73a"/>
+            <text x="14" y="126" fill="#e2a73a" font-size="8" font-family="Microsoft YaHei UI, sans-serif">时间线编辑</text>
+            <rect x="48" y="134" width="252" height="8" fill="#18222d"/>
+            <rect x="48" y="146" width="180" height="8" fill="#3ad7c4" opacity="0.45"/>
+            <rect x="48" y="158" width="210" height="8" fill="#18222d"/>
+            <line x1="120" y1="128" x2="120" y2="174" stroke="#e2a73a"/>
+          </svg>
+          <p>多轨时间线贴底。Kommander 手册分区：菜单 / 资源 / PGM·PVW / 预案 / 时间线 / 输出监看。WATCHOUT Timeline、disguise Track Player 同层。</p>
+        </button>
+        <button type="button" class="arch-card" data-arch="stage" aria-pressed="false">
+          <div class="en">3D Stage</div>
+          <h3>3D 舞台型</h3>
+          <svg viewBox="0 0 320 188" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect width="320" height="188" fill="#0d1218"/>
+            <rect x="8" y="8" width="304" height="16" fill="#121922" stroke="#3ad7c4"/>
+            <text x="14" y="19" fill="#3ad7c4" font-size="8" font-family="Microsoft YaHei UI, sans-serif">Dashboard · Stage · Feed</text>
+            <rect x="8" y="28" width="236" height="100" fill="#121922" stroke="#e2a73a"/>
+            <polygon points="90,108 160,48 230,108" fill="#18222d" stroke="#e2a73a"/>
+            <rect x="132" y="62" width="56" height="32" fill="#0d1218" stroke="#3ad7c4"/>
+            <text x="18" y="44" fill="#e2a73a" font-size="8" font-family="Microsoft YaHei UI, sans-serif">Stage Visualiser</text>
+            <rect x="248" y="28" width="64" height="100" fill="#121922" stroke="#314557"/>
+            <text x="256" y="46" fill="#8c9aab" font-size="8" font-family="Microsoft YaHei UI, sans-serif">Inspector</text>
+            <rect x="8" y="132" width="304" height="48" fill="#121922" stroke="#3ad7c4"/>
+            <text x="14" y="148" fill="#3ad7c4" font-size="8" font-family="Microsoft YaHei UI, sans-serif">Timeline</text>
+            <rect x="48" y="156" width="240" height="10" fill="#18222d"/>
+            <rect x="80" y="156" width="70" height="10" fill="#3ad7c4" opacity="0.5"/>
+          </svg>
+          <p>中央 3D 舞台，时间线贴底。异形屏把几何放到画面中央，因为屏是舞台对象，不是一块矩形画布。disguise / PIXERA / hecoos / WATCHOUT Stage。</p>
+        </button>
+      </div>
+      <p class="caption">再点一次可取消筛选。三种骨架保证离线也能看懂；下方才是手册配图。</p>
+      <div class="ui-gallery" id="ui-gallery"></div>
+      <p class="caption">截自公开手册或帮助文档，版权归原厂商，仅作对照。未收录破解站截图。</p>
+    </section>
+
     <section id="matrix">
-      <div class="sec-head"><span class="sec-num">04</span><h2>对比矩阵</h2></div>
+      <div class="sec-head"><span class="sec-num">05</span><h2>对比矩阵</h2></div>
       <p class="sec-lead">实心青点 = 公开资料可确认；琥珀 = 部分/间接；空心 = 未检索到；暗点 = 明确不是这条路。点行可滚到对应厂商卡。点同步层可过滤。</p>
       <div class="filters" id="filters"></div>
       <div class="table-wrap">
@@ -155,25 +238,25 @@
     </section>
 
     <section id="vendors">
-      <div class="sec-head"><span class="sec-num">05</span><h2>厂商方案</h2></div>
+      <div class="sec-head"><span class="sec-num">06</span><h2>厂商方案</h2></div>
       <p class="sec-lead">深潜卡片带顶栏青线。对照样本用来把矩阵撑完整，并标出「看起来像播控、其实不是超分辨主路径」的产品。</p>
       <div class="cards" id="vendor-cards"></div>
     </section>
 
     <section id="patents">
-      <div class="sec-head"><span class="sec-num">06</span><h2>专利地图</h2></div>
+      <div class="sec-head"><span class="sec-num">07</span><h2>专利地图</h2></div>
       <p class="sec-lead">同步与几何分开列。本次检索未找到与 GrandShow Sync、KFS 同名的授权文本——页面如实写「未定位」，不把营销词补成专利号。</p>
       <div class="patents" id="patent-list"></div>
     </section>
 
     <section id="oss">
-      <div class="sec-head"><span class="sec-num">07</span><h2>开源项目</h2></div>
+      <div class="sec-head"><span class="sec-num">08</span><h2>开源项目</h2></div>
       <p class="sec-lead">没有一个开源仓库等于完整的超分辨 LED 播控产品。有用的部分是：集群 present 屏障、穹顶播放、UV 工具。WebSocket 软同步明确标为精度不够。</p>
       <div class="oss" id="oss-list"></div>
     </section>
 
     <section id="build">
-      <div class="sec-head"><span class="sec-num">08</span><h2>LEDPlayControl 可抄的分层</h2></div>
+      <div class="sec-head"><span class="sec-num">09</span><h2>LEDPlayControl 可抄的分层</h2></div>
       <p class="sec-lead">不是产品愿景，是把上面对照完之后仍然成立的约束写成第一版架构。ST 2110 / PTP 明确不做，除非目标改成广播级 IP 输出。</p>
       <div class="arch">
         <div>
@@ -232,7 +315,7 @@
     </section>
 
     <section id="refs">
-      <div class="sec-head"><span class="sec-num">09</span><h2>资料出处</h2></div>
+      <div class="sec-head"><span class="sec-num">10</span><h2>资料出处</h2></div>
       <p class="sec-lead">只使用公开页、PDF、Google Patents 与 GitHub。未登录厂商后台，未把未公开协议写成可实施步骤。</p>
       <ol class="sources-all" id="all-sources"></ol>
     </section>
@@ -240,6 +323,14 @@
     <footer>
       LEDPlayControl 调研页 · 2026-09-17 · 本地打开 research/led-playcontrol-survey/index.html · 结论随厂商改版失效，以出处原文为准。
     </footer>
+  </div>
+
+  <div id="ui-lightbox" class="lightbox" hidden>
+    <button type="button" class="lightbox-close" aria-label="关闭">×</button>
+    <figure>
+      <img alt="" />
+      <figcaption></figcaption>
+    </figure>
   </div>
 
   <script src="data.js"></script>

@@ -84,6 +84,129 @@ window.SURVEY = {
     { id: "vertical", label: "发送卡垂直整合" }
   ],
 
+  uiArchetypes: [
+    {
+      id: "window",
+      name: "窗口 / 预案型",
+      vendors: ["kommander", "novastar", "hirender", "grandshow"]
+    },
+    {
+      id: "timeline",
+      name: "时间线型",
+      vendors: ["kommander", "hirender", "watchout", "disguise"]
+    },
+    {
+      id: "stage",
+      name: "3D 舞台型",
+      vendors: ["disguise", "pixera", "hecoos", "watchout"]
+    }
+  ],
+
+  uiGallery: [
+    {
+      id: "kommander-window",
+      vendorId: "kommander",
+      product: "Kommander T3",
+      arch: "window",
+      file: "ui/kommander-main.webp",
+      zones: ["PGM/PVW", "素材库", "预案网格", "属性"],
+      sourceTitle: "USER MANUAL 2025 · Main Application Launch Interface",
+      sourceUrl: "https://www.kommander.com.cn/filespath/files/USER%20MANUAL%202025-%20Software.pdf"
+    },
+    {
+      id: "kommander-timeline",
+      vendorId: "kommander",
+      product: "Kommander T3",
+      arch: "timeline",
+      file: "ui/kommander-timeline.webp",
+      zones: ["时间线", "画布", "资源", "属性"],
+      sourceTitle: "USER MANUAL 2025 · Timeline mode",
+      sourceUrl: "https://www.kommander.com.cn/filespath/files/USER%20MANUAL%202025-%20Software.pdf"
+    },
+    {
+      id: "kompass-window",
+      vendorId: "novastar",
+      product: "Kompass FX3",
+      arch: "window",
+      file: "ui/kompass-main.webp",
+      zones: ["素材库", "舞台编辑", "节目管理", "Live/Pre-Edit"],
+      sourceTitle: "Kompass FX3 User Manual V3.13.0 · Figure 3-1 User interface",
+      sourceUrl: "https://oss.novastar.tech/uploads/2025/10/Kompass-FX3-Multimedia-Playback-Software-User-Manual-V3.13.0.pdf"
+    },
+    {
+      id: "grandshow-window",
+      vendorId: "grandshow",
+      product: "GrandShow",
+      arch: "window",
+      file: "ui/grandshow-main.webp",
+      zones: ["Resource", "Screen/Window", "Program", "Property"],
+      sourceTitle: "GrandShow User Manual V2.0 · Figure 4-2 Main interface",
+      sourceUrl: "https://buyledcard.com/led-soft-download/colorlight/Grandshow-UsermanualV2.0_1673836129.pdf?id=5052"
+    },
+    {
+      id: "hirender-window",
+      vendorId: "hirender",
+      product: "HiRender S2",
+      arch: "window",
+      file: "ui/hirender-main.webp",
+      zones: ["素材库", "舞台窗口", "节目管理", "属性"],
+      sourceTitle: "Hirender S2 用户使用手册 · 操作界面",
+      sourceUrl: "https://www.hirender.com/files/Hirender%20S2%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E%E4%B9%A6.pdf"
+    },
+    {
+      id: "hecoos-missing",
+      vendorId: "hecoos",
+      product: "hecoos Studio",
+      arch: "stage",
+      file: null,
+      zones: ["菜单", "舞台区", "左右停靠"],
+      note: "公开页无独立主界面图，见布局示意。Quick User Guide 原地址已 404。",
+      sourceTitle: "hecoos Quick User Guide（原 Interface layout 页）",
+      sourceUrl: "https://www.hecoos.com/download/Quick_User_Guide_en.pdf"
+    },
+    {
+      id: "disguise-ui",
+      vendorId: "disguise",
+      product: "disguise Designer",
+      arch: "stage",
+      file: "ui/disguise-main.webp",
+      zones: ["Dashboard", "Stage Visualiser", "Timeline", "Transport"],
+      sourceTitle: "Designer User Interface",
+      sourceUrl: "https://help.disguise.one/designer/ui/designer-user-interface"
+    },
+    {
+      id: "disguise-stage",
+      vendorId: "disguise",
+      product: "disguise Designer",
+      arch: "stage",
+      file: "ui/disguise-stage.webp",
+      zones: ["3D Stage", "Track Player", "Cue List"],
+      sourceTitle: "Designer User Interface · GUI",
+      sourceUrl: "https://help.disguise.one/designer/ui/designer-user-interface"
+    },
+    {
+      id: "watchout-main",
+      vendorId: "watchout",
+      product: "WATCHOUT 7 Producer",
+      arch: "timeline",
+      alsoArch: ["stage"],
+      file: "ui/watchout-main.webp",
+      zones: ["Stage", "Timeline", "Assets", "Properties", "Nodes"],
+      sourceTitle: "Producer User Interface",
+      sourceUrl: "https://docs.dataton.com/watchout-7/producer/doc.html"
+    },
+    {
+      id: "pixera-main",
+      vendorId: "pixera",
+      product: "PIXERA",
+      arch: "stage",
+      file: "ui/pixera-main.webp",
+      zones: ["Tabs", "Selection", "Workspace", "Inspector", "Timeline"],
+      sourceTitle: "User Interface Overview",
+      sourceUrl: "https://pixera.helpjuice.com/user-interface-/user-interface-overview"
+    }
+  ],
+
   vendors: [
     {
       id: "kommander",
@@ -106,6 +229,7 @@ window.SURVEY = {
       heat: { ntp: "partial", quadro: "yes", genlock: "unknown", ptp: "no", map3d: "partial", slice2d: "yes", backup: "yes", vertical: "partial" },
       layers: ["wallClock", "frameId", "scanout"],
       mappingStage: [1, 4, 5],
+      uiArch: ["window", "timeline"],
       evidence: "B",
       evidenceNote: "软件能力来自官网与手册（KFS、主备、虚拟屏为官方表述）。F30 规格书列出 Quadro Sync II，属硬件可推断，KFS 是否完全依赖该卡未写明。",
       sources: [
@@ -135,6 +259,7 @@ window.SURVEY = {
       heat: { ntp: "partial", quadro: "unknown", genlock: "unknown", ptp: "no", map3d: "no", slice2d: "yes", backup: "partial", vertical: "yes" },
       layers: ["wallClock", "frameId"],
       mappingStage: [4, 5],
+      uiArch: ["window"],
       evidence: "A",
       evidenceNote: "版本说明来自诺瓦下载中心。多设备同步校准专利可复核；专利是否等于 Kompass 运行时实现不能从公开页直接画等号。",
       sources: [
@@ -164,6 +289,7 @@ window.SURVEY = {
       heat: { ntp: "partial", quadro: "yes", genlock: "unknown", ptp: "no", map3d: "partial", slice2d: "yes", backup: "yes", vertical: "no" },
       layers: ["wallClock", "frameId", "scanout"],
       mappingStage: [3, 4, 5],
+      uiArch: ["window", "timeline"],
       evidence: "A",
       evidenceNote: "联机帧同步依赖 Sync II 来自 S3 4.5.0 版本说明，是国内少数把卡型写进更新日志的厂商。",
       sources: [
@@ -193,6 +319,7 @@ window.SURVEY = {
       heat: { ntp: "partial", quadro: "unknown", genlock: "unknown", ptp: "no", map3d: "yes", slice2d: "yes", backup: "partial", vertical: "yes" },
       layers: ["wallClock", "frameId"],
       mappingStage: [1, 2, 3, 4, 5],
+      uiArch: ["window"],
       evidence: "C",
       evidenceNote: "Sync 与 Mapping 工作流来自官网与投影时代报道。帧同步实现细节、专利号在本次公开检索中未定位到与 GrandShow Sync 同名的授权文本。",
       sources: [
@@ -223,6 +350,7 @@ window.SURVEY = {
       heat: { ntp: "partial", quadro: "unknown", genlock: "unknown", ptp: "no", map3d: "yes", slice2d: "partial", backup: "unknown", vertical: "no" },
       layers: ["wallClock"],
       mappingStage: [1, 2, 3, 5],
+      uiArch: ["stage"],
       evidence: "B",
       evidenceNote: "产品结构来自官网 Quick Guide 与澜景介绍。多机硬同步不是其公开文档的核心章节。",
       sources: [
@@ -251,6 +379,7 @@ window.SURVEY = {
       heat: { ntp: "partial", quadro: "yes", genlock: "yes", ptp: "yes", map3d: "yes", slice2d: "partial", backup: "yes", vertical: "no" },
       layers: ["wallClock", "frameId", "scanout", "transport"],
       mappingStage: [1, 2, 3, 4, 5],
+      uiArch: ["stage", "timeline"],
       evidence: "A",
       evidenceNote: "帮助文档可逐条复核，是本页同步分层的主要锚点之一。",
       sources: [
@@ -280,6 +409,7 @@ window.SURVEY = {
       heat: { ntp: "yes", quadro: "yes", genlock: "yes", ptp: "yes", map3d: "partial", slice2d: "yes", backup: "partial", vertical: "no" },
       layers: ["wallClock", "frameId", "scanout", "transport"],
       mappingStage: [3, 4, 5],
+      uiArch: ["timeline", "stage"],
       evidence: "A",
       evidenceNote: "本页「Genlock ≠ 内容帧同步」的直接出处。",
       sources: [
@@ -337,6 +467,7 @@ window.SURVEY = {
       heat: { ntp: "partial", quadro: "yes", genlock: "yes", ptp: "no", map3d: "yes", slice2d: "yes", backup: "partial", vertical: "no" },
       layers: ["wallClock", "frameId", "scanout"],
       mappingStage: [1, 4, 5],
+      uiArch: ["stage"],
       evidence: "A",
       sources: [
         { t: "Director-Client", u: "https://help.pixera.one/en_US/project-management/manager-client-setup" },
