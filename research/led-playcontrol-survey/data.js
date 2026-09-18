@@ -1,5 +1,5 @@
 window.SURVEY = {
-  generated: "2026-09-17",
+  generated: "2026-09-18",
   note: "仅基于公开官网、手册、专利与 GitHub。营销词与手册可复核事实分开标注。",
 
   layers: [
@@ -11,7 +11,7 @@ window.SURVEY = {
       question: "现在是哪一秒？",
       typical: "NTP、LTC、厂商时码包",
       precision: "毫秒级，够对齐节目，不够锁相邻箱体扫出相位",
-      body: "节点系统钟或播放头对齐。WATCHOUT 默认由 Director 当 NTP 源，偏移通常在 1 ms 内；超过约 100 ms 会自动 resync。7thSense 用 Leader 广播时间线位置；Hippotizer 用 HippoNet 分发时码。这一层解决「节目进度一致」，不解决「GPU 何时扫出这一帧」。"
+      body: "节点系统钟或播放头对齐。WATCHOUT 默认由 Director 当 NTP 源，偏移通常在 1 ms 内；超过约 100 ms 会自动 resync。7thSense 用 Leader 广播时间线位置；Hippotizer 用 HippoNet 分发时码。LTC 也落在这一层：它只能拉播放头，源自己还要 genlock，否则长节目会漂。接收侧必须校验、飞轮、迟滞锁定，不能把毛刺帧直接当成 playhead。这一层解决「节目进度一致」，不解决「GPU 何时扫出这一帧」。"
     },
     {
       id: "frameId",
@@ -31,7 +31,7 @@ window.SURVEY = {
       question: "何时开始扫这一帧？",
       typical: "NVIDIA Quadro Sync II / RTX PRO Sync、外置 house-sync、GPU Framelock",
       precision: "亚帧级。菊花链 RJ45 不能走交换机，不是以太网",
-      body: "Genlock 把各机刷新锁定到外部基准（BlackBurst / Tri-Level / house-sync）；Framelock 把同机或多机输出锁到内部时序。NVIDIA 同步卡用 CAT5 直连，明确不兼容 TCP/IP。7thSense 更推荐 BNC 注入 house-sync 而不是 RJ45 framelock。LED 处理器、摄像机也必须进同一基准，否则服务器锁了、屏端仍撕。"
+      body: "Genlock 把各机刷新锁定到外部基准（BlackBurst / Tri-Level / house-sync）；Framelock 把同机或多机输出锁到内部时序。NVIDIA 同步卡用 CAT5 直连，明确不兼容 TCP/IP。Quadro Sync II 与 RTX PRO Sync 是同一块板的更名，规则不变。7thSense 更推荐 BNC 注入 house-sync 而不是 RJ45 framelock。LED 处理器、摄像机也必须进同一基准，否则服务器锁了、屏端仍撕。"
     },
     {
       id: "transport",
@@ -71,6 +71,157 @@ window.SURVEY = {
       name: "同步播出",
       body: "切片没有帧同步会在接缝撕开。几何与同步是两条独立链路，必须同时成立。"
     }
+  ],
+
+  syncLineage: [
+    { name: "G-Sync / G-Sync II", era: "Kepler 时代", note: "用户给的中文安装 PDF 是这一代（DU-02796），适配 Quadro 6000 / 5000 / FX 5800 / 4800，不是今天的 Sync II。" },
+    { name: "Quadro Sync", era: "过渡代", note: "Maxwell 前后的同步卡。Sync II 不兼容更老的 GPU 代际。" },
+    { name: "Quadro Sync II", era: "Pascal 及以后", note: "4 GPU / 卡，2 卡 / 机，双 RJ45 Frame Lock，BNC house-sync。现役媒体服务器手册仍大量写这个名字。" },
+    { name: "RTX PRO Sync", era: "2025 起更名", note: "同一块板。官方 FAQ：功能等价。新机器按这个名字买和刷固件。" }
+  ],
+
+  hardwareGallery: [
+    {
+      id: "sync-ii-card",
+      group: "nvidia",
+      product: "Quadro Sync II",
+      file: "hw/quadro-sync-ii.svg",
+      caption: "挡板：BNC house-sync + 双 RJ45 Frame Lock。顶缘 5 路排线接 GPU SYNC 口。",
+      zones: ["BNC", "RJ45", "GPU SYNC", "供电"],
+      sourceTitle: "NVIDIA Quadro Sync II User Guide",
+      sourceUrl: "https://images.nvidia.com/content/quadro/product-literature/user-guides/Quadro-Sync-II-User-Guide-v07.pdf"
+    },
+    {
+      id: "sync-ii-install",
+      group: "nvidia",
+      product: "Sync II 安装",
+      file: "hw/quadro-sync-ii-install.svg",
+      caption: "空 PCIe 槽露出挡板，排线接到 GPU 的 SYNC，再接 6-pin 或 SATA。双卡必须走 CON0。",
+      zones: ["PCIe 槽", "SYNC 口", "供电", "CON0"],
+      sourceTitle: "Quadro Sync II Quick Start Guide",
+      sourceUrl: "https://www.nvidia.com/content/dam/en-zz/Solutions/design-visualization/quadro-product-literature/176-0308-100-quadro-sync-ii-qsg-ww-133x177-8mm-20170720-r7-hr.pdf"
+    },
+    {
+      id: "sync-ii-framelock",
+      group: "nvidia",
+      product: "Frame Lock 菊花链",
+      file: "hw/quadro-sync-ii-framelock.svg",
+      caption: "CAT5 直连 Timing Server 到 Client。禁止进交换机。不是 TCP/IP。",
+      zones: ["CAT5", "P1-P2", "禁交换机"],
+      sourceTitle: "RTX PRO Sync User Guide DU-08348-001_v09",
+      sourceUrl: "https://images.nvidia.com/aem-dam/Solutions/design-visualization/quadro-product-literature/nvidia-rtx-pro-sync-user-guide.pdf"
+    },
+    {
+      id: "rtx-pro-sync",
+      group: "nvidia",
+      product: "RTX PRO Sync",
+      file: "hw/rtx-pro-sync.svg",
+      caption: "官方：RTX PRO Sync 是 Sync II 的更名，板卡架构与功能不变。",
+      zones: ["更名", "Blackwell 列表", "固件 3.06"],
+      sourceTitle: "NVIDIA RTX PRO Sync Firmware",
+      sourceUrl: "https://www.nvidia.com/en-us/drivers/firmware/rtx-pro-sync-firmware-driver/"
+    },
+    {
+      id: "bmd-sync-gen",
+      group: "genlock",
+      product: "Mini Converter Sync Generator",
+      file: "hw/bmd-sync-generator.svg",
+      caption: "6 路晶振锁定 BNC：HD Tri-Sync 或 SD BlackBurst。house-sync 的源头。",
+      zones: ["6x BNC", "Tri-Sync", "BlackBurst"],
+      sourceTitle: "Blackmagic Mini Converter Sync Generator 规格",
+      sourceUrl: "https://www.blackmagicdesign.com/api/print/to-pdf/products/miniconverters/techspecs/W-CONM-15?filename=mini-converter-sync-generator-techspecs.pdf"
+    },
+    {
+      id: "mx40-genlock",
+      group: "genlock",
+      product: "MX40 Pro GENLOCK",
+      file: "hw/mx40-genlock.svg",
+      caption: "IN 收参考，LOOP 到下一台。低延迟与 Genlock 互斥。约 20 台级联。",
+      zones: ["IN", "LOOP", "23.98-60 Hz"],
+      sourceTitle: "MX40 Pro User Manual V1.5.0",
+      sourceUrl: "https://oss.novastar.tech/uploads/2025/10/MX40-Pro-LED-Display-Controller-User-Manual-V1.5.0.pdf"
+    },
+    {
+      id: "house-sync-chain",
+      group: "genlock",
+      product: "House-sync 全链路",
+      file: "hw/house-sync-chain.svg",
+      caption: "发生器同时进 Sync 卡 BNC 和处理器 Genlock IN。RJ45 只锁 GPU 集群。",
+      zones: ["发生器", "Sync BNC", "处理器 IN", "箱体"],
+      sourceTitle: "disguise Genlock Configuration",
+      sourceUrl: "https://help.disguise.one/designer/configuration/genlock-configuration"
+    }
+  ],
+
+  wireProtocols: [
+    {
+      id: "kfs",
+      name: "KFS",
+      also: "Kystar Frame Synchronization",
+      vendor: "Kommander / 凯视达",
+      phy: "F30：Quadro Sync II。英文规格 2x RJ45 Framelock + 1x BNC Genlock。Frame Lock 是 NVIDIA 专有时序，CAT5 直连，不是 TCP/IP。",
+      app: "KFS 是软件品牌名。帧同步报文、是否还在以太网上传 playhead，公开页未写。",
+      layer: "F30 的 L3 可落到 NVIDIA Frame Lock；KFS 本身仍是 L2 宣称",
+      evidence: "硬件 A/B · 软件 C",
+      note: "不要把 KFS 三个字母当成已公开的线协议。"
+    },
+    {
+      id: "grandshow-sync",
+      name: "GrandShow Sync",
+      also: "卡莱特 CS 系列多机",
+      vendor: "Colorlight / 卡莱特",
+      phy: "CS20-8K 规格只列 2.5GbE RJ45，没有独立 Frame Lock 口。推断走机器以太网，可以进交换机。",
+      app: "专有，未公开。卡莱特「GrandShow 播控协议」是场景/播放 UDP 中控，不是帧同步协议。",
+      layer: "营销写按帧同步（L2 宣称）；L3 扫出未写 NVIDIA Sync",
+      evidence: "介质 B · 报文 C",
+      note: "中控协议公开，不能用来推断 Sync 的报文。"
+    },
+    {
+      id: "kompass-lora",
+      name: "Kompass Lora",
+      also: "LoRa 无线模块",
+      vendor: "诺瓦 Kompass FX1/FX2/FX3 V3.13",
+      phy: "无线 LoRa（Semtech CSS），不是网线。诺瓦 Taurus 手册把 LoRa 写成 NTP 主从校时：同一 Group ID、一主多从、主机可跟 NTP。",
+      app: "Kompass 更新说明只写「多机同步方式新增 Lora 模块」。载荷格式未公开。",
+      layer: "L1 时间对齐，毫秒级。不能当 L3 扫出锁。",
+      evidence: "PHY 名称 A · 载荷 C",
+      note: "精度与有线 Frame Lock 不在同一量级。"
+    }
+  ],
+
+  ltcHandling: {
+    lead: "LTC 是 L1 节目进度，不是 L3。7thSense：LTC 源自己也要 genlock，否则长节目会漂。",
+    anomalies: [
+      { name: "Bi-phase mark 畸形", d: "波形跳变不对。通常是电平、地环或线材。WATCHOUT LTC Bridge 单独计数。" },
+      { name: "Missing frames", d: "该到的帧没解出来。短缺失用飞轮外推，不要跳 playhead。" },
+      { name: "Duplicate frame", d: "同一帧号出现两次。丢掉重复，继续按 FPS 走。" },
+      { name: "Discontinuity", d: "时码不是 +1/-1。片头换段正常；持续计数才是源问题。" },
+      { name: "Invalid frame", d: "sync word 之间位数不够。整帧丢弃。" },
+      { name: "Bad BCD", d: "时间数字超范围，例如分钟=60。整帧丢弃。" }
+    ],
+    steps: [
+      "先校验再跟：sync word、BCD 范围、偶校验。坏帧丢弃，不驱动 playhead。",
+      "飞轮：丢帧后用上一帧有效时码按 FPS 外推，窗口约 2 帧或约 100 ms；超时 unlock，时间线暂停，不要乱跳。",
+      "锁定迟滞：连续 N 帧有效才 lock，避免掉线后单帧毛刺把节目拽走。",
+      "跳变：实际帧不等于期望 ±1（含 drop-frame、正反向）记 discontinuity。短毛刺继续飞轮，确认换段才 chase。",
+      "静音或无效超过约 100 ms：pause，等重新 lock。WATCHOUT LTC Bridge 按这个阈值停时间线。",
+      "FPS 与 DF：用帧号回绕检测 24/25/30，DF 与 NDF 分开。源帧率与工程不一致时告警，不要默默缩放。",
+      "LTC 不等于扫出：时码只能拉播放头。相邻箱体仍要 Frame Lock / house-sync。"
+    ],
+    sourceTitle: "WATCHOUT 7 LTC Bridge",
+    sourceUrl: "https://docs.dataton.com/guide/watchout/external-control/ltc-bridge.html"
+  },
+
+  extraSources: [
+    { t: "NVIDIA Quadro G-Sync II 安装指南 v4（旧卡，不是 Sync II）", u: "https://www.nvidia.cn/content/dam/en-zz/Solutions/design-visualization/quadro-product-literature/Quadro_GSync_install_guide_v4.pdf" },
+    { t: "NVIDIA Quadro Sync II Quick Start Guide", u: "https://www.nvidia.com/content/dam/en-zz/Solutions/design-visualization/quadro-product-literature/176-0308-100-quadro-sync-ii-qsg-ww-133x177-8mm-20170720-r7-hr.pdf" },
+    { t: "NVIDIA RTX PRO Sync User Guide DU-08348-001_v09", u: "https://images.nvidia.com/aem-dam/Solutions/design-visualization/quadro-product-literature/nvidia-rtx-pro-sync-user-guide.pdf" },
+    { t: "NVIDIA RTX PRO Sync Firmware（架构未改）", u: "https://www.nvidia.com/en-us/drivers/firmware/rtx-pro-sync-firmware-driver/" },
+    { t: "WATCHOUT 7 LTC Bridge", u: "https://docs.dataton.com/guide/watchout/external-control/ltc-bridge.html" },
+    { t: "Blackmagic Mini Converter Sync Generator 规格", u: "https://www.blackmagicdesign.com/api/print/to-pdf/products/miniconverters/techspecs/W-CONM-15?filename=mini-converter-sync-generator-techspecs.pdf" },
+    { t: "Blackmagic Mini Converters 产品页", u: "https://www.blackmagicdesign.com/products/miniconverters" },
+    { t: "Kommander F30 英文规格（Framelock RJ45 + Genlock BNC）", u: "https://en.kystar.net/wp-content/uploads/2025/10/Kommander-F30-Media-Server-Datasheet_2509.pdf" },
+    { t: "PIXERA Genlock / Framelock", u: "https://help.pixera.one/graphic-cards/synchronize-outputs-genlock-framelock-setup" }
   ],
 
   heatmapKeys: [
@@ -161,10 +312,10 @@ window.SURVEY = {
   ],
 
   rack: [
-    { id: "kommander", gpu: "F30：3×Quadro", sync: "Quadro Sync II（规格书）", heads: "9×DP + 3×Type-C", capture: "NDI；SDI 选配", license: "加密授权", h26x: "yes", prores: "unknown", seq: "partial", live: "yes", evidence: "B" },
+    { id: "kommander", gpu: "F30：3×Quadro", sync: "Quadro Sync II；2×RJ45 + BNC（A）", heads: "9×DP + 3×Type-C", capture: "NDI；SDI 选配", license: "加密授权", h26x: "yes", prores: "unknown", seq: "partial", live: "yes", evidence: "B" },
     { id: "novastar", gpu: "工作站多显卡（FX1 起优化）", sync: "未公开强制 Sync 卡", heads: "随控制器带载", capture: "云端素材 / 图片直播", license: "临时/永久授权", h26x: "yes", prores: "unknown", seq: "yes", live: "partial", evidence: "A" },
     { id: "hirender", gpu: "S3 宣传 6 路 4K", sync: "联机帧同步需 Sync II（A）", heads: "多 DP，网格拼接", capture: "采集卡、NDI", license: "加密锁", h26x: "yes", prores: "unknown", seq: "unknown", live: "yes", evidence: "A" },
-    { id: "grandshow", gpu: "CS20-8K / CS16K 一体机", sync: "GrandShow Sync，卡型未写", heads: "点对点多口", capture: "Pad 回显", license: "加密狗", h26x: "yes", prores: "unknown", seq: "yes", live: "partial", evidence: "C" },
+    { id: "grandshow", gpu: "CS20-8K / CS16K 一体机", sync: "GrandShow Sync，无独立 Frame Lock 口（B）", heads: "点对点多口", capture: "Pad 回显", license: "加密狗", h26x: "yes", prores: "unknown", seq: "yes", live: "partial", evidence: "C" },
     { id: "hecoos", gpu: "OpenGL / Direct3D 工作站", sync: "未公开", heads: "Studio 默认不出画", capture: "设备库采集", license: "会员 / 输出模块分档", h26x: "partial", prores: "unknown", seq: "unknown", live: "unknown", evidence: "B" },
     { id: "disguise", gpu: "gx / vx 专业机", sync: "Sync Card；Solo 只能内部锁", heads: "多头 Framelock", capture: "VFC / IP-VFC", license: "节点许可", h26x: "yes", prores: "yes", seq: "yes", live: "yes", evidence: "A" },
     { id: "watchout", gpu: "WATCHPAX 或自建机", sync: "Hardware Sync Group + NVIDIA Sync", heads: "Runner 多口；SDI 可另开 Genlock", capture: "NDI、ST 2110", license: "软件许可", h26x: "yes", prores: "partial", seq: "yes", live: "yes", evidence: "A" },
@@ -244,6 +395,15 @@ window.SURVEY = {
       body: "7thSense Timing Group：Leader 广播 playhead，Follower 跟帧。Leader 挂了则全组停。这是架构取舍，不要拿国内主备桌面模型去套。",
       vendors: ["7thsense"],
       layers: ["wallClock", "frameId"]
+    },
+    {
+      id: "ltc-glitch",
+      name: "LTC 毛刺直接去跟",
+      grade: "A",
+      symptom: "时间线乱跳、短暂停又猛追，或长节目慢慢漂。",
+      body: "LTC 接收会出现 bi-phase 畸形、丢帧、重复帧、跳变、非法 BCD。WATCHOUT LTC Bridge 把这些分开计数；无效超过约 100 ms 就暂停时间线。正确做法是校验、飞轮、迟滞锁定。LTC 只拉播放头，不能替代 Frame Lock。源自己也要 genlock。",
+      vendors: ["watchout", "7thsense", "kommander", "pandoras"],
+      layers: ["wallClock"]
     }
   ],
 
@@ -436,8 +596,8 @@ window.SURVEY = {
       positioning: "中大型舞台、会议、超大屏与异形屏拼接播控",
       topology: "Master / Backup / Control / Slave。控制端集中管理多联机，显示端级联带载。",
       single: "宣称不限通道与图层；8K@60 硬解码；F30 为 3×Quadro、9×DP + 3×Type-C，规格书列同步卡 Quadro Sync II。",
-      multi: "KFS 多联机帧同步：多台服务器级联，画面统一控制。内部协议未公开。",
-      sync: { wallClock: "时间码收发（C）", frameId: "KFS 帧同步（C）", scanout: "F30 BOM 含 Quadro Sync II（B）", transport: "未见 ST 2110/PTP" },
+      multi: "KFS 多联机帧同步：多台服务器级联，画面统一控制。应用层报文未公开（C）。F30 英文规格写 2×RJ45 Framelock + 1×BNC Genlock，L3 物理层可落到 NVIDIA Frame Lock CAT5（A/B）。",
+      sync: { wallClock: "时间码收发（C）", frameId: "KFS 帧同步，报文未公开（C）", scanout: "F30：Quadro Sync II，2×RJ45 Framelock + BNC Genlock（A）", transport: "未见 ST 2110/PTP" },
       backup: "主备实时同步输出，主端异常切备端。",
       irregular: "虚拟屏拆分重组、1:1 布局映射；投影融合支持穹顶 / U 幕。以 2D 虚拟屏为主，3D 舞台对象弱于 disguise / hecoos。",
       coupling: "可联动凯视达拼接器预案；与发送卡同生态但不等于必须绑定。",
@@ -448,11 +608,12 @@ window.SURVEY = {
       mappingStage: [1, 4, 5],
       uiArch: ["window", "timeline"],
       evidence: "B",
-      evidenceNote: "软件能力来自官网与手册（KFS、主备、虚拟屏为官方表述）。F30 规格书列出 Quadro Sync II，属硬件可推断，KFS 是否完全依赖该卡未写明。",
+      evidenceNote: "软件能力来自官网与手册（KFS、主备、虚拟屏为官方表述）。F30 中文规格书列 Quadro Sync II；英文 datasheet 写明 2×RJ45 Framelock + 1×BNC Genlock。KFS 软件是否完全等于这块卡的 Frame Lock，公开页未画等号。",
       sources: [
         { t: "T3 产品页（凯视达）", u: "https://www.kystar.com.cn/Products_desc/236/2144.html" },
         { t: "Kommander T3 产品页", u: "https://www.kommander.com.cn/goods/special/pid/1/cid/7/sid/76.html" },
-        { t: "F30 规格（含 Sync II）", u: "https://kystar.com.cn/filespath/files/pdf/20250616135957.pdf" }
+        { t: "F30 规格（含 Sync II）", u: "https://kystar.com.cn/filespath/files/pdf/20250616135957.pdf" },
+        { t: "F30 英文规格（Framelock / Genlock 口）", u: "https://en.kystar.net/wp-content/uploads/2025/10/Kommander-F30-Media-Server-Datasheet_2509.pdf" }
       ]
     },
     {
@@ -466,8 +627,8 @@ window.SURVEY = {
       positioning: "展厅、广告、会议为主，逐步补演出级多机与 AI 能力",
       topology: "主机 / 从机联机，FX1 V3.13 支持跨网段添加从机。",
       single: "超大分辨率图片直播；多显卡支持在 FX1 V3.12 起优化；与诺瓦控制器点对点带载绑定深。",
-      multi: "FX1 V3.13 新增序列帧多机帧同步；同步方式新增 Lora 模块。FX3 Pro 宣称多设备级联、帧级同步。Lora 属于无线辅助同步，精度与有线帧同步不在同一量级。",
-      sync: { wallClock: "联机时钟 + Lora（C）", frameId: "序列帧多机帧同步；专利描述场同步内校准从端帧指示（A 专利 / C 产品映射）", scanout: "未公开是否强制 Quadro Sync", transport: "未见播控侧 PTP" },
+      multi: "FX1 V3.13 新增序列帧多机帧同步；同步方式新增 Lora 模块。FX3 Pro 宣称多设备级联、帧级同步。Lora 是无线 LoRa 对时（L1），精度与有线 Frame Lock 不在同一量级。载荷未公开。",
+      sync: { wallClock: "联机时钟 + LoRa 无线对时（PHY 名 A / 载荷 C）", frameId: "序列帧多机帧同步；专利描述场同步内校准从端帧指示（A 专利 / C 产品映射）", scanout: "未公开是否强制 Quadro Sync", transport: "未见播控侧 PTP" },
       backup: "产品线强调设备与云端管理，主备热切不是对外主卖点。",
       irregular: "分屏、特效、蒙版；异形深度弱于 GrandMapping / hecoos。几何主要在诺瓦控制系统与 SmartLCT 配屏侧。",
       coupling: "强垂直整合：播控 → 控制器 / 接收卡。这是诺瓦相对纯软件媒体服务器的结构差异。",
@@ -478,7 +639,7 @@ window.SURVEY = {
       mappingStage: [4, 5],
       uiArch: ["window"],
       evidence: "A",
-      evidenceNote: "版本说明来自诺瓦下载中心。多设备同步校准专利可复核；专利是否等于 Kompass 运行时实现不能从公开页直接画等号。",
+      evidenceNote: "版本说明来自诺瓦下载中心。Lora 模块写在 FX1 V3.13 更新说明里；Taurus 系手册把 LoRa 写成 NTP 主从校时，不能把 Kompass Lora 升级成 GPU 扫出锁。多设备同步校准专利可复核；专利是否等于 Kompass 运行时实现不能从公开页直接画等号。",
       sources: [
         { t: "Kompass 下载中心", u: "https://www.novastar-led.cn/index/downloadcenter/downloaddatacontent.html?cateID=47&type=software" },
         { t: "FX3 Pro 产品页", u: "https://www.novastar-led.cn/index.php/index/products/index/id/130.html" },
@@ -526,8 +687,8 @@ window.SURVEY = {
       positioning: "数字展厅、文旅、超 8K 长卷、球形与异形屏固装",
       topology: "多台 CS 服务器 + GrandShow Sync；素材统一分发；Pad 回显。",
       single: "CS16K 宣称单机超 16K 解码；ffmpeg / DXVA；序列帧。",
-      multi: "GrandShow Sync：数十台按帧同步点对点输出。协议、是否依赖 NVIDIA Sync 卡，公开页未写。",
-      sync: { wallClock: "时间线 + 触发指令（C）", frameId: "GrandShow Sync 按帧同步（C）", scanout: "未公开", transport: "无" },
+      multi: "GrandShow Sync：数十台按帧同步点对点输出。CS20-8K 规格只列 2.5GbE，没有独立 Frame Lock 口，推断走以太网（B）。应用层报文未公开（C）。卡莱特「GrandShow 播控协议」是中控，不是帧同步。",
+      sync: { wallClock: "时间线 + 触发指令 / 中控 UDP（C）", frameId: "GrandShow Sync 按帧同步，报文未公开（C）", scanout: "规格无独立同步口；未写 NVIDIA Sync（B）", transport: "无" },
       backup: "工程与展厅方案常配拼接器环路备份，软件主备不是对外主文档。",
       irregular: "GrandShow 内 2D 批量切片、变形、旋转；球形/弧形走独立软件 GrandMapping：3D 模型 → 视角 → 自动切片 → 导入发送卡连接关系文件。这是国内最接近「3D 建模做 LED 贴图」的量产组合之一。",
       coupling: "GrandMapping 明确对接 Colorlight 发送端连接关系文件，垂直整合强。",
@@ -538,10 +699,11 @@ window.SURVEY = {
       mappingStage: [1, 2, 3, 4, 5],
       uiArch: ["window"],
       evidence: "C",
-      evidenceNote: "Sync 与 Mapping 工作流来自官网与投影时代报道。帧同步实现细节、专利号在本次公开检索中未定位到与 GrandShow Sync 同名的授权文本。",
+      evidenceNote: "Sync 与 Mapping 工作流来自官网与投影时代报道。CS20-8K 规格可核到网口、核不到 Frame Lock 口。帧同步报文、专利号在本次公开检索中未定位到与 GrandShow Sync 同名的授权文本。",
       sources: [
         { t: "GrandShow 产品页", u: "https://www.colorlightinside.com/product/special/158" },
         { t: "CS20-8K / Sync 描述", u: "https://www.colorlightinside.com/product/special/1141" },
+        { t: "GrandShow 播控协议（中控，不是帧同步）", u: "https://developer.colorlightcloud.com/grandshowEE/chan-pin-jie-shao.html" },
         { t: "GrandMapping", u: "https://colorlightinside.com/product/special/6255" },
         { t: "投影时代：球形/弧形切片", u: "http://www.pjtime.com/2025/5/382218652166.shtml" }
       ]

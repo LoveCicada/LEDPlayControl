@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 400" role="img" aria-label="Quadro Sync II install steps">
+  <rect width="920" height="400" fill="#0d1218"/>
+  <text x="28" y="36" fill="#3ad7c4" font-size="13" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Install: PCIe slot, GPU SYNC, power</text>
+  <text x="28" y="56" fill="#8c9aab" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Power down first. Card uses the slot only for the bracket.</text>
+  <rect x="40" y="80" width="200" height="90" fill="#121922" stroke="#314557"/>
+  <text x="56" y="116" fill="#8c9aab" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Free PCIe slot</text>
+  <text x="56" y="138" fill="#e7eef5" font-size="13" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">1 Seat the Sync card</text>
+  <rect x="280" y="80" width="280" height="90" fill="#121922" stroke="#e2a73a"/>
+  <text x="296" y="116" fill="#e2a73a" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">GPU SYNC header</text>
+  <text x="296" y="138" fill="#e7eef5" font-size="13" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">2 Flex cable to SYNC</text>
+  <text x="296" y="156" fill="#8c9aab" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Not SLI / NVLink. Any order OK.</text>
+  <rect x="600" y="80" width="280" height="90" fill="#121922" stroke="#3ad7c4"/>
+  <text x="616" y="116" fill="#3ad7c4" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">6-pin PCIe or SATA</text>
+  <text x="616" y="138" fill="#e7eef5" font-size="13" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">3 Power the Sync card</text>
+  <path d="M240 125 L280 125" stroke="#314557"/>
+  <path d="M560 125 L600 125" stroke="#314557"/>
+  <rect x="40" y="200" width="840" height="150" fill="#121922" stroke="#314557"/>
+  <text x="56" y="228" fill="#e2a73a" font-size="13" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Two cards = up to 8 GPUs</text>
+  <text x="56" y="254" fill="#e7eef5" font-size="13" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Second Sync card: same slot, up to 4 GPUs, then power.</text>
+  <text x="56" y="278" fill="#e7eef5" font-size="13" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Link the two cards on CON0 (closest to the bracket).</text>
+  <text x="56" y="308" fill="#8c9aab" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">No dedicated Sync driver. GPU driver R440+ for Mosaic + sync.</text>
+  <text x="28" y="380" fill="#5c6b7c" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Source: Quadro Sync II QSG / RTX PRO Sync User Guide ch.4</text>
+</svg>

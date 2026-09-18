@@ -388,18 +388,20 @@
     });
   }
 
-  function openLightbox(shot) {
+  function openLightbox(shot, kind) {
     const box = document.getElementById("ui-lightbox");
     if (!box || !shot || !shot.file) return;
     const img = box.querySelector("img");
     const cap = box.querySelector("figcaption");
+    const isHw = kind === "hw" || shot.group;
     img.src = shot.file;
-    img.alt = shot.product + " 主界面";
+    img.alt = shot.product + (isHw ? " 硬件示意" : " 主界面");
+    const zones = (shot.zones || []).join(" / ");
+    const body = shot.caption || zones;
     cap.innerHTML =
-      `${shot.product} · ${archLabel[shot.arch] || shot.arch}` +
-      ` · ${(shot.zones || []).join(" / ")}` +
-      `<br>截自公开手册/帮助文档，版权归原厂商，仅作对照。` +
-      ` <a href="${shot.sourceUrl}" target="_blank" rel="noopener">${shot.sourceTitle}</a>`;
+      `${shot.product}${body ? " · " + body : ""}` +
+      `<br>截自或按公开手册绘制，版权归原厂商，仅作对照。` +
+      (shot.sourceUrl ? ` <a href="${shot.sourceUrl}" target="_blank" rel="noopener">${shot.sourceTitle || "出处"}</a>` : "");
     box.hidden = false;
   }
 
@@ -581,6 +583,76 @@
     });
   }
 
+  function renderHardware() {
+    function paint(rootId, group) {
+      const root = document.getElementById(rootId);
+      if (!root || !S.hardwareGallery) return;
+      S.hardwareGallery.filter((h) => h.group === group).forEach((shot) => {
+        const btn = el("button", {
+          class: "ui-shot hw-shot",
+          type: "button",
+          id: "hw-" + shot.id
+        });
+        const zones = (shot.zones || []).join(" · ");
+        btn.innerHTML =
+          `<img class="thumb" src="${shot.file}" alt="${shot.product}" />` +
+          `<div class="meta"><div class="kind">${shot.group === "nvidia" ? "NVIDIA Sync" : "Genlock"}</div>` +
+          `<h3>${shot.product}</h3><div class="zones">${shot.caption || zones}</div></div>`;
+        btn.addEventListener("click", () => openLightbox(shot, "hw"));
+        root.appendChild(btn);
+      });
+    }
+    paint("hw-nvidia", "nvidia");
+    paint("hw-genlock", "genlock");
+  }
+
+  function renderLineage() {
+    const table = document.getElementById("lineage-table");
+    if (!table || !S.syncLineage) return;
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+    thead.innerHTML = "<tr><th>代际</th><th>年代</th><th>备注</th></tr>";
+    S.syncLineage.forEach((row) => {
+      tbody.appendChild(el("tr", null,
+        `<td>${row.name}</td><td>${row.era}</td><td>${row.note}</td>`));
+    });
+  }
+
+  function renderWireProtocols() {
+    const root = document.getElementById("wire-protocols");
+    if (!root || !S.wireProtocols) return;
+    const vendorMap = { kfs: "kommander", "grandshow-sync": "grandshow", "kompass-lora": "novastar" };
+    S.wireProtocols.forEach((p) => {
+      const article = el("article", { class: "proto", dataset: { vendor: vendorMap[p.id] || "" } });
+      article.innerHTML =
+        `<header><div class="kind">${p.also}</div><h3>${p.name}</h3><div class="zones">${p.vendor} · 证据 ${p.evidence}</div></header>` +
+        `<dl><dt>物理 / 介质</dt><dd>${p.phy}</dd>` +
+        `<dt>应用层</dt><dd>${p.app}</dd>` +
+        `<dt>落在哪一层</dt><dd>${p.layer}</dd>` +
+        `<dt>不要写成</dt><dd>${p.note}</dd></dl>`;
+      article.addEventListener("click", () => {
+        const id = vendorMap[p.id];
+        const card = id && document.getElementById("card-" + id);
+        if (card) card.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
+      root.appendChild(article);
+    });
+  }
+
+  function renderLtcHandling() {
+    const root = document.getElementById("ltc-handling");
+    if (!root || !S.ltcHandling) return;
+    const L = S.ltcHandling;
+    const anomalies = L.anomalies.map((a) =>
+      `<article class="ltc-item"><h4>${a.name}</h4><p>${a.d}</p></article>`).join("");
+    const steps = L.steps.map((s, i) => `<li><span class="n">${i + 1}</span>${s}</li>`).join("");
+    root.innerHTML =
+      `<p class="ltc-lead">${L.lead}</p>` +
+      `<div class="ltc-grid">${anomalies}</div>` +
+      `<ol class="ltc-steps">${steps}</ol>` +
+      `<p class="caption">出处：<a href="${L.sourceUrl}" target="_blank" rel="noopener">${L.sourceTitle}</a>。飞轮窗口对照 ETC SMPTE QuickGuide；连续性检测对照 libltc / Ardour。</p>`;
+  }
+
   function renderSources() {
     const root = document.getElementById("all-sources");
     const seen = new Set();
@@ -594,12 +666,19 @@
     S.oss.forEach((o) => {
       if (!seen.has(o.url)) { seen.add(o.url); list.push({ t: o.name, u: o.url }); }
     });
+    (S.extraSources || []).forEach((s) => { if (!seen.has(s.u)) { seen.add(s.u); list.push(s); } });
     [
       { t: "NVIDIA Quadro Sync II User Guide", u: "https://images.nvidia.com/content/quadro/product-literature/user-guides/Quadro-Sync-II-User-Guide-v07.pdf" },
       { t: "WATCHOUT ST 2110 / PTP", u: "https://docs.dataton.com/guide/watchout/network-setup/st-2110-video-over-ip.html" },
       { t: "Brompton Tessera Genlock", u: "https://www.bromptontech.com/features/genlock/" },
       { t: "NovaStar MX40 Pro User Manual V1.5.0", u: "https://oss.novastar.tech/uploads/2025/10/MX40-Pro-LED-Display-Controller-User-Manual-V1.5.0.pdf" }
-    ].forEach((s) => { if (!seen.has(s.u)) list.push(s); });
+    ].forEach((s) => { if (!seen.has(s.u)) { seen.add(s.u); list.push(s); } });
+    (S.hardwareGallery || []).forEach((g) => {
+      if (g.sourceUrl && !seen.has(g.sourceUrl)) {
+        seen.add(g.sourceUrl);
+        list.push({ t: g.sourceTitle, u: g.sourceUrl });
+      }
+    });
     (S.uiGallery || []).forEach((g) => {
       if (g.sourceUrl && !seen.has(g.sourceUrl)) {
         seen.add(g.sourceUrl);
@@ -629,6 +708,10 @@
 
   renderLayers();
   renderSteps();
+  renderLineage();
+  renderHardware();
+  renderWireProtocols();
+  renderLtcHandling();
   renderUiGallery();
   renderHops();
   renderTears();

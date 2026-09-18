@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 420" role="img" aria-label="NVIDIA Quadro Sync II connectors">
+  <rect width="920" height="420" fill="#0d1218"/>
+  <text x="28" y="36" fill="#3ad7c4" font-size="13" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Quadro Sync II card and I/O</text>
+  <text x="28" y="58" fill="#8c9aab" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Pascal+. No PCIe data. Needs 6-pin or SATA power.</text>
+  <rect x="70" y="90" width="520" height="250" rx="6" fill="#121922" stroke="#3ad7c4"/>
+  <text x="90" y="118" fill="#e7eef5" font-size="14" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">NVIDIA Quadro Sync II</text>
+  <text x="90" y="138" fill="#8c9aab" font-size="11" font-family="Consolas, monospace">900-52061-2500-000</text>
+  <rect x="100" y="160" width="70" height="28" fill="#18222d" stroke="#e2a73a"/>
+  <text x="112" y="179" fill="#e2a73a" font-size="11" font-family="Consolas, monospace">GPU 1</text>
+  <rect x="180" y="160" width="70" height="28" fill="#18222d" stroke="#e2a73a"/>
+  <text x="192" y="179" fill="#e2a73a" font-size="11" font-family="Consolas, monospace">GPU 2</text>
+  <rect x="260" y="160" width="70" height="28" fill="#18222d" stroke="#e2a73a"/>
+  <text x="272" y="179" fill="#e2a73a" font-size="11" font-family="Consolas, monospace">GPU 3</text>
+  <rect x="340" y="160" width="70" height="28" fill="#18222d" stroke="#e2a73a"/>
+  <text x="352" y="179" fill="#e2a73a" font-size="11" font-family="Consolas, monospace">GPU 4</text>
+  <rect x="420" y="160" width="80" height="28" fill="#18222d" stroke="#314557"/>
+  <text x="428" y="179" fill="#8c9aab" font-size="11" font-family="Consolas, monospace">CON0</text>
+  <text x="100" y="210" fill="#8c9aab" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Five flex cables: 4x GPU SYNC + second Sync card. Not SLI.</text>
+  <rect x="100" y="230" width="110" height="28" fill="#18222d" stroke="#314557"/>
+  <text x="112" y="249" fill="#e7eef5" font-size="11" font-family="Consolas, monospace">6-pin / SATA</text>
+  <rect x="590" y="90" width="70" height="250" fill="#18222d" stroke="#e2a73a"/>
+  <text x="598" y="112" fill="#e2a73a" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">I/O</text>
+  <circle cx="625" cy="150" r="16" fill="#0d1218" stroke="#e2a73a"/>
+  <text x="612" y="154" fill="#e2a73a" font-size="9" font-family="Consolas, monospace">BNC</text>
+  <rect x="605" y="190" width="40" height="28" rx="3" fill="#0d1218" stroke="#3ad7c4"/>
+  <text x="612" y="208" fill="#3ad7c4" font-size="9" font-family="Consolas, monospace">RJ45</text>
+  <rect x="605" y="228" width="40" height="28" rx="3" fill="#0d1218" stroke="#3ad7c4"/>
+  <text x="612" y="246" fill="#3ad7c4" font-size="9" font-family="Consolas, monospace">RJ45</text>
+  <circle cx="615" cy="280" r="5" fill="#3ad7c4"/>
+  <circle cx="635" cy="280" r="5" fill="#e2a73a"/>
+  <text x="598" y="310" fill="#8c9aab" font-size="10" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">LED</text>
+  <path d="M641 150 L700 128" stroke="#e2a73a" fill="none"/>
+  <text x="706" y="124" fill="#e7eef5" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">BNC house-sync IN</text>
+  <text x="706" y="142" fill="#8c9aab" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">TTL out: never feed a generator</text>
+  <path d="M645 204 L700 198" stroke="#3ad7c4" fill="none"/>
+  <text x="706" y="202" fill="#e7eef5" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Dual RJ45 Frame Lock</text>
+  <text x="706" y="220" fill="#8c9aab" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">CAT5 daisy-chain, not Ethernet</text>
+  <text x="28" y="394" fill="#5c6b7c" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Drawn from NVIDIA Sync II / RTX PRO Sync User Guide. NVIDIA copyright. Survey use only.</text>
+</svg>

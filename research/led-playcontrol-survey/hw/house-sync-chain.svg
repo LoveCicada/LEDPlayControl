@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 340" role="img" aria-label="House-sync into media server and LED processor">
+  <rect width="920" height="340" fill="#0d1218"/>
+  <text x="28" y="36" fill="#3ad7c4" font-size="13" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Where Genlock sits in the chain</text>
+  <text x="28" y="56" fill="#8c9aab" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">It locks when scanout starts, not which content frame.</text>
+  <rect x="30" y="90" width="160" height="70" fill="#121922" stroke="#e2a73a"/>
+  <text x="48" y="120" fill="#e2a73a" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Sync Generator</text>
+  <text x="48" y="142" fill="#8c9aab" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">BNC reference</text>
+  <path d="M190 125 L230 125" stroke="#e2a73a"/>
+  <path d="M190 125 L190 230 L230 230" stroke="#e2a73a" fill="none"/>
+  <rect x="230" y="90" width="200" height="70" fill="#121922" stroke="#3ad7c4"/>
+  <text x="248" y="120" fill="#3ad7c4" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Sync card BNC IN</text>
+  <text x="248" y="142" fill="#8c9aab" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">GPU scanout</text>
+  <rect x="230" y="196" width="200" height="70" fill="#121922" stroke="#e2a73a"/>
+  <text x="248" y="226" fill="#e2a73a" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Processor Genlock IN</text>
+  <text x="248" y="248" fill="#8c9aab" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">LOOP to next unit</text>
+  <path d="M430 125 L470 125" stroke="#3ad7c4"/>
+  <rect x="470" y="90" width="180" height="70" fill="#121922" stroke="#3ad7c4"/>
+  <text x="488" y="120" fill="#e7eef5" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">GPU DP / HDMI</text>
+  <text x="488" y="142" fill="#8c9aab" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Picture</text>
+  <path d="M650 125 L690 230" stroke="#314557"/>
+  <path d="M430 230 L690 230" stroke="#e2a73a"/>
+  <rect x="690" y="196" width="200" height="70" fill="#121922" stroke="#314557"/>
+  <text x="708" y="226" fill="#e7eef5" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Cabinet refresh</text>
+  <text x="708" y="248" fill="#8c9aab" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">Same phase both ends</text>
+  <rect x="470" y="196" width="180" height="70" fill="#0d1218" stroke="#5c6b7c" stroke-dasharray="4 3"/>
+  <text x="488" y="226" fill="#5c6b7c" font-size="12" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">RJ45 Frame Lock</text>
+  <text x="488" y="248" fill="#5c6b7c" font-size="11" font-family="Microsoft YaHei UI, Segoe UI, sans-serif">GPU cluster only, not generator</text>
+</svg>

@@ -46,7 +46,7 @@
         <span class="chip">名称对齐：<strong>kCommander = Kommander</strong></span>
         <span class="chip">hecos = <strong>hecoos / 澜景</strong></span>
         <span class="chip">离线可打开 · 无外网字体</span>
-        <span class="chip">资料截止 <strong>2026-09-17</strong></span>
+        <span class="chip">资料截止 <strong>2026-09-18</strong></span>
       </div>
       <div class="stats">
         <div class="stat"><div class="n">18</div><div class="l">产品样本（深潜 7 + 对照 11，含 2 家处理器）</div></div>
@@ -74,7 +74,7 @@
           <h3>公开资料里已经写清的边界</h3>
           <p>WATCHOUT：NTP 把节点钟拉到约 1 ms，但 GPU 仍各自扫出；亚帧相位在 LED 处理器上看就是撕缝。Hardware Sync Group 把计时源切到同步卡帧计数。</p>
           <p>disguise：Genlock 锁集群与摄像机/LED 设备；Framelock 只锁同一台服务器的多头。IP 输出时 PTP 与 NTP 不是一回事。</p>
-          <p>国内产品大量使用「帧同步级联」一词。能核到卡型的，目前公开页里 HiRender S3 写明需要 Quadro Sync II，Kommander F30 规格书列出同步卡。GrandShow Sync、KFS、Kompass Lora 的线协议仍属 C 级。</p>
+          <p>国内产品大量使用「帧同步级联」一词。能核到卡型的，目前公开页里 HiRender S3 写明需要 Quadro Sync II，Kommander F30 规格书列出同步卡。应用层报文仍属 C；物理层已经能分开：KFS / F30 可落到 NVIDIA Frame Lock CAT5，GrandShow Sync 推断走以太网，Kompass Lora 是无线 LoRa 对时。</p>
         </div>
       </div>
     </section>
@@ -119,6 +119,30 @@
       </div>
 
       <div class="layers" id="layer-list"></div>
+
+      <h3 class="subhead">NVIDIA Sync 卡：Quadro Sync II 与 RTX PRO Sync</h3>
+      <p class="caption">用户给的中文 PDF 文件名是 GSync，正文是上一代 G-Sync II（DU-02796），不是今天的 Sync II。现役卡图按 Sync II / RTX PRO Sync 手册接口绘制，版权归 NVIDIA，仅作对照。</p>
+      <div class="table-wrap">
+        <table class="plain-table" id="lineage-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="hw-gallery" id="hw-nvidia"></div>
+      <p class="caption hw-docs">安装文档：
+        <a href="https://www.nvidia.cn/content/dam/en-zz/Solutions/design-visualization/quadro-product-literature/Quadro_GSync_install_guide_v4.pdf" target="_blank" rel="noopener">G-Sync II 安装指南 v4（旧卡）</a>
+        · <a href="https://www.nvidia.com/content/dam/en-zz/Solutions/design-visualization/quadro-product-literature/176-0308-100-quadro-sync-ii-qsg-ww-133x177-8mm-20170720-r7-hr.pdf" target="_blank" rel="noopener">Sync II QSG</a>
+        · <a href="https://images.nvidia.com/content/quadro/product-literature/user-guides/Quadro-Sync-II-User-Guide-v07.pdf" target="_blank" rel="noopener">Sync II User Guide</a>
+        · <a href="https://images.nvidia.com/aem-dam/Solutions/design-visualization/quadro-product-literature/nvidia-rtx-pro-sync-user-guide.pdf" target="_blank" rel="noopener">RTX PRO Sync User Guide v09</a>
+      </p>
+
+      <h3 class="subhead">国内三家「帧同步」线协议</h3>
+      <p class="caption">公开页都没有帧同步报文格式。只写能核到的物理层，应用层维持 C。点行可滚到厂商卡。</p>
+      <div class="proto-list" id="wire-protocols"></div>
+
+      <h3 class="subhead">LTC 接收异常数据</h3>
+      <p class="caption">LTC 是 L1。坏帧不能直接去跟时间线。对照 WATCHOUT LTC Bridge 计数器、ETC 飞轮、约 100 ms 超时。</p>
+      <div id="ltc-handling"></div>
 
       <div class="watchout-quote">
         <p>NTP 把系统钟对齐到约一毫秒，但并不对齐 GPU 输出。各节点仍按自己的钟扫出，相位差一个亚帧。这个差在普通投影上几乎看不见，在已 Genlock 的 LED 处理器上会变成整帧错位和箱体接缝撕裂。Hardware Sync Group 用同步卡帧计数替换 NTP 作为计时源。</p>
@@ -287,13 +311,25 @@
           <h3>垂直整合 ≠ GPU 锁</h3>
           <p>诺瓦 Kompass / 卡莱特 GrandShow 可读发送卡连接关系文件，配屏快。这停在接收卡 hop。HiRender S3、Kommander F30、PIXERA four 写明的是 Quadro Sync II 菊花链，那是 GPU hop。</p>
           <p class="callout">播控读连接关系，不能替代同步卡。发送卡「自己对齐」被当成帧锁，是现场最常见的误判。</p>
+          <p>NVIDIA Mosaic 把多口拼成超大桌面。各口 EDID 或刷新不一致时，Hardware Sync Group / Frame Lock 加不进去。Pandoras Box 帮助页把这件事写成：多 GPU Mosaic 必须上 Sync 卡。</p>
         </div>
         <div class="panel">
           <h3>处理器必须进 house-sync</h3>
-          <p>Brompton Tessera：从视频输入 genlock 到灯珠刷新；输入帧率与参考不一致会加倍或丢帧。诺瓦 MX40 Pro：Genlock IN/LOOP，Bi/Tri-level / Blackburst，最多约 20 台级联。disguise / PIXERA 手册要求处理器能收 genlock，两边一致。</p>
-          <p>NVIDIA Mosaic 把多口拼成超大桌面。各口 EDID 或刷新不一致时，Hardware Sync Group / Frame Lock 加不进去。Pandoras Box 帮助页把这件事写成：多 GPU Mosaic 必须上 Sync 卡。</p>
+          <p>Genlock 把多台设备的扫描相位锁到同一外部基准（BlackBurst / Bi-level / Tri-level）。它回答「何时开始扫这一帧」，不回答「这一拍是第几帧」。LED 现场 house-sync 必须同时进：播控机 NVIDIA Sync 卡 BNC、LED 处理器 Genlock IN（再 LOOP 到下一台）、摄像机 / 切换台（VP 路径）。</p>
+          <p>Brompton Tessera：从视频输入 genlock 到灯珠刷新；输入帧率与参考不一致会加倍或丢帧。诺瓦 MX40 Pro：Genlock IN/LOOP，Bi/Tri-level / Blackburst，最多约 20 台级联；低延迟与 Genlock 互斥。disguise：&gt;1080p 不建议 BlackBurst。Sync 卡 BNC 若配成 TTL 输出，禁止再接发生器。</p>
+          <p class="callout">接线口诀：发生器 BNC 到各机 Genlock IN；处理器用 LOOP 级联；NVIDIA RJ45 只锁 GPU 集群，不要接到发生器或交换机。</p>
         </div>
       </div>
+      <h3 class="subhead">Genlock 设备</h3>
+      <div class="hw-gallery" id="hw-genlock"></div>
+      <p class="caption hw-docs">安装与手册：
+        <a href="https://www.blackmagicdesign.com/products/miniconverters" target="_blank" rel="noopener">BMD Mini Converters</a>
+        · <a href="https://www.blackmagicdesign.com/api/print/to-pdf/products/miniconverters/techspecs/W-CONM-15?filename=mini-converter-sync-generator-techspecs.pdf" target="_blank" rel="noopener">Sync Generator 规格 PDF</a>
+        · <a href="https://oss.novastar.tech/uploads/2025/10/MX40-Pro-LED-Display-Controller-User-Manual-V1.5.0.pdf" target="_blank" rel="noopener">MX40 Pro 手册 V1.5.0</a>
+        · <a href="https://www.bromptontech.com/features/genlock/" target="_blank" rel="noopener">Brompton Tessera Genlock</a>
+        · <a href="https://help.disguise.one/designer/configuration/genlock-configuration" target="_blank" rel="noopener">disguise Genlock</a>
+        · <a href="https://help.pixera.one/graphic-cards/synchronize-outputs-genlock-framelock-setup" target="_blank" rel="noopener">PIXERA Genlock / Framelock</a>
+      </p>
     </section>
 
     <section id="rack">
@@ -347,7 +383,7 @@
           <tbody></tbody>
         </table>
       </div>
-      <p class="caption">「Quadro Sync」在 HiRender、Kommander F30、WATCHOUT、PIXERA、nDisplay、7thSense、disguise 上可核到卡或手册。GrandShow Sync / KFS / Kompass Lora 未核到等价硬件说明。</p>
+      <p class="caption">「Quadro Sync」列含 RTX PRO Sync（官方更名，同一块板）。可核到卡或手册的有 HiRender、Kommander F30、WATCHOUT、PIXERA、nDisplay、7thSense、disguise。KFS / F30 的 L3 可落到 NVIDIA Frame Lock；GrandShow Sync 推断走以太网；Kompass Lora 是无线 L1，不要填进这一列。</p>
     </section>
 
     <section id="vendors">
@@ -434,7 +470,7 @@
     </section>
 
     <footer>
-      LEDPlayControl 调研页 · 2026-09-17 · 本地打开 research/led-playcontrol-survey/index.html · 结论随厂商改版失效，以出处原文为准。
+      LEDPlayControl 调研页 · 2026-09-18 · 本地打开 research/led-playcontrol-survey/index.html · 结论随厂商改版失效，以出处原文为准。
     </footer>
   </div>
 
