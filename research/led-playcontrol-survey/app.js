@@ -388,13 +388,148 @@
     });
   }
 
+  const lb = { scale: 1, x: 0, y: 0, drag: false, lastX: 0, lastY: 0 };
+
+  function lbNodes() {
+    return {
+      box: document.getElementById("ui-lightbox"),
+      stage: document.getElementById("lb-stage"),
+      zoom: document.getElementById("lb-zoom")
+    };
+  }
+
+  function applyLbZoom() {
+    const { stage, zoom } = lbNodes();
+    if (!zoom) return;
+    zoom.style.transform = `translate(${lb.x}px, ${lb.y}px) scale(${lb.scale})`;
+    if (stage) stage.classList.toggle("is-zoomed", lb.scale > 1.01);
+  }
+
+  function lbMedia() {
+    const { zoom } = lbNodes();
+    if (!zoom) return null;
+    const svg = zoom.querySelector(".lb-svg:not([hidden])");
+    if (svg) return svg;
+    const img = zoom.querySelector("img");
+    return img && !img.hidden ? img : null;
+  }
+
+  function fitLbContent() {
+    const { stage } = lbNodes();
+    const media = lbMedia();
+    if (!stage || !media) return;
+    const sw = stage.clientWidth;
+    const sh = stage.clientHeight;
+    const svg = media.matches(".lb-svg") ? media.querySelector("svg") : null;
+    const nw = svg ? (svg.viewBox.baseVal.width || media.offsetWidth) : (media.naturalWidth || media.offsetWidth);
+    const nh = svg ? (svg.viewBox.baseVal.height || media.offsetHeight) : (media.naturalHeight || media.offsetHeight);
+    if (!nw || !nh || !sw || !sh) return;
+    const fit = Math.min(sw / nw, sh / nh);
+    const w = Math.max(1, Math.floor(nw * fit));
+    const h = Math.max(1, Math.floor(nh * fit));
+    media.style.width = w + "px";
+    media.style.height = h + "px";
+    if (svg) {
+      svg.style.width = "100%";
+      svg.style.height = "100%";
+    }
+  }
+
+  function centerLbContent() {
+    const { stage, zoom } = lbNodes();
+    if (!stage || !zoom) return;
+    lb.scale = 1;
+    lb.x = Math.round((stage.clientWidth - zoom.offsetWidth) / 2);
+    lb.y = Math.round((stage.clientHeight - zoom.offsetHeight) / 2);
+    lb.drag = false;
+    applyLbZoom();
+  }
+
+  function resetLbZoom() {
+    lb.drag = false;
+    fitLbContent();
+    centerLbContent();
+  }
+
+  function bindLightboxZoom() {
+    const { box, stage } = lbNodes();
+    if (!box || !stage || stage.dataset.zoomBound) return;
+    stage.dataset.zoomBound = "1";
+    box.addEventListener("wheel", (e) => {
+      if (box.hidden) return;
+      e.preventDefault();
+      const rect = stage.getBoundingClientRect();
+      const next = Math.min(8, Math.max(1, lb.scale * (e.deltaY < 0 ? 1.14 : 1 / 1.14)));
+      const cx = e.clientX - rect.left;
+      const cy = e.clientY - rect.top;
+      const ox = (cx - lb.x) / lb.scale;
+      const oy = (cy - lb.y) / lb.scale;
+      lb.scale = next;
+      if (lb.scale <= 1.01) {
+        centerLbContent();
+      } else {
+        lb.x = cx - ox * lb.scale;
+        lb.y = cy - oy * lb.scale;
+        applyLbZoom();
+      }
+    }, { passive: false });
+    stage.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 || lb.scale <= 1.01) return;
+      lb.drag = true;
+      lb.lastX = e.clientX;
+      lb.lastY = e.clientY;
+      stage.classList.add("is-panning");
+      stage.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    stage.addEventListener("pointermove", (e) => {
+      if (!lb.drag) return;
+      lb.x += e.clientX - lb.lastX;
+      lb.y += e.clientY - lb.lastY;
+      lb.lastX = e.clientX;
+      lb.lastY = e.clientY;
+      applyLbZoom();
+    });
+    function endPan(e) {
+      if (!lb.drag) return;
+      lb.drag = false;
+      stage.classList.remove("is-panning");
+      if (e && stage.hasPointerCapture(e.pointerId)) stage.releasePointerCapture(e.pointerId);
+    }
+    stage.addEventListener("pointerup", endPan);
+    stage.addEventListener("pointercancel", endPan);
+    stage.addEventListener("dblclick", (e) => {
+      e.preventDefault();
+      resetLbZoom();
+    });
+  }
+
   function openLightbox(shot, kind) {
     const box = document.getElementById("ui-lightbox");
-    if (!box || !shot || !shot.file) return;
+    if (!box || !shot || !(shot.file || shot.svg)) return;
     const img = box.querySelector("img");
     const cap = box.querySelector("figcaption");
+    const zoom = document.getElementById("lb-zoom");
     const isHw = kind === "hw" || shot.group;
-    img.src = shot.file;
+    let host = box.querySelector(".lb-svg");
+    if (isHw && shot.svg) {
+      img.hidden = true;
+      img.removeAttribute("src");
+      if (!host) {
+        host = document.createElement("div");
+        host.className = "lb-svg";
+        zoom.insertBefore(host, img);
+      }
+      host.hidden = false;
+      host.innerHTML = shot.svg;
+    } else {
+      if (host) {
+        host.hidden = true;
+        host.innerHTML = "";
+      }
+      img.hidden = false;
+      img.src = shot.file;
+    }
     img.alt = shot.product + (isHw ? " 硬件示意" : " 主界面");
     const zones = (shot.zones || []).join(" / ");
     const body = shot.caption || zones;
@@ -403,11 +538,15 @@
       `<br>截自或按公开手册绘制，版权归原厂商，仅作对照。` +
       (shot.sourceUrl ? ` <a href="${shot.sourceUrl}" target="_blank" rel="noopener">${shot.sourceTitle || "出处"}</a>` : "");
     box.hidden = false;
+    const layout = () => requestAnimationFrame(resetLbZoom);
+    if (!isHw && img && !img.complete) img.addEventListener("load", layout, { once: true });
+    layout();
   }
 
   function closeLightbox() {
     const box = document.getElementById("ui-lightbox");
     if (box) box.hidden = true;
+    resetLbZoom();
   }
 
   function renderUiGallery() {
@@ -455,6 +594,7 @@
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape" && !box.hidden) closeLightbox();
       });
+      bindLightboxZoom();
     }
   }
 
@@ -594,8 +734,11 @@
           id: "hw-" + shot.id
         });
         const zones = (shot.zones || []).join(" · ");
+        const thumb = shot.svg
+          ? `<div class="thumb hw-inline">${shot.svg}</div>`
+          : `<img class="thumb" src="${shot.file}" alt="${shot.product}" />`;
         btn.innerHTML =
-          `<img class="thumb" src="${shot.file}" alt="${shot.product}" />` +
+          thumb +
           `<div class="meta"><div class="kind">${shot.group === "nvidia" ? "NVIDIA Sync" : "Genlock"}</div>` +
           `<h3>${shot.product}</h3><div class="zones">${shot.caption || zones}</div></div>`;
         btn.addEventListener("click", () => openLightbox(shot, "hw"));
