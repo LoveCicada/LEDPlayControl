@@ -237,13 +237,12 @@
           <text x="440" y="48" fill="#8c9aab" font-size="11">1</text>
           <text x="300" y="190" fill="#8c9aab">没铺满就有像素看不见</text>
           <text x="508" y="96" fill="#e2a73a" font-size="16">→</text>
-          <text x="548" y="28" fill="#e2a73a">3 观察点</text>
-          <circle cx="590" cy="150" r="7" fill="#e2a73a"/>
-          <text x="604" y="154" fill="#8c9aab">眼</text>
-          <path d="M590 150 L700 64 L732 150 L700 64" fill="none" stroke="#e2a73a"/>
-          <path d="M668 78 L748 70 L748 150 L668 148 Z" fill="#121922" stroke="#3ad7c4"/>
-          <path d="M590 150 L700 100" stroke="#e2a73a"/>
-          <text x="548" y="190" fill="#8c9aab">射线先扭，再贴上曲面</text>
+          <text x="530" y="28" fill="#e2a73a">3 观察点</text>
+          <circle cx="548" cy="120" r="6" fill="#e2a73a"/>
+          <text x="536" y="148" fill="#8c9aab" font-size="11">眼</text>
+          <path d="M556 116 L650 62 M556 120 L670 108 M556 124 L690 156" stroke="#e2a73a" fill="none"/>
+          <path d="M640 52 Q720 100 700 168" fill="none" stroke="#3ad7c4" stroke-width="2"/>
+          <text x="600" y="190" fill="#8c9aab">射线打到曲面</text>
         </g>
       </svg>`
     },
@@ -288,7 +287,11 @@
           <text x="500" y="28" fill="#3ad7c4">烘好的一张图</text>
           <rect x="500" y="48" width="220" height="110" fill="#121922" stroke="#e2a73a"/>
           <path d="M516 130 C560 70 620 150 700 80" fill="none" stroke="#3ad7c4"/>
-          <text x="516" y="180" fill="#8c9aab">服务器只播这张像素</text>
+          <path d="M280 78 V168" stroke="#e36b5c" stroke-dasharray="4 3"/>
+          <circle cx="430" cy="100" r="10" fill="none" stroke="#8c9aab" stroke-dasharray="3 2"/>
+          <path d="M430 112 V140 M418 126 H442" stroke="#8c9aab" stroke-dasharray="3 2"/>
+          <text x="408" y="64" fill="#8c9aab" font-size="11">走开</text>
+          <text x="500" y="180" fill="#8c9aab">站在点上才凸。虚线位置看，两块面就拆开</text>
         </g>
       </svg>`
     },
@@ -312,7 +315,9 @@
           <rect x="450" y="92" width="110" height="62" fill="#121922" stroke="#e2a73a"/>
           <text x="600" y="80" fill="#3ad7c4">右路输出</text>
           <rect x="600" y="92" width="110" height="62" fill="#121922" stroke="#3ad7c4"/>
-          <text x="450" y="180" fill="#8c9aab">两张图同时存在，不是烘成一张</text>
+          <circle cx="36" cy="186" r="7" fill="none" stroke="#e2a73a"/>
+          <circle cx="44" cy="186" r="7" fill="none" stroke="#3ad7c4"/>
+          <text x="64" y="190" fill="#8c9aab">两点挪到一起，左右图重合，立体消失</text>
         </g>
       </svg>`
     },
@@ -340,6 +345,23 @@
     }
   };
 
+  const pairFigures = {
+    disguise: `<svg viewBox="0 0 520 110" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="520" height="110" fill="#0d1218"/><g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5"><text x="16" y="24" fill="#3ad7c4">Direct</text><rect x="16" y="36" width="200" height="56" fill="#121922" stroke="#3ad7c4"/><text x="36" y="68" fill="#8c9aab">贴死在 UV 上</text><text x="250" y="24" fill="#e2a73a">Perspective</text><circle cx="270" cy="78" r="5" fill="#e2a73a"/><path d="M276 74 L360 40 L420 80" fill="none" stroke="#e2a73a"/><text x="300" y="96" fill="#8c9aab">跟摄像机走</text></g></svg>`,
+    pixera: `<svg viewBox="0 0 520 110" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="520" height="110" fill="#0d1218"/><g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5"><text x="16" y="24" fill="#8c9aab">默认平贴</text><rect x="16" y="36" width="180" height="50" fill="#121922" stroke="#314557"/><path d="M40 70 H170" stroke="#8c9aab"/><text x="230" y="24" fill="#3ad7c4">打开透视纹理</text><path d="M240 86 Q310 36 400 70" fill="none" stroke="#3ad7c4"/><circle cx="250" cy="86" r="4" fill="#e2a73a"/><text x="230" y="104" fill="#8c9aab">Eye-Point 落到曲面</text></g></svg>`,
+    sky: `<svg viewBox="0 0 760 120" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><rect width="760" height="120" fill="#0d1218"/><g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab"><text x="24" y="22" fill="#e2a73a">等距 · 夹角均匀</text><circle cx="90" cy="88" r="4" fill="#e2a73a"/><path d="M90 84 L50 36 M90 84 L90 28 M90 84 L130 36" stroke="#e2a73a" fill="none"/><text x="270" y="22" fill="#3ad7c4">等立体角 · 中间更密</text><circle cx="340" cy="88" r="4" fill="#3ad7c4"/><path d="M340 84 L310 40 M340 84 L340 26 M340 84 L370 40" stroke="#3ad7c4" fill="none"/><text x="520" y="22" fill="#e7eef5">正交 · 射线平行</text><path d="M540 88 V36 M590 88 V36 M640 88 V36" stroke="#e7eef5" fill="none"/></g></svg>`
+  };
+
+  const geomGlossary = [
+    ["UV", "灯珠在贴图上的坐标，通常铺满 0–1。没铺满就会采样到看不见的像素。"],
+    ["等距柱状", "2:1 的 360 图。横轴是经度，纵轴是纬度，两极挤成一条线。"],
+    ["离轴", "眼睛不在屏的正前方。裸眼立面用这个矩阵把素材提前扭好。"],
+    ["瞳距", "两眼间距。双目是两个观察点，不是两个素材名。"],
+    ["Eye-Point", "PIXERA 里发出透视射线的点，可以交给摄像机跟踪。"],
+    ["Direct", "按 UV 贴死，摄像机挪了画面也不变。"],
+    ["Perspective", "从观察点投射。机位一变，落到曲面上的像素就变。"],
+    ["Outer / Inner", "外层是真实 LED 体积，内层是虚拟场景。窗口开在外层上。"]
+  ];
+
   function renderGeom() {
     const modes = document.getElementById("geom-modes");
     const table = document.getElementById("geom-table");
@@ -347,17 +369,44 @@
     const shows = document.getElementById("geom-shows");
     if (!modes || !S.geomModes) return;
 
+    const jumps = document.getElementById("geom-jumps");
+    if (jumps) {
+      jumps.innerHTML = "";
+      S.geomModes.forEach((mode) => {
+        jumps.appendChild(el("a", { href: "#geom-" + mode.id }, mode.name));
+      });
+    }
+    const gloss = document.getElementById("geom-glossary");
+    if (gloss) {
+      gloss.innerHTML = geomGlossary.map(([k, v]) => `<div><b>${k}</b><span>${v}</span></div>`).join("");
+    }
+
     S.geomModes.forEach((mode) => {
-      const card = el("article", { class: "geom-card", dataset: { geom: mode.id } });
+      const card = el("article", { class: "geom-card", id: "geom-" + mode.id, dataset: { geom: mode.id } });
       const steps = (mode.steps || []).map((s) => `<li><strong>${s.t}</strong> ${s.d}</li>`).join("");
       const fig = geomFigures[mode.id];
+      const extra = mode.id === "sky" ? pairFigures.sky : "";
       const figure = fig
-        ? `<figure class="geom-fig">${fig.svg}<figcaption>${fig.caption} <a href="${fig.url}" target="_blank" rel="noopener">打开手册原图 · ${fig.source}</a></figcaption></figure>`
+        ? `<figure class="geom-fig">${fig.svg}${extra}<figcaption>${fig.caption} <a href="${fig.url}" target="_blank" rel="noopener">打开手册原图 · ${fig.source}</a></figcaption></figure>`
         : "";
       card.innerHTML =
         `<div class="geom-card-head"><div><div class="en">${mode.group} · ${mode.en}</div><h3>${mode.name}</h3></div>` +
         `<button type="button" class="geom-mode" data-geom="${mode.id}" aria-pressed="false">只看这一档</button></div>` +
         `<div class="geom-split">${figure}<div><p>${mode.body}</p><ol>${steps}</ol><p class="fail">${mode.fail}</p></div></div>`;
+      const figureEl = card.querySelector(".geom-fig");
+      if (figureEl && fig) {
+        figureEl.addEventListener("click", (e) => {
+          if (e.target.closest("a")) return;
+          openLightbox({
+            svg: fig.svg,
+            product: mode.name,
+            caption: fig.caption,
+            sourceUrl: fig.url,
+            sourceTitle: fig.source,
+            group: "geom"
+          }, "hw");
+        });
+      }
       card.querySelector(".geom-mode").addEventListener("click", () => {
         const same = activeGeom === mode.id;
         clearHighlightSources("geom");
@@ -381,8 +430,15 @@
           id: "writeup-" + item.id,
           dataset: { kinds: (item.kinds || []).join(","), id: item.id }
         });
+        const chips = (item.kinds || []).map((k) => {
+          const mode = S.geomModes.find((m) => m.id === k);
+          return `<a href="#geom-${k}">${mode ? mode.name : k}</a>`;
+        }).join("");
+        const pair = pairFigures[item.id] ? `<figure class="geom-fig">${pairFigures[item.id]}</figure>` : "";
         card.innerHTML =
           `<div class="tear-head"><span class="grade">证据 ${item.grade}</span><h3>${item.title}</h3></div>` +
+          `<div class="kind-chips">${chips}</div>` +
+          pair +
           `<p>${item.body}</p><p>${item.more}</p>` +
           `<div class="who"><a href="${item.url}" target="_blank" rel="noopener">${item.source}</a></div>`;
         writeups.appendChild(card);
@@ -436,7 +492,11 @@
         const link = item.url
           ? `<a href="${item.url}" target="_blank" rel="noopener">${item.source}</a>`
           : "";
+        const thumb = geomFigures[item.kind]
+          ? `<figure class="geom-fig case-thumb">${geomFigures[item.kind].svg}</figure>`
+          : "";
         card.innerHTML =
+          thumb +
           `<div class="tear-head"><span class="grade">证据 ${item.grade}</span><h3>${item.name}</h3></div>` +
           `<p class="symptom">${item.who}</p><p>${item.claim}</p><p>${item.method}</p>` +
           `<div class="who">${link}</div>`;
@@ -447,14 +507,28 @@
     if (shows && S.geomShows) {
       S.geomShows.forEach((item) => {
         const card = el("article", { class: "show-card" + (item.url ? "" : " is-empty") });
-        const quote = item.quote ? `<p class="symptom">${item.quote}</p>` : "";
+        const quote = item.quote ? `<p>${item.quote}</p>` : `<p>没有可引用的原句。</p>`;
         const link = item.url
           ? `<a href="${item.url}" target="_blank" rel="noopener">${item.source}</a>`
           : "";
         card.innerHTML =
           `<div class="tear-head"><span class="grade">${item.grade === "—" ? "未定位" : "证据 " + item.grade}</span><h3>${item.name}</h3></div>` +
-          `<div class="en">${item.year}</div>${quote}<p>${item.note}</p><div class="who">${link}</div>`;
+          `<div class="en">${item.year}</div>` +
+          `<div class="show-split"><div><h4>原文说了</h4>${quote}</div><div><h4>原文没写</h4><p>${item.note}</p></div></div>` +
+          `<div class="who">${link}</div>`;
         shows.appendChild(card);
+      });
+    }
+
+    const questions = document.getElementById("geom-questions");
+    if (questions && S.geomMatrix && S.geomKeys) {
+      questions.innerHTML = "";
+      S.geomMatrix.forEach((row) => {
+        const gaps = S.geomKeys.filter((k) => (row[k.id] || "unknown") === "unknown").map((k) => k.label);
+        if (row.stereo && String(row.stereo).indexOf("未检索") >= 0) gaps.push("立体输出");
+        if (!gaps.length) return;
+        questions.appendChild(el("p", null,
+          `<strong>${vendorLabel(row.id)}</strong> 的空项：${gaps.join("、")}。问对方：手册哪一章写了这一步，做完之后像素从哪张表来。`));
       });
     }
   }
@@ -899,6 +973,12 @@
       card.classList.toggle("hit", on && matched);
       card.classList.toggle("miss", on && !matched);
     });
+    document.querySelectorAll("#patent-list .patent").forEach((card) => {
+      const on = !!activeGeom;
+      const matched = !!card.dataset.kind && card.dataset.kind === activeGeom;
+      card.classList.toggle("hit", on && matched);
+      card.classList.toggle("miss", on && !matched);
+    });
   }
 
   function renderVendors() {
@@ -966,7 +1046,7 @@
     const kindName = { surface: "曲面几何", sky: "天空盒", naked: "裸眼离轴", glasses: "双目", xr: "跟踪视锥" };
     S.patents.forEach((p) => {
       const kind = p.kind ? ` · ${kindName[p.kind] || p.kind}` : "";
-      root.appendChild(el("article", { class: "patent" },
+      root.appendChild(el("article", { class: "patent", dataset: { kind: p.kind || "" } },
         `<div>
            <div class="track">${trackName[p.track]} · ${p.grade}${kind}</div>
            <div class="no">${p.no}</div>

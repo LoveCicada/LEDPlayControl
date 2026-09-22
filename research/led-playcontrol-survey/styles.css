@@ -856,6 +856,80 @@ table.heat {
   align-items: start;
   margin-top: 12px;
 }
+.geom-read {
+  margin: 0 0 14px;
+  padding-left: 18px;
+  color: var(--text);
+  font-size: 14px;
+}
+.geom-read li { margin: 4px 0; }
+.geom-jumps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+.geom-jumps a {
+  border: 1px solid var(--line-2);
+  color: var(--cyan);
+  text-decoration: none;
+  font-size: 13px;
+  padding: 6px 10px;
+}
+.geom-glossary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 16px;
+  margin: 0 0 16px;
+}
+.geom-glossary div {
+  background: var(--elev);
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.geom-glossary b {
+  display: block;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.geom-questions { display: grid; gap: 8px; margin-bottom: 8px; }
+.geom-questions p {
+  margin: 0;
+  background: var(--elev);
+  border-left: 3px solid var(--amber);
+  padding: 10px 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.geom-questions strong { color: var(--text); }
+.kind-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.kind-chips a {
+  font-size: 12px;
+  color: var(--cyan);
+  border: 1px solid var(--line-2);
+  text-decoration: none;
+  padding: 3px 8px;
+}
+.dot-legend .dot { vertical-align: -1px; margin: 0 4px 0 10px; }
+.dot-legend .dot:first-child { margin-left: 0; }
+.show-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 8px;
+}
+.show-split h4 { margin: 0 0 4px; font-size: 12px; color: var(--amber); font-weight: 600; }
+.show-split p { margin: 0; color: var(--muted); font-size: 13px; }
+.case-thumb { margin: 0 0 10px; }
+.case-thumb svg { height: 96px; width: auto; max-width: 100%; }
+.geom-card .geom-fig { cursor: zoom-in; }
+.inline-svg, .map-fig svg { width: 100%; height: auto; display: block; margin: 10px 0; }
+.map-fig { margin: 12px 0 0; }
+.patent.hit { box-shadow: inset 3px 0 0 var(--cyan); }
+.patent.miss { opacity: 0.32; }
 .geom-fig { margin: 0; }
 .geom-fig svg {
   width: 100%;
@@ -1059,7 +1133,7 @@ footer {
   .hero, section, footer { padding-left: 22px; padding-right: 22px; }
   .problem-grid, .cards, .arch, .oss, .arch-grid, .ui-gallery, .hw-gallery, .hops, .ltc-grid { grid-template-columns: 1fr; }
   .steps, .scenes { grid-template-columns: 1fr 1fr; }
-  .geom-split, .shows { grid-template-columns: 1fr; }
+  .geom-split, .shows, .geom-glossary, .show-split { grid-template-columns: 1fr; }
   .patent { grid-template-columns: 1fr; }
   .stats { grid-template-columns: 1fr 1fr; }
   .sources-all { columns: 1; }
