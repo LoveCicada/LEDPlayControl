@@ -1111,6 +1111,340 @@ window.SURVEY = {
     }
   ],
 
+  geomModes: [
+    {
+      id: "surface",
+      group: "几何",
+      name: "曲面几何",
+      en: "Mesh / UV / viewpoint",
+      body: "先回答灯珠在真实空间的坐标，再决定二维画面的哪个像素落到哪颗灯珠。折面可以停在 2D 多边形和网格变形。球、环、自由曲面要从模型走。",
+      fail: "把 16:9 成片按矩形铺到球面上，经线和模组接缝对不齐。看起来像内容歪了，实际是没有 UV。",
+      vendors: ["grandshow", "disguise", "pixera", "hecoos", "screenberry", "vmeet", "watchout", "pandoras", "ndisplay"],
+      steps: [
+        { t: "按实物建网格", d: "模组宽高、拼缝、弧度或球半径来自现场测量或屏厂配置文件。三思专利把这一步写成：解析球形屏配置得到空间几何，筛掉无效像素，再用非线性映射把像素坐标转到经纬度。CN113077729A 更细：每颗灯珠是一个像素，沿纬线和经线排列，球面再分成顶、底、侧面。" },
+        { t: "UV 必须盖住整张 0–1", d: "disguise 写明：LED 屏和投影表面的网格没有 UV 就输出黑色，不能做映射。软件采样的是整张归一化 UV。分辨率在 Designer 里按灯珠产品另设。UV 没铺满 0–1，会采样到一批永远看不见的虚拟像素；分辨率宽高比和几何不一致，像素会被拉变形。" },
+        { t: "Direct 和 Perspective 是两种贴法", d: "disguise 默认给每块屏一张 Direct mapping，内容按 UV 贴死，不跟摄像机走。摄像机另外带 Perspective mapping。PIXERA 的弯屏默认仍是平贴，要打开 Create Perspective Screen Texture Coordinates，像素才从 Eye-Point 铺到曲面上。" },
+        { t: "投影标定是同一条几何，对象不同", d: "WATCHOUT 把投影机当成视锥：Eye、Target、Roll、镜头位移和宽距比。模型上放虚拟点，输出画面上放现实点，至少六个点之后求解机位和镜头。Pandoras Box Warper 可以只做自由变形，也可以导入与实物一致的网格，把虚拟摄像机对准投影机，再把网格导出成 X 文件交回图层。" },
+        { t: "最后才按口切开", d: "GrandMapping 的宣传路径是模型、视角、自动切片，然后写入卡莱特发送卡连接关系。切片清单和同步组仍是两张表。几何对了、扫出相位没锁，接缝照样撕。" }
+      ]
+    },
+    {
+      id: "sky",
+      group: "内容",
+      name: "天空盒 / 穹顶",
+      en: "Latlong / fisheye",
+      body: "天空盒回答的是「贴什么」，不是「屏长什么样」。一张 2:1 等距柱状图或六面立方体，要先变成方向，再采样到屏的网格或鱼眼镜头上。",
+      fail: "把 360 文件直接当 LED 箱体的像素表，或者把穹顶镜头校正说成帧同步。",
+      vendors: ["screenberry", "pixera", "ndisplay", "vmeet"],
+      steps: [
+        { t: "内容格式和屏的像素表不是一回事", d: "等距柱状图的横轴是 360° 经度，纵轴是 180° 纬度，两极必然挤在一起。立方体贴图是六个面。屏厂给的接收卡走线表是另一张表。中间必须有一次采样。" },
+        { t: "PIXERA 用三种方式把图层灌进空间", d: "平行光束：前后物体没有近大远小。透视射线：打到更远物体上的像素更大。Equirectangular：按等距柱状投影公式，从一个可移动的中心把 latlong / 360 画面球状播出去。一旦加上这些 Layer Mapping，图层不再跟屏自己的透视工具走，而是铺满该屏对象的纹理尺寸。" },
+        { t: "穹顶镜头有自己的映射函数", d: "Screenberry 的 Dome Transform 接在自动校准之后，补的是校准相机，不是播放头。参数包括旋转、视场角、倾斜、相机相对穹顶天顶的 XYZ。镜头畸变一条滑杆走完三种模型：0 是等距，靠近 0.5 是等立体角，1 是正交。" },
+        { t: "离线全景出片不是现场策略", d: "nDisplay 的全景通道把水平 360° 和垂直 360° 切成许多普通 2D 画面，拼完再融成等距柱状图。要立体时，左右眼上下叠在同一张图里。这是渲染农场式出片。现场 LED 穹顶仍要另接网格或鱼眼切片。" },
+        { t: "鱼眼专利校正的是光路", d: "CN103035016A 把投影机目标图像素按鱼眼光路变到球面坐标，旋转后再转回源图坐标，让平面矩形素材投到球幕上少变形。它不经过 LED 接收卡。播控若只吐矩形成片，变形就留在镜头里。" }
+      ]
+    },
+    {
+      id: "naked",
+      group: "视差",
+      name: "裸眼离轴",
+      en: "One viewpoint, baked",
+      body: "裸眼立面只有一个最佳观看点。立体感来自内容按这个点做过离轴预畸变，不是播控机在现场算第二只眼睛。",
+      fail: "把展台成片写成某家媒体服务器的实时 3D 引擎。页面没写矩阵，就不能补矩阵。",
+      vendors: [],
+      steps: [
+        { t: "一个甜区，两块以上的屏面", d: "人站在设计好的观察点上，直角或 L 型屏的两个平面会同时对上这只眼睛的透视。走开之后，凸出感塌掉，接缝也露出来。这和穹顶「站在球心看」不是同一几何。" },
+        { t: "华院专利把算法停在出片", d: "按异形屏几何和最佳观察点构造离轴投影矩阵，把平面素材反投到各屏面，导出可以直接播放的展开图或视频。现场服务器播的是这张已经扭好的图，分辨率对齐灯珠，不需要第二路视锥。" },
+        { t: "展台文案停在屏和内容公司", d: "ISLE 2025 视爵光旭写了 90° 直角、点间距 1.56，内容来自地标马克。创维写了约 18 米的 L 型吊装和「中国龙破屏」。两篇都没有离轴矩阵，也没有播出软件的名字。" },
+        { t: "预算应该记在内容，不记在帧同步", d: "这种项目的难处是观察点、屏面夹角和预畸变素材。多机锁相只在屏被切到多台服务器时才重新变成问题。不要用「支持 3D」去对比 disguise 的跟踪视锥。" }
+      ]
+    },
+    {
+      id: "glasses",
+      group: "视差",
+      name: "眼镜双目",
+      en: "Two rasters",
+      body: "左右眼各要一张图，两张图的摄像机分开一个瞳距。输出可以是两路接口，也可以是一张图里上下或左右并排。",
+      fail: "和裸眼立面共用一个「3D」复选框。一个是烘焙后的单路像素，一个是同时存在的两路像素。",
+      vendors: ["pixera", "ndisplay"],
+      steps: [
+        { t: "先让显卡同意画两只眼", d: "PIXERA 要求先在 NVIDIA 控制面板打开 Stereoscopic。面板里没有这一项时，帮助页写明 one、two、four 需要 NVIDIA 立体扩展卡。这一步在操作系统和驱动，不在时间线里。" },
+        { t: "两块屏、两个观察点、一个开关", d: "左右各建一块显示并各接一路输出，放进各自的 3D Screen Group，分开移动 eyepoint。最后在 Mapping 里点中某路 Feed，在检查器里设置 Stereoscopic Mode。两套组共用一个观察点时，左右图会重合，立体感消失。" },
+        { t: "nDisplay 把瞳距写在摄像机上", d: "摄像机组件有瞳距、立体偏移和左右眼对调。第二只眼可以指定另一块 GPU。视口自己还有 Projection Policy，决定这块视口用平面、网格还是其他投影。" },
+        { t: "手册没写的不要补", d: "主动立体眼镜的发射器如何锁到刷新率，这次打开的 PIXERA 和 nDisplay 页面都没有句子。页面停在两路像素如何生成。" }
+      ]
+    },
+    {
+      id: "xr",
+      group: "视差",
+      name: "XR 跟踪视锥",
+      en: "Tracked frustum",
+      body: "LED 体积是真实空间里的一块网格。虚拟场景在另一套坐标里。摄像机每帧的位置决定从哪一个窗口看进去。内容不是事先烘好的 360 文件。",
+      fail: "只锁了服务器，摄像机或 LED 处理器没进同一 house-sync。画面在监视器上是齐的，拍摄画面里仍漂。",
+      vendors: ["disguise", "pixera", "ndisplay"],
+      steps: [
+        { t: "外层是实景，内层是虚拟场景", d: "PIXERA 把摆放屏、显示和 LED 体积的空间叫 Outer compositing，把 Unreal 场景叫 Inner。透过外层体积去看内层。移动外层体积，就是在移动看进虚拟场景的窗口。外层几何改完，nDisplay 配置文件要重新生成，否则引擎仍按旧窗口渲染。" },
+        { t: "网格来自扫描，不是来自一张平面图", d: "disguise 的 xR 流程要求把 LED 屏加进舞台，并写明 LIDAR 扫描、做过 UV 展开的 OBJ 最合适。再放虚拟摄像机、把物理机的视频输入补进对应虚拟机、接上跟踪驱动。这些对象放进同一个 MR set。屏外还要画面时，另加一块 set extension 网格。" },
+        { t: "标定用结构光，不是用眼睛挪点", d: "LED 上打白点，摄像机认出这些点，同时记下跟踪系统报的机位。两个位置合成一次观测。多面屏时，MR set 列表里的第一块屏保持不动，其余屏和摄像机绕它对齐。UV 方向反了，帮助页写屏会翻转。反射会造成错误白点。" },
+        { t: "Genlock 是标定前提", d: "disguise 把「摄像机、LED 处理器、所有服务器收到同一 genlock」写在空间标定的前置条件里。跟踪延迟、镜头数据和 Feed 输出也要先确认。这一条和大屏播放的帧锁是同一根 house-sync，不是另一套软件对时。" },
+        { t: "曲面体积默认仍可能被平贴", d: "PIXERA 写：弯 LED 上的内容映射默认是平的。要在该 LED 上打开 Create Perspective Screen Texture Coordinates，像素才按 Eye-Point 落到曲面上。Eye-Point 可以由外部相机跟踪驱动。" }
+      ]
+    }
+  ],
+
+  geomKeys: [
+    { id: "slice2d", label: "2D 切片" },
+    { id: "mesh", label: "导入网格" },
+    { id: "uv", label: "UV / 自动切片" },
+    { id: "eye", label: "观察点" },
+    { id: "dome", label: "穹顶 / 360" },
+    { id: "frustum", label: "实时视锥" }
+  ],
+
+  geomMatrix: [
+    { id: "kommander", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "no", stereo: "未检索到", evidence: "B", note: "主界面是虚拟屏和预案。球形路径未在公开手册展开。" },
+    { id: "novastar", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "no", stereo: "未检索到", evidence: "B", note: "播控主路径是窗口/预案。屏端几何在接收卡配屏，不是 3D 舞台。" },
+    { id: "hirender", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "no", stereo: "未检索到", evidence: "B", note: "网格拼接和窗口模式。未检索到 OBJ/UV 专章。" },
+    { id: "grandshow", slice2d: "yes", mesh: "partial", uv: "partial", eye: "partial", dome: "partial", frustum: "unknown", stereo: "未检索到", evidence: "C", note: "GrandShow 内是 2D 切片。GrandMapping 宣传：模型 → 视角 → 自动切片 → 发送卡连接关系。AI 建模维持 C。" },
+    { id: "hecoos", slice2d: "partial", mesh: "partial", uv: "unknown", eye: "partial", dome: "unknown", frustum: "unknown", stereo: "未检索到", evidence: "B", note: "Studio 先做三维预演和机位，再交给 Server。像素级 UV 公开页不够细。" },
+    { id: "disguise", slice2d: "partial", mesh: "yes", uv: "yes", eye: "yes", dome: "unknown", frustum: "yes", stereo: "跟踪视锥，不是双目", evidence: "A", note: "显示网格必须有 UV，否则黑屏。xR 推荐 LIDAR 扫描并展开的 OBJ。Spatial Mapping 跟活动摄像机。" },
+    { id: "watchout", slice2d: "yes", mesh: "yes", uv: "unknown", eye: "yes", dome: "unknown", frustum: "partial", stereo: "未检索到", evidence: "A", note: "3D 映射把投影机当成带 Eye/Target 的视锥，用至少六点标定贴到模型上。对象是投影表面，不是 LED 接收卡 UV。" },
+    { id: "vmeet", slice2d: "yes", mesh: "partial", uv: "unknown", eye: "unknown", dome: "partial", frustum: "unknown", stereo: "未检索到", evidence: "C", note: "产品页写自定义模型、球幕、隧道、穹顶、CAVE。步骤未到手册级。" },
+    { id: "pixera", slice2d: "yes", mesh: "yes", uv: "partial", eye: "yes", dome: "yes", frustum: "yes", stereo: "双目左右屏", evidence: "A", note: "弯屏要打开 Perspective Texture Coordinates。Equirectangular 效果吃 360/latlong。双目要两块屏、两套 3D Screen Group，one/two/four 需要 NVIDIA 立体扩展。" },
+    { id: "7thsense", slice2d: "partial", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "unknown", stereo: "未检索到", evidence: "B", note: "产品定位写穹顶。本次打开的手册是同步章，几何步骤未在该页展开，穹顶格保持空。" },
+    { id: "hippotizer", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "no", stereo: "未检索到", evidence: "B", note: "VideoMapper 对齐多块不同分辨率屏，偏 2D 像素路由。" },
+    { id: "resolume", slice2d: "yes", mesh: "no", uv: "no", eye: "no", dome: "no", frustum: "no", stereo: "无", evidence: "A", note: "Advanced Output 的 2D slice 和 mesh warp。不够球形 LED UV。" },
+    { id: "ndisplay", slice2d: "no", mesh: "partial", uv: "unknown", eye: "yes", dome: "partial", frustum: "yes", stereo: "双目瞳距", evidence: "A", note: "视口有 Projection Policy 和摄像机。立体参数是瞳距、换眼。Movie Pipeline 全景通道是离线等距柱状出图，不是 LED 穹顶策略本身。" },
+    { id: "touchdesigner", slice2d: "partial", mesh: "partial", uv: "unknown", eye: "partial", dome: "unknown", frustum: "partial", stereo: "未检索到", evidence: "B", note: "3D TOP / 摄像机投影可搭异形互动。不是开箱的 LED UV 产品。" },
+    { id: "pandoras", slice2d: "yes", mesh: "yes", uv: "unknown", eye: "yes", dome: "unknown", frustum: "partial", stereo: "未检索到", evidence: "A", note: "Warper 可导入 3D 物体，虚拟摄像机对齐真实投影机，再把物体导出到 Video Layer。主路径是投影校准。" },
+    { id: "screenberry", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "partial", dome: "yes", frustum: "unknown", stereo: "未检索到", evidence: "A", note: "Dome Transform 补偿校准相机的 FOV、倾斜和位移。镜头映射从等距到等立体角再到正交。这是穹顶校正，不是 GPU 帧锁。" },
+    { id: "brompton", slice2d: "no", mesh: "no", uv: "no", eye: "no", dome: "no", frustum: "no", stereo: "无", evidence: "A", note: "处理器。几何在上游播控或内容里完成。" },
+    { id: "novastar-mx", slice2d: "no", mesh: "no", uv: "no", eye: "no", dome: "no", frustum: "no", stereo: "无", evidence: "A", note: "控制器锁 genlock。不建模型、不出天空盒。" }
+  ],
+
+  geomWriteups: [
+    {
+      id: "disguise",
+      kinds: ["surface", "xr"],
+      grade: "A",
+      title: "disguise：没有 UV 的屏是黑的",
+      body: "Designer 把 LED 和投影表面都当成必须带 UV 的网格。UV 负责在二维素材和三维多边形之间来回翻译。采样范围是整张归一化 UV（U、V 都从 0 到 1）。屏的宽高比通常由网格的真实尺寸决定，分辨率在软件里按灯珠或投影机另设。UV 没归一化时，即使用正方形分辨率，也会有一批采样落在看不见的区域。",
+      more: "映射分两层。每块屏默认带一张同名的 Direct mapping，内容贴在 UV 上，不跟机位变。每台摄像机默认带 Perspective mapping。xR 用的 Spatial Mapping 认 MR set 里的活动摄像机，还可以做世界坐标偏移；屏的 UV 岛可以向外扩几个像素，用来盖住边缘黑边，但 UV 图里得留出相应空白。标定前，帮助页要求摄像机、处理器和全部服务器已经锁在同一 genlock 上。",
+      url: "https://help.disguise.one/workflows/3d-modelling/uv-mapping/uv-maps-in-designer",
+      source: "UV maps in Designer"
+    },
+    {
+      id: "pixera",
+      kinds: ["surface", "sky", "glasses", "xr"],
+      grade: "A",
+      title: "PIXERA：平贴、球状投射、双目是三个开关",
+      body: "弯 LED 默认按平面贴内容。要在这块 LED 上打开 Create Perspective Screen Texture Coordinates，像素才从 Eye-Point 正确落到曲面上。Screen Group 的 Perspective Mode 设为 3D 之后，Eye-Point 变成工作区里的一个手柄，可以由外部相机跟踪驱动。",
+      more: "Layer Mapping 会绕开屏自己的透视。平行光束没有近大远小；透视射线让更远的像素更大；Equirectangular 按等距柱状公式从一个点把 360 图播出去，中心点用效果参数移动。加上这些效果后，不能再用 Perspective 工具挪内容。虚拟制片另分外层和内层：外层摆真实屏，内层放 Unreal。改外层体积后要重新生成 nDisplay 配置。双目则是另一条清单：NVIDIA 立体开关、左右两块显示和输出、两个 3D Screen Group、两个 eyepoint、Feed 上的 Stereoscopic Mode。",
+      url: "https://help.pixera.one/pixera-20/layer-mapping-effects",
+      source: "Layer Mapping Effects"
+    },
+    {
+      id: "watchout",
+      kinds: ["surface"],
+      grade: "A",
+      title: "WATCHOUT：投影机是一台虚拟摄像机",
+      body: "3D 映射解决的是投影表面，不是 LED 接收卡走线。流程是四步：现场摆好投影机和物体，软件里摆出对应的模型和投影机，用点标定把两边对齐，再播素材。",
+      more: "投影机的 Eye 是机位，Target 是瞄准点，两者构成光轴，Roll 是滚转。镜头要填水平/垂直位移和宽距比。虚拟点放在模型的角和边上，现实点放在投影输出里这些角实际出现的位置。虚拟点少于六个时，还不能编辑现实点。求解同时改镜头参数和机位。LED 超宽条在 WATCHOUT 里仍是显示对象映射，公开页没有把这条六点标定写成灯珠 UV。",
+      url: "https://docs.dataton.com/guide/watchout/devices/display-calibration.html",
+      source: "Display Calibration"
+    },
+    {
+      id: "pandoras",
+      kinds: ["surface"],
+      grade: "A",
+      title: "Pandoras Box：Warper 里先对齐，再把网格交回图层",
+      body: "Warper 是随安装附带的建模工具，启动要加密狗。一条路是自定义形状加可缩放的自由变形器，适合还没有精确模型的异形幕。另一条路是导入与实物一致的三维物体，把虚拟摄像机的位置、朝向和镜头设成和真实投影机一样。",
+      more: "机位可以对着图纸手填，也可以用标记做自动摄像机校准，后者从 5.5 版开始有。对齐之后，摄像机参数交回 Pandoras Box 的 Camera Layer，物体导出为 X 文件贴到单独的 Video Layer。8 版之前，Player 的 2D 版没有 Z 轴，也不能导入物体。这条链路的产物仍是投影校正，不是球形 LED 的经纬表。",
+      url: "https://pandorasboxhelpfile.com/home/warper.htm",
+      source: "Warper"
+    },
+    {
+      id: "screenberry",
+      kinds: ["sky", "surface"],
+      grade: "A",
+      title: "Screenberry：穹顶校正补偿的是校准相机",
+      body: "Dome Transform 接在 Calibrator 后面，中间经过 Render Target。自动校准已经给出一张对齐结果，这个节点再补相机自己带来的误差：画面旋转、视场角缩放、镜头畸变、倾斜，以及相机相对穹顶天顶的前后左右上下偏移。",
+      more: "镜头畸变不是一个模糊的「鱼眼强度」。滑杆在三种投影之间过渡：0 为等距，靠近 0.5 为等立体角，1 为正交。帮助页还列出 2D 平面转穹顶。这些参数都不产生多机 present barrier，也不能代替箱体 UV。",
+      url: "https://help.screenberry.com/warping-alignment/dometransform.en",
+      source: "Dome Transform"
+    },
+    {
+      id: "ndisplay",
+      kinds: ["xr", "glasses", "sky"],
+      grade: "A",
+      title: "nDisplay：视口策略、瞳距、离线全景是三份配置",
+      body: "每个视口有自己的 Projection Policy、二维区域和渲染设置。摄像机组件决定从空间哪一点渲染这些视口。立体不靠素材文件名，而靠摄像机上的瞳距、眼睛偏移和左右对调；第二只眼可以指定另一块 GPU。",
+      more: "全景出片是 Movie Pipeline 的另一条通道：水平方向和垂直方向各切成多张普通 2D 画面，拼成等距柱状图。步数越高，极点以外的变形越小，时间越长。立体全景把左右眼上下叠在最终图里。这张图之后还要再进穹顶或 LED 的映射，通道本身不认识接收卡。",
+      url: "https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/DisplayCluster/UDisplayClusterCameraComponent",
+      source: "nDisplay camera stereo"
+    },
+    {
+      id: "grandshow",
+      kinds: ["surface"],
+      grade: "C",
+      title: "GrandMapping：公开页只有路径，没有参数",
+      body: "GrandShow 本体是 2D 批量切片、变形和旋转。球形和弧形被指到独立软件 GrandMapping：用预设或推断的屏体模型，调观察视角，自动切片，再把结果送进卡莱特发送卡的连接关系文件。",
+      more: "「AI 推断屏体」出现在宣传，不出现在可复核的参数页。这次没有打开到 UV 归一化、经纬公式或观察点矩阵的说明，所以表上这三格是部分，证据保持 C。能确定的是它把几何结果写成发送卡文件，而不是写成 NVIDIA Sync 组。",
+      url: "https://colorlightinside.com/product/special/6255",
+      source: "GrandMapping"
+    },
+    {
+      id: "hecoos",
+      kinds: ["surface"],
+      grade: "B",
+      title: "hecoos：先在 Studio 里摆三维，再交给 Server",
+      body: "设计端 Studio 默认不出画，里面摆灯、屏、机械和摄像机机位。Server 或带输出模块的 Studio Pro 才负责现场输出。这是国内少数把三维预演放在播控前面的结构。",
+      more: "公开介绍没有 disguise 那种「无 UV 则黑屏」的句子，也没有经纬展开或离轴矩阵。所以它证明的是工作流分端，不是像素级贴图已经写进手册。快速指南 PDF 此前为 404，这里不拿海报补步骤。",
+      url: "https://www.kk77.cn/com/lanjing/news/itemid-25.html",
+      source: "澜景：Studio / Server"
+    }
+  ],
+
+  geomCases: [
+    {
+      id: "disguise-xr",
+      kind: "xr",
+      name: "disguise xR 舞台",
+      who: "Disguise Designer",
+      claim: "帮助页把做法写成步骤：LED 屏用 LIDAR 扫描并 UV 展开的 OBJ，摄像机、处理器和服务器同一 genlock，Spatial Mapping 跟活动摄像机。",
+      method: "实时跟踪视锥。没有把天空盒文件当成体积的内容格式。",
+      grade: "A",
+      vendors: ["disguise"],
+      url: "https://help.disguise.one/workflows/xr/xr-stage-setup",
+      source: "xR Stage Setup"
+    },
+    {
+      id: "pixera-360",
+      kind: "sky",
+      name: "PIXERA 等距柱状映射",
+      who: "AV Stumpfl PIXERA",
+      claim: "Equirectangular Layer Mapping 按等距柱状公式，从空间中一点把 latlong / 360 内容投到屏对象上。弯屏另要 Create Perspective Screen Texture Coordinates。",
+      method: "天空盒内容贴到已有网格。和双目输出是两条开关。",
+      grade: "A",
+      vendors: ["pixera"],
+      url: "https://help.pixera.one/pixera-20/layer-mapping-effects",
+      source: "Layer Mapping Effects"
+    },
+    {
+      id: "pixera-stereo",
+      kind: "glasses",
+      name: "PIXERA 双目工作流",
+      who: "AV Stumpfl PIXERA",
+      claim: "左右各一块显示和输出，各自进入 3D Screen Group，移动 eyepoint，再在 Mapping 里设 Stereoscopic Mode。one/two/four 需要 NVIDIA 立体扩展卡。",
+      method: "眼镜双目，两路像素。不是裸眼立面的预烘焙。",
+      grade: "A",
+      vendors: ["pixera"],
+      url: "https://help.pixera.one/mapping-/stereoscopic-workflow",
+      source: "Stereoscopic Workflow"
+    },
+    {
+      id: "screenberry-dome",
+      kind: "sky",
+      name: "Screenberry Dome Transform",
+      who: "Screenberry",
+      claim: "在自动校准之后再补几何：旋转、FOV、镜头畸变（等距 / 等立体角 / 正交）、校准相机的倾斜和 XYZ 偏移。",
+      method: "穹顶校正节点。帮助页未把 Quadro 菊花链写成这一步。",
+      grade: "A",
+      vendors: ["screenberry"],
+      url: "https://help.screenberry.com/warping-alignment/dometransform.en",
+      source: "Dome Transform"
+    },
+    {
+      id: "watchout-3d",
+      kind: "surface",
+      name: "WATCHOUT 3D 投影标定",
+      who: "Dataton WATCHOUT",
+      claim: "投影机是虚拟摄像机：Eye、Target、Roll 和镜头参数对齐现场，至少六个虚拟点对现实点，求解后把素材贴上模型表面。",
+      method: "曲面几何，对象是投影。LED 超宽条仍是显示对象映射，深度弱于这条投影标定。",
+      grade: "A",
+      vendors: ["watchout"],
+      url: "https://docs.dataton.com/guide/watchout/devices/display-calibration.html",
+      source: "Display Calibration"
+    },
+    {
+      id: "isle-absen-mark",
+      kind: "naked",
+      name: "ISLE 2025 直角裸眼屏",
+      who: "视爵光旭 × 地标马克",
+      claim: "投影时代转述展台：MC+DBmk2 做 90° 直角、点间距 1.56 的无缝屏，与地标马克一起播裸眼 3D 内容。",
+      method: "页面只展示屏和内容合作。未写离轴矩阵、也未写播控软件。按「内容预畸变 + 直角像素输出」记，不写成实时引擎。",
+      grade: "C",
+      vendors: [],
+      url: "http://www.pjtime.com/2025/3/182456292497.shtml",
+      source: "投影时代 ISLE 2025"
+    },
+    {
+      id: "isle-skyworth",
+      kind: "naked",
+      name: "ISLE 2025 L 型吊装龙",
+      who: "创维商用",
+      claim: "展台文案写 L 型吊装屏约 18 米跨度，「动态裸眼 3D 中国龙」，观众感觉巨龙破屏。",
+      method: "宣传案例。未写建模软件或播出链路。立体感来自内容，不来自本页已核到的播控功能。",
+      grade: "C",
+      vendors: [],
+      url: "http://www.pjtime.com/2025/3/172931658516.shtml",
+      source: "投影时代 ISLE 2025"
+    }
+  ],
+
+  geomShows: [
+    {
+      id: "ise",
+      name: "ISE",
+      year: "2025 · 巴塞罗那",
+      quote: "展台 3D800 由 EX 3+ 媒体服务器驱动，并展示客户项目与现场演示；ROE 展位用 VX/RX 做可扩展实时渲染。",
+      note: "厂商自己的预告。展台由 EX 3+ 驱动，ROE 展位用 VX 4+、VX 2+ 和 RX 做实时渲染，INFiLED 展位用 EX 播产品、用 VX/RX 播舞台。这篇没有 UV、离轴或标定步骤，只能证明他们在 ISE 上演示的是实时渲染链路，不是一条 360 成片。",
+      grade: "C",
+      url: "https://www.disguise.one/en/insights/news/disguise-sets-industry-standard-content-flexibility-groundbreaking-solutions-ise-2025",
+      source: "disguise · ISE 2025"
+    },
+    {
+      id: "infocomm",
+      name: "InfoComm",
+      year: "2025 · 奥兰多",
+      quote: "PIXERA zero 做北美首秀；AnyShape 屏可以按曲面或圆形出厂，用来做超出矩形的投影表面。",
+      note: "AnyShape 是投影幕，不是 LED 箱体建模。不要把它记成球形 LED 的 UV 方案。",
+      grade: "C",
+      url: "https://www.installation-international.com/infocomm/av-stumpfl-to-give-north-america-debut-to-pixera-zero-platform",
+      source: "Installation · InfoComm 2025"
+    },
+    {
+      id: "infocomm-china",
+      name: "InfoComm China",
+      year: "2025 · 北京",
+      quote: "利亚德展台聚焦智能显示、文旅夜游、AI 与空间计算，并发布黑钻、冷屏等显示产品。",
+      note: "展台报道未写异形建模或切片。能引用的是产品发布范围：黑钻、冷屏、文旅夜游和空间计算这句口号。空间计算没有落到网格、UV 或视锥。",
+      grade: "C",
+      url: "https://news.itavcn.com/news/202504/20250416/78309.shtml",
+      source: "数字视听网 · InfoComm China 2025"
+    },
+    {
+      id: "prolight",
+      name: "Prolight+Sound",
+      year: "2025 · 法兰克福",
+      quote: "PIXERA zero 在当年稍早的 ISE 和 Prolight + Sound 面向欧洲观众介绍，随后再到 InfoComm。",
+      note: "同一篇 InfoComm 预告里点到了展名。没有单独的异形屏演示步骤。",
+      grade: "C",
+      url: "https://www.installation-international.com/infocomm/av-stumpfl-to-give-north-america-debut-to-pixera-zero-platform",
+      source: "Installation · 提及 Prolight+Sound 2025"
+    },
+    {
+      id: "isle",
+      name: "ISLE",
+      year: "2025 · 深圳",
+      quote: "视爵光旭设裸眼 3D 数字营销区，90° 直角屏与地标马克的内容一起展出。",
+      note: "展台宣传写了屏的几何（90° 直角、1.56 间距）和内容合作方，没有写离轴矩阵或播出软件。和裸眼一档的判断一致：立体感被算在内容上。",
+      grade: "C",
+      url: "http://www.pjtime.com/2025/3/182456292497.shtml",
+      source: "投影时代 · ISLE 2025"
+    }
+  ],
+
   patents: [
     {
       id: "cn-nova-cal",
@@ -1181,7 +1515,8 @@ window.SURVEY = {
       track: "geom",
       grade: "B",
       summary: "解析球形屏配置得空间几何；筛有效像素；用非线性映射把像素坐标转到经纬度。",
-      meaning: "几何映射支线：球形屏不是矩形裁切，必须有「配置文件 → 经纬坐标」这一步。",
+      kind: "surface",
+      meaning: "曲面几何：球形屏不是矩形裁切，必须有「配置文件 → 经纬坐标」这一步。",
       url: "https://www.xjishu.com/zhuanli/55/202510892636.html"
     },
     {
@@ -1193,8 +1528,35 @@ window.SURVEY = {
       track: "geom",
       grade: "B",
       summary: "按异形屏几何、最佳观察点构造离轴投影矩阵，把平面素材反投到各屏面，导出可直接播放的展开图/视频。",
-      meaning: "映射步骤 3 的算法化：离线烘焙预畸变，降低现场实时 3D 的算力。",
+      kind: "naked",
+      meaning: "裸眼视差，不是实时引擎：离线烘焙预畸变，播控仍输出展开后的像素。",
       url: "https://www.xjishu.com/zhuanli/62/202611016217.html"
+    },
+    {
+      id: "cn-led-sphere-beads",
+      no: "CN113077729A",
+      title: "一种 LED 球形屏的显示方法",
+      who: "摘要页未写申请人全称",
+      year: "2021 公开",
+      track: "geom",
+      kind: "surface",
+      grade: "B",
+      summary: "每颗灯珠是一个像素，沿经纬线铺满球面；球面再分成顶、底、侧面，按各区域视场角生成画面并做几何校正。",
+      meaning: "曲面几何的灯珠版：分区视场角就是观察点投影。本次打开的是 Patsnap 摘要，不是审查全文。",
+      url: "https://eureka.patsnap.com/patent-CN113077729A"
+    },
+    {
+      id: "cn-fisheye-dome",
+      no: "CN103035016A",
+      title: "投影机球面显示及旋转输出图像的处理方法",
+      who: "摘要页未写申请人全称",
+      year: "2013 公开",
+      track: "adjacent",
+      kind: "sky",
+      grade: "B",
+      summary: "按鱼眼光路把目标图像素变到球面坐标，再转回源图，使平面矩形素材投到球幕时少变形，并可绕轴旋转。",
+      meaning: "天空盒/穹顶的相邻专利，对象是投影鱼眼，不是 LED 接收卡。播控若只出矩形成片，变形留在镜头里。",
+      url: "https://eureka.patsnap.com/patent-CN103035016A"
     }
   ],
 
@@ -1277,6 +1639,10 @@ window.SURVEY = {
     {
       t: "异形屏以 3D 为源，2D 切片是快路径",
       d: "球、环、折面应从模型 + UV 生成切片。矩形拼缝、折角屏可以 2D polygon。GrandMapping / hecoos / disguise 走前一条；多数国产播控默认后一条。"
+    },
+    {
+      t: "立体和天空盒是内容模块",
+      d: "内核仍是切片后的像素输出，不替代 L2/L3。裸眼立面多是离线离轴预畸变；眼镜双目是左右两套视锥；XR 里的天空是跟踪摄像机，不是一条 360 成片。"
     },
     {
       t: "Director 与 Display 解耦",

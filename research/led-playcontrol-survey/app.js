@@ -61,6 +61,7 @@
   let activeHop = null;
   let activeTear = null;
   let activeScene = null;
+  let activeGeom = null;
 
   function vendorById(id) {
     return S.vendors.find((v) => v.id === id);
@@ -84,6 +85,11 @@
       const scene = S.scenes.find((s) => s.id === activeScene);
       return scene ? scene.vendors : [];
     }
+    if (activeGeom) {
+      const mode = (S.geomModes || []).find((g) => g.id === activeGeom);
+      if (!mode || !mode.vendors.length) return null;
+      return mode.vendors;
+    }
     return null;
   }
 
@@ -91,6 +97,7 @@
     if (keep !== "hop") activeHop = null;
     if (keep !== "tear") activeTear = null;
     if (keep !== "scene") activeScene = null;
+    if (keep !== "geom") activeGeom = null;
     document.querySelectorAll(".hop").forEach((n) => {
       n.classList.remove("active");
       n.setAttribute("aria-pressed", "false");
@@ -100,6 +107,10 @@
       n.setAttribute("aria-pressed", "false");
     });
     document.querySelectorAll(".scene").forEach((n) => {
+      n.classList.remove("active");
+      n.setAttribute("aria-pressed", "false");
+    });
+    document.querySelectorAll(".geom-mode").forEach((n) => {
       n.classList.remove("active");
       n.setAttribute("aria-pressed", "false");
     });
@@ -201,6 +212,251 @@
       });
       root.appendChild(btn);
     });
+  }
+
+  const geomFigures = {
+    surface: {
+      caption: "网格是灯珠的真实位置，UV 把它们摊成 0–1 的贴图，观察点再决定画面怎么扭。",
+      url: "https://help.disguise.one/workflows/3d-modelling/uv-mapping/uv-maps-in-designer",
+      source: "disguise：UV 如何采样",
+      svg: `<svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="曲面几何：网格、UV、观察点">
+        <rect width="760" height="210" fill="#0d1218"/>
+        <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+          <text x="24" y="28" fill="#3ad7c4">1 屏体网格</text>
+          <path d="M36 150 L70 70 L150 58 L196 138 Z" fill="#121922" stroke="#3ad7c4"/>
+          <path d="M70 70 L110 78 L150 58" fill="none" stroke="#314557"/>
+          <path d="M78 118 L118 124 L160 108" fill="none" stroke="#314557"/>
+          <path d="M90 94 L128 86" fill="none" stroke="#314557"/>
+          <text x="48" y="176" fill="#8c9aab">模组按弧度排布</text>
+          <path d="M220 108 H268" stroke="#e2a73a" fill="none"/>
+          <text x="248" y="96" fill="#e2a73a" font-size="16">→</text>
+          <text x="292" y="28" fill="#3ad7c4">2 UV 0–1</text>
+          <rect x="292" y="52" width="168" height="100" fill="#121922" stroke="#3ad7c4"/>
+          <path d="M308 132 L340 68 L400 60 L444 128 Z" fill="none" stroke="#e2a73a"/>
+          <text x="296" y="168" fill="#8c9aab" font-size="11">0</text>
+          <text x="440" y="48" fill="#8c9aab" font-size="11">1</text>
+          <text x="300" y="190" fill="#8c9aab">没铺满就有像素看不见</text>
+          <text x="508" y="96" fill="#e2a73a" font-size="16">→</text>
+          <text x="548" y="28" fill="#e2a73a">3 观察点</text>
+          <circle cx="590" cy="150" r="7" fill="#e2a73a"/>
+          <text x="604" y="154" fill="#8c9aab">眼</text>
+          <path d="M590 150 L700 64 L732 150 L700 64" fill="none" stroke="#e2a73a"/>
+          <path d="M668 78 L748 70 L748 150 L668 148 Z" fill="#121922" stroke="#3ad7c4"/>
+          <path d="M590 150 L700 100" stroke="#e2a73a"/>
+          <text x="548" y="190" fill="#8c9aab">射线先扭，再贴上曲面</text>
+        </g>
+      </svg>`
+    },
+    sky: {
+      caption: "2:1 等距柱状图的两极是挤在一起的。穹顶镜头再用等距、等立体角或正交把方向投出去。",
+      url: "https://help.pixera.one/pixera-20/layer-mapping-effects",
+      source: "PIXERA：Equirectangular 效果",
+      svg: `<svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="天空盒：等距柱状图投到穹顶">
+        <rect width="760" height="210" fill="#0d1218"/>
+        <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+          <text x="24" y="28" fill="#3ad7c4">内容 2:1</text>
+          <rect x="24" y="48" width="250" height="125" fill="#121922" stroke="#3ad7c4"/>
+          <path d="M24 70 H274 M24 150 H274 M70 48 V173 M140 48 V173 M210 48 V173" stroke="#314557"/>
+          <text x="28" y="66" fill="#e2a73a" font-size="11">北极挤成一条</text>
+          <text x="28" y="166" fill="#e2a73a" font-size="11">南极挤成一条</text>
+          <text x="300" y="112" fill="#e2a73a" font-size="16">→</text>
+          <text x="360" y="28" fill="#e2a73a">从一个中心播出去</text>
+          <path d="M470 168 A90 90 0 0 1 650 168" fill="#121922" stroke="#3ad7c4"/>
+          <circle cx="560" cy="168" r="5" fill="#e2a73a"/>
+          <path d="M560 168 L500 96 M560 168 L560 78 M560 168 L620 96" stroke="#e2a73a"/>
+          <text x="430" y="196" fill="#8c9aab">0 等距 · 0.5 等立体角 · 1 正交</text>
+        </g>
+      </svg>`
+    },
+    naked: {
+      caption: "只有一个甜区。两个屏面按这只眼睛做离轴，结果烘成一张展开图，播出时不再算第二只眼。",
+      url: "https://www.xjishu.com/zhuanli/62/202611016217.html",
+      source: "华院：异形屏离轴反向映射",
+      svg: `<svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="裸眼离轴：单观察点烘成展开图">
+        <rect width="760" height="210" fill="#0d1218"/>
+        <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+          <text x="24" y="28" fill="#e2a73a">唯一观察点</text>
+          <circle cx="70" cy="120" r="16" fill="none" stroke="#e2a73a"/>
+          <circle cx="70" cy="114" r="3" fill="#e2a73a"/>
+          <path d="M70 136 V168 M54 150 H86" stroke="#e2a73a"/>
+          <path d="M86 120 L210 58 L210 168 Z" fill="none" stroke="#314557"/>
+          <rect x="210" y="48" width="70" height="120" fill="#121922" stroke="#3ad7c4"/>
+          <rect x="280" y="78" width="120" height="90" fill="#121922" stroke="#3ad7c4"/>
+          <text x="218" y="44" fill="#8c9aab" font-size="11">面 A</text>
+          <text x="288" y="74" fill="#8c9aab" font-size="11">面 B</text>
+          <text x="450" y="112" fill="#e2a73a" font-size="16">→</text>
+          <text x="500" y="28" fill="#3ad7c4">烘好的一张图</text>
+          <rect x="500" y="48" width="220" height="110" fill="#121922" stroke="#e2a73a"/>
+          <path d="M516 130 C560 70 620 150 700 80" fill="none" stroke="#3ad7c4"/>
+          <text x="516" y="180" fill="#8c9aab">服务器只播这张像素</text>
+        </g>
+      </svg>`
+    },
+    glasses: {
+      caption: "左右眼各一条视锥、各一路输出。两个观察点重合时，立体感就没了。",
+      url: "https://help.pixera.one/mapping-/stereoscopic-workflow",
+      source: "PIXERA：双目工作流",
+      svg: `<svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="眼镜双目：左右两路视锥">
+        <rect width="760" height="210" fill="#0d1218"/>
+        <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+          <text x="36" y="48" fill="#e2a73a">左眼</text>
+          <text x="120" y="48" fill="#3ad7c4">右眼</text>
+          <circle cx="48" cy="78" r="8" fill="#e2a73a"/>
+          <circle cx="132" cy="78" r="8" fill="#3ad7c4"/>
+          <path d="M48 86 L250 56 L250 160 Z" fill="none" stroke="#e2a73a"/>
+          <path d="M132 86 L250 56 L250 160 Z" fill="none" stroke="#3ad7c4"/>
+          <text x="70" y="110" fill="#8c9aab">瞳距</text>
+          <rect x="250" y="56" width="150" height="104" fill="#121922" stroke="#e7eef5"/>
+          <text x="292" y="114" fill="#8c9aab">同一块屏</text>
+          <text x="450" y="80" fill="#e2a73a">左路输出</text>
+          <rect x="450" y="92" width="110" height="62" fill="#121922" stroke="#e2a73a"/>
+          <text x="600" y="80" fill="#3ad7c4">右路输出</text>
+          <rect x="600" y="92" width="110" height="62" fill="#121922" stroke="#3ad7c4"/>
+          <text x="450" y="180" fill="#8c9aab">两张图同时存在，不是烘成一张</text>
+        </g>
+      </svg>`
+    },
+    xr: {
+      caption: "外层是真实 LED 体积，内层是虚拟场景。摄像机每帧决定从哪个窗口看进去，处理器要锁在同一 genlock。",
+      url: "https://help.disguise.one/workflows/xr/xr-stage-setup",
+      source: "disguise：xR Stage Setup",
+      svg: `<svg viewBox="0 0 760 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="XR：外层体积、内层场景、跟踪摄像机">
+        <rect width="760" height="210" fill="#0d1218"/>
+        <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+          <text x="250" y="28" fill="#3ad7c4">外层 · 真实 LED</text>
+          <path d="M220 56 H520 V168 H300 L220 120 Z" fill="#121922" stroke="#3ad7c4"/>
+          <text x="360" y="40" fill="#e2a73a">内层 · 虚拟场景</text>
+          <rect x="300" y="78" width="150" height="70" fill="#18222d" stroke="#e2a73a" stroke-dasharray="4 3"/>
+          <circle cx="80" cy="120" r="10" fill="none" stroke="#e2a73a"/>
+          <path d="M92 120 H210" stroke="#e2a73a"/>
+          <text x="36" y="156" fill="#8c9aab">跟踪摄像机</text>
+          <rect x="560" y="70" width="160" height="48" fill="#121922" stroke="#8c9aab"/>
+          <text x="578" y="98" fill="#8c9aab">LED 处理器</text>
+          <path d="M520 90 H560" stroke="#e2a73a"/>
+          <text x="548" y="64" fill="#e2a73a" font-size="11">同一 genlock</text>
+          <text x="220" y="196" fill="#8c9aab">改了外层网格，看进内层的窗口要重算</text>
+        </g>
+      </svg>`
+    }
+  };
+
+  function renderGeom() {
+    const modes = document.getElementById("geom-modes");
+    const table = document.getElementById("geom-table");
+    const cases = document.getElementById("geom-cases");
+    const shows = document.getElementById("geom-shows");
+    if (!modes || !S.geomModes) return;
+
+    S.geomModes.forEach((mode) => {
+      const card = el("article", { class: "geom-card", dataset: { geom: mode.id } });
+      const steps = (mode.steps || []).map((s) => `<li><strong>${s.t}</strong> ${s.d}</li>`).join("");
+      const fig = geomFigures[mode.id];
+      const figure = fig
+        ? `<figure class="geom-fig">${fig.svg}<figcaption>${fig.caption} <a href="${fig.url}" target="_blank" rel="noopener">打开手册原图 · ${fig.source}</a></figcaption></figure>`
+        : "";
+      card.innerHTML =
+        `<div class="geom-card-head"><div><div class="en">${mode.group} · ${mode.en}</div><h3>${mode.name}</h3></div>` +
+        `<button type="button" class="geom-mode" data-geom="${mode.id}" aria-pressed="false">只看这一档</button></div>` +
+        `<div class="geom-split">${figure}<div><p>${mode.body}</p><ol>${steps}</ol><p class="fail">${mode.fail}</p></div></div>`;
+      card.querySelector(".geom-mode").addEventListener("click", () => {
+        const same = activeGeom === mode.id;
+        clearHighlightSources("geom");
+        if (same) {
+          activeGeom = null;
+        } else {
+          activeGeom = mode.id;
+          card.querySelector(".geom-mode").classList.add("active");
+          card.querySelector(".geom-mode").setAttribute("aria-pressed", "true");
+        }
+        applyFilters();
+      });
+      modes.appendChild(card);
+    });
+
+    const writeups = document.getElementById("geom-writeups");
+    if (writeups && S.geomWriteups) {
+      S.geomWriteups.forEach((item) => {
+        const card = el("article", {
+          class: "geom-writeup",
+          id: "writeup-" + item.id,
+          dataset: { kinds: (item.kinds || []).join(","), id: item.id }
+        });
+        card.innerHTML =
+          `<div class="tear-head"><span class="grade">证据 ${item.grade}</span><h3>${item.title}</h3></div>` +
+          `<p>${item.body}</p><p>${item.more}</p>` +
+          `<div class="who"><a href="${item.url}" target="_blank" rel="noopener">${item.source}</a></div>`;
+        writeups.appendChild(card);
+      });
+    }
+
+    if (table && S.geomMatrix) {
+      const thead = table.querySelector("thead");
+      const tbody = table.querySelector("tbody");
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+      const trh = document.createElement("tr");
+      trh.appendChild(el("th", null, "产品"));
+      S.geomKeys.forEach((k) => trh.appendChild(el("th", null, k.label)));
+      trh.appendChild(el("th", null, "立体输出"));
+      trh.appendChild(el("th", null, "证据"));
+      thead.appendChild(trh);
+      S.geomMatrix.forEach((row) => {
+        const v = vendorById(row.id);
+        const tr = document.createElement("tr");
+        tr.dataset.id = row.id;
+        tr.dataset.kinds = (S.geomModes || []).filter((m) => m.vendors.includes(row.id)).map((m) => m.id).join(",");
+        if (v) {
+          tr.dataset.region = v.region;
+          tr.dataset.depth = v.depth;
+          tr.dataset.layers = (v.layers || []).join(",");
+        }
+        const name = document.createElement("td");
+        name.innerHTML = `<strong>${vendorLabel(row.id)}</strong>`;
+        name.title = row.note || "";
+        tr.appendChild(name);
+        S.geomKeys.forEach((k) => {
+          const val = row[k.id] || "unknown";
+          const td = document.createElement("td");
+          td.innerHTML = `<span class="dot ${val}" title="${heatLabel[val] || val}"></span>`;
+          tr.appendChild(td);
+        });
+        tr.appendChild(el("td", { class: "cell-text" }, row.stereo || "未检索到"));
+        tr.appendChild(el("td", null, row.evidence || "—"));
+        bindRowClick(tr, row.id);
+        tbody.appendChild(tr);
+      });
+    }
+
+    if (cases && S.geomCases) {
+      S.geomCases.forEach((item) => {
+        const card = el("article", {
+          class: "case-card",
+          dataset: { kind: item.kind, vendors: (item.vendors || []).join(",") }
+        });
+        const link = item.url
+          ? `<a href="${item.url}" target="_blank" rel="noopener">${item.source}</a>`
+          : "";
+        card.innerHTML =
+          `<div class="tear-head"><span class="grade">证据 ${item.grade}</span><h3>${item.name}</h3></div>` +
+          `<p class="symptom">${item.who}</p><p>${item.claim}</p><p>${item.method}</p>` +
+          `<div class="who">${link}</div>`;
+        cases.appendChild(card);
+      });
+    }
+
+    if (shows && S.geomShows) {
+      S.geomShows.forEach((item) => {
+        const card = el("article", { class: "show-card" + (item.url ? "" : " is-empty") });
+        const quote = item.quote ? `<p class="symptom">${item.quote}</p>` : "";
+        const link = item.url
+          ? `<a href="${item.url}" target="_blank" rel="noopener">${item.source}</a>`
+          : "";
+        card.innerHTML =
+          `<div class="tear-head"><span class="grade">${item.grade === "—" ? "未定位" : "证据 " + item.grade}</span><h3>${item.name}</h3></div>` +
+          `<div class="en">${item.year}</div>${quote}<p>${item.note}</p><div class="who">${link}</div>`;
+        shows.appendChild(card);
+      });
+    }
   }
 
   function bindRowClick(tr, id) {
@@ -607,7 +863,7 @@
 
   function applyFilters() {
     const hits = highlightIds();
-    document.querySelectorAll("#heat-table tbody tr, #rack-table tbody tr, #codec-table tbody tr, #control-table tbody tr").forEach((tr) => {
+    document.querySelectorAll("#heat-table tbody tr, #rack-table tbody tr, #codec-table tbody tr, #control-table tbody tr, #geom-table tbody tr").forEach((tr) => {
       const visible = rowVisible(tr);
       const matched = !hits || hits.includes(tr.dataset.id);
       tr.classList.toggle("dim", !visible || !matched);
@@ -620,6 +876,28 @@
       card.style.display = visible ? "" : "none";
       card.classList.toggle("hit", !!(visible && hits && matched));
       card.classList.toggle("miss", !!(visible && hits && !matched));
+    });
+    document.querySelectorAll(".case-card").forEach((card) => {
+      const vendors = (card.dataset.vendors || "").split(",").filter(Boolean);
+      const byGeom = !!activeGeom && card.dataset.kind === activeGeom;
+      const byVendor = !!hits && vendors.some((id) => hits.includes(id));
+      const on = !!activeGeom || !!hits;
+      const matched = activeGeom ? byGeom : byVendor;
+      card.classList.toggle("hit", on && matched);
+      card.classList.toggle("miss", on && !matched);
+    });
+    document.querySelectorAll(".geom-card").forEach((card) => {
+      const on = !!activeGeom;
+      const matched = card.dataset.geom === activeGeom;
+      card.classList.toggle("hit", on && matched);
+      card.classList.toggle("miss", on && !matched);
+    });
+    document.querySelectorAll(".geom-writeup").forEach((card) => {
+      const kinds = (card.dataset.kinds || "").split(",").filter(Boolean);
+      const on = !!activeGeom;
+      const matched = kinds.includes(activeGeom);
+      card.classList.toggle("hit", on && matched);
+      card.classList.toggle("miss", on && !matched);
     });
   }
 
@@ -685,10 +963,12 @@
   function renderPatents() {
     const root = document.getElementById("patent-list");
     const trackName = { sync: "同步支线", geom: "几何支线", adjacent: "相邻领域" };
+    const kindName = { surface: "曲面几何", sky: "天空盒", naked: "裸眼离轴", glasses: "双目", xr: "跟踪视锥" };
     S.patents.forEach((p) => {
+      const kind = p.kind ? ` · ${kindName[p.kind] || p.kind}` : "";
       root.appendChild(el("article", { class: "patent" },
         `<div>
-           <div class="track">${trackName[p.track]} · ${p.grade}</div>
+           <div class="track">${trackName[p.track]} · ${p.grade}${kind}</div>
            <div class="no">${p.no}</div>
            <div class="also" style="margin-top:8px;color:var(--faint);font-size:12px">${p.who}<br>${p.year}</div>
          </div>
@@ -814,13 +1094,27 @@
       { t: "NVIDIA Quadro Sync II User Guide", u: "https://images.nvidia.com/content/quadro/product-literature/user-guides/Quadro-Sync-II-User-Guide-v07.pdf" },
       { t: "WATCHOUT ST 2110 / PTP", u: "https://docs.dataton.com/guide/watchout/network-setup/st-2110-video-over-ip.html" },
       { t: "Brompton Tessera Genlock", u: "https://www.bromptontech.com/features/genlock/" },
-      { t: "NovaStar MX40 Pro User Manual V1.5.0", u: "https://oss.novastar.tech/uploads/2025/10/MX40-Pro-LED-Display-Controller-User-Manual-V1.5.0.pdf" }
+      { t: "NovaStar MX40 Pro User Manual V1.5.0", u: "https://oss.novastar.tech/uploads/2025/10/MX40-Pro-LED-Display-Controller-User-Manual-V1.5.0.pdf" },
+      { t: "disguise：UV 如何采样", u: "https://help.disguise.one/workflows/3d-modelling/uv-mapping/uv-maps-in-designer" },
+      { t: "disguise Spatial Mapping", u: "https://help.disguise.one/designer/mapping/mapping-types/spatial-mapping" },
+      { t: "PIXERA 3D equirectangular", u: "https://help.pixera.one/virtual-production-/3d-virtual-production" },
+      { t: "nDisplay 摄像机立体参数", u: "https://dev.epicgames.com/documentation/en-us/unreal-engine/API/Plugins/DisplayCluster/UDisplayClusterCameraComponent" },
+      { t: "Pandoras Box Warper", u: "https://pandorasboxhelpfile.com/home/warper.htm" }
     ].forEach((s) => { if (!seen.has(s.u)) { seen.add(s.u); list.push(s); } });
     (S.hardwareGallery || []).forEach((g) => {
       if (g.sourceUrl && !seen.has(g.sourceUrl)) {
         seen.add(g.sourceUrl);
         list.push({ t: g.sourceTitle, u: g.sourceUrl });
       }
+    });
+    (S.geomWriteups || []).forEach((c) => {
+      if (c.url && !seen.has(c.url)) { seen.add(c.url); list.push({ t: c.source || c.title, u: c.url }); }
+    });
+    (S.geomCases || []).forEach((c) => {
+      if (c.url && !seen.has(c.url)) { seen.add(c.url); list.push({ t: c.source || c.name, u: c.url }); }
+    });
+    (S.geomShows || []).forEach((c) => {
+      if (c.url && !seen.has(c.url)) { seen.add(c.url); list.push({ t: c.source || c.name, u: c.url }); }
     });
     (S.uiGallery || []).forEach((g) => {
       if (g.sourceUrl && !seen.has(g.sourceUrl)) {
@@ -859,6 +1153,7 @@
   renderHops();
   renderTears();
   renderScenes();
+  renderGeom();
   renderRack();
   renderCodec();
   renderControlHeat();

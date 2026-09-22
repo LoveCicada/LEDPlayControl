@@ -827,6 +827,96 @@ table.heat {
   gap: 8px;
   margin-bottom: 8px;
 }
+.geom-modes {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+.geom-card, .geom-writeup {
+  background: var(--elev);
+  border: 1px solid var(--line);
+  padding: 18px 18px 14px;
+}
+.geom-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+.geom-card h3, .geom-writeup h3 { margin: 4px 0 0; font-size: 18px; }
+.geom-card .en, .show-card .en {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--amber);
+}
+.geom-split {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.92fr) 1.15fr;
+  gap: 18px;
+  align-items: start;
+  margin-top: 12px;
+}
+.geom-fig { margin: 0; }
+.geom-fig svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  border: 1px solid var(--line);
+  background: #0d1218;
+}
+.geom-fig figcaption {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--faint);
+  line-height: 1.5;
+}
+.geom-card p, .geom-writeup p { margin: 10px 0 0; font-size: 14px; color: var(--muted); }
+.geom-card ol, .geom-writeup ol {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.geom-card li, .geom-writeup li { margin: 8px 0; }
+.geom-card li strong, .geom-writeup li strong { color: var(--text); }
+.geom-card .fail {
+  border-left: 3px solid var(--amber);
+  padding-left: 12px;
+  color: var(--text);
+}
+.geom-mode {
+  background: transparent;
+  border: 1px solid var(--line-2);
+  color: var(--muted);
+  font: inherit;
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.geom-mode.active, .geom-card.hit {
+  border-color: var(--cyan);
+}
+.geom-mode.active {
+  color: var(--cyan);
+  background: var(--cyan-dim);
+}
+.geom-card.hit, .geom-writeup.hit { box-shadow: inset 3px 0 0 var(--cyan); }
+.geom-card.miss, .geom-writeup.miss { opacity: 0.32; }
+.geom-writeups { display: grid; gap: 12px; }
+.case-card, .show-card {
+  background: var(--elev);
+  border: 1px solid var(--line);
+  padding: 14px 14px 12px;
+}
+.case-card.hit, .show-card.hit { box-shadow: inset 3px 0 0 var(--cyan); }
+.case-card.miss { opacity: 0.32; }
+.show-card.is-empty { border-style: dashed; }
+.shows {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
 .heat td.cell-text {
   text-align: left;
   white-space: normal;
@@ -969,6 +1059,7 @@ footer {
   .hero, section, footer { padding-left: 22px; padding-right: 22px; }
   .problem-grid, .cards, .arch, .oss, .arch-grid, .ui-gallery, .hw-gallery, .hops, .ltc-grid { grid-template-columns: 1fr; }
   .steps, .scenes { grid-template-columns: 1fr 1fr; }
+  .geom-split, .shows { grid-template-columns: 1fr; }
   .patent { grid-template-columns: 1fr; }
   .stats { grid-template-columns: 1fr 1fr; }
   .sources-all { columns: 1; }
