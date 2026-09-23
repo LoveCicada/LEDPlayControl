@@ -2140,6 +2140,26 @@ window.SURVEY = {
       { dim: "运维简易", a: 2, b: 5, hint: "NMOS 专业 / 软件即开" },
       { dim: "设施级适用", a: 5, b: 3, hint: "广播固定安装 / 现场快速" }
     ],
+    products: [
+      { vendor: "disguise", role: "渲染 / 播控服务器", support: "IP-VFC 收 ST 2110-22；SDI VFC 直出 12G-SDI 进处理器", note: "ISE 2025 宣布端到端 ST 2110 输入，后续 Designer 版本提供" },
+      { vendor: "AJA", role: "网关 / 转换", support: "IP25-R：ST 2110 ↔ 12G-SDI / HDMI 双向", note: "4×12G-SDI，双 10/25GbE，ST 2022-7，NMOS" },
+      { vendor: "Matrox", role: "网关 / NIC", support: "ConvertIP（ST 2110 / IPMX）、ST 2110 NIC", note: "3x3G 机架式，前面板带监测屏" },
+      { vendor: "Colorlight 等处理器厂", role: "LED 发送 / 处理器", support: "ST 2110 & IPMX 方案（管理 IP 网）", note: "LED 控制器厂商开始原生进 IP" },
+      { vendor: "7thSense / 传统广播", role: "媒体服务器 / 广播周边", support: "ST 2110 收发", note: "广电设施级，非 LED 专用" }
+    ],
+    bwCmp: [
+      { cfg: "1080p59 4:2:2 10bit", uncomp: 2.9, comp: 0.3 },
+      { cfg: "2160p30 4:2:2 10bit", uncomp: 5.9, comp: 0.6 },
+      { cfg: "2160p59 4:2:0 8bit", uncomp: 6.6, comp: 0.9 },
+      { cfg: "2160p59 4:4:4 10bit", uncomp: 11.9, comp: 1.5 }
+    ],
+    decision: [
+      { when: "源是广播级 IP（转播车 / 总控）", pick: "ST 2110", why: "与现有 PTP 域同源，延迟确定（<1 帧）", layers: ["L4"] },
+      { when: "现场快速部署、软件即开", pick: "NDI", why: "1GbE 即插即用，1–3 帧延迟多数场景可接受", layers: ["L2", "L3"] },
+      { when: "点对点 LED 墙（处理器就在旁边）", pick: "DP / HDMI + Genlock", why: "最省事，L3 物理同步已够", layers: ["L3"] },
+      { when: "长距离、多源、集中路由", pick: "ST 2110", why: "IP 路由替代大量 SDI 同轴，易扩展", layers: ["L4"] },
+      { when: "第一版自研播控", pick: "暂不做", why: "L1–L3 + NVIDIA Frame Lock 已满足多数 LED 场景", layers: ["L1", "L2", "L3"] }
+    ],
     whySkip: "需要独立的 L4 PTP 域 + 专用 25/100G 视频网 + ST 2110 NIC；它和 DP 输出的 L3 genlock 是两套时序域。第一版 DP/HDMI 点对点先把 L1–L3 做对，多机联机帧同步用 NVIDIA Frame Lock 已满足多数 LED 播控，上 ST 2110 复杂度/收益不匹配。",
     latency: "PTP 对时后延迟确定，通常 1 帧内（< 16.7 ms @60 fps，< 20 ms @50 fps）。"
   },

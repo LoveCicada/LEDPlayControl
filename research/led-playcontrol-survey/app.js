@@ -1636,16 +1636,18 @@
       "<p><strong>实时画面进链路之后，延迟要单独算。</strong>同机纹理共享小于 1 帧；NDI 还要加上编码和网络。</p><p>引擎帧率和播控输出帧率不一致时，合成会抖。</p>");
     const patterns = document.getElementById("inter-patterns");
     if (patterns) {
-      patterns.innerHTML = I.patterns.map(p =>
-        `<article class="layer" style="cursor:default">
+      patterns.innerHTML = I.patterns.map(p => {
+        const detail = p.detail.replace("ST 2110 标准族深读", '<a class="st-anchor" href="#st2110">ST 2110 标准族深读</a>');
+        const idAttr = p.name.indexOf("2110") >= 0 ? ' id="pat-st2110"' : "";
+        return `<article class="layer"${idAttr} style="cursor:default">
           <div class="layer-idx" style="font-size:11px">${p.name.split(' ')[0]}</div>
           <div class="layer-body">
             <h3>${p.name}</h3>
-            <p>${p.detail}</p>
+            <p>${detail}</p>
             <p style="color:var(--amber)"><strong>同步影响：</strong>${p.syncImpact}</p>
           </div>
-        </article>`
-      ).join("");
+        </article>`;
+      }).join("");
     }
     const latTable = document.getElementById("latency-table");
     if (latTable) {
@@ -1733,23 +1735,304 @@
       '<span class="st-lg"><i style="background:#e2a73a"></i>NDI</span>' +
       '<span class="st-lg-note">分值 0–5 相对示意。轴提示：' + K.radar.map(d => d.dim + '（' + d.hint + '）').join('；') + '</span>' +
       '</div>';
+    const topoSvg =
+      '<svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ST 2110 接入 LED 墙拓扑：视频源加 PTP GM，经 PTP 感知交换机与 2022-7 双网，网关转 SDI/DP 进 LED 处理器与 Genlock，再到 LED 墙">' +
+      '<rect width="720" height="250" fill="#0d1218"/>' +
+      '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+      '<text x="20" y="24" fill="#7fe6d8">PTP 时间域（L4）：GM → 交换机 → 网关 / 处理器，亚微秒对齐</text>' +
+      '<line x1="79" y1="34" x2="636" y2="34" stroke="#7fe6d8" stroke-width="1.5" stroke-dasharray="6 6">' +
+      '<animate attributeName="stroke-dashoffset" from="12" to="0" dur="0.6s" repeatCount="indefinite"/></line>' +
+      '<rect x="20" y="58" width="118" height="66" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="79" y="86" fill="#e7eef5" text-anchor="middle">视频源 +</text>' +
+      '<text x="79" y="104" fill="#e7eef5" text-anchor="middle">PTP GM</text>' +
+      '<rect x="192" y="58" width="140" height="66" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="262" y="82" fill="#e7eef5" text-anchor="middle" font-size="11">PTP 感知交换机</text>' +
+      '<text x="262" y="100" fill="#8c9aab" text-anchor="middle" font-size="11">boundary clock</text>' +
+      '<rect x="384" y="58" width="150" height="66" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="459" y="80" fill="#e7eef5" text-anchor="middle" font-size="11">网关</text>' +
+      '<text x="459" y="96" fill="#e7eef5" text-anchor="middle" font-size="11">ST 2110 → SDI/DP</text>' +
+      '<text x="459" y="112" fill="#8c9aab" text-anchor="middle" font-size="10">AJA IP25-R / Matrox</text>' +
+      '<rect x="576" y="58" width="120" height="66" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="636" y="82" fill="#e7eef5" text-anchor="middle" font-size="11">LED 处理器</text>' +
+      '<text x="636" y="100" fill="#e7eef5" text-anchor="middle" font-size="11">+ Genlock(L3)</text>' +
+      '<rect x="576" y="150" width="120" height="46" rx="8" fill="#121922" stroke="#e2a73a"/>' +
+      '<text x="636" y="178" fill="#e2a73a" text-anchor="middle">LED 墙</text>' +
+      '<line x1="138" y1="91" x2="188" y2="91" stroke="#5d6b7a"/><polygon points="188,87 196,91 188,95" fill="#5d6b7a"/>' +
+      '<line x1="536" y1="91" x2="572" y2="91" stroke="#5d6b7a"/><polygon points="572,87 580,91 572,95" fill="#5d6b7a"/>' +
+      '<line x1="636" y1="124" x2="636" y2="148" stroke="#5d6b7a"/><polygon points="632,148 636,156 640,148" fill="#5d6b7a"/>' +
+      '<text x="358" y="74" fill="#e2a73a" text-anchor="middle" font-size="10">ST 2022-7 A/B 双网</text>' +
+      '<line x1="332" y1="80" x2="380" y2="80" stroke="#e2a73a" stroke-width="1.2"/>' +
+      '<line x1="332" y1="102" x2="380" y2="102" stroke="#e2a73a" stroke-width="1.2"/><polygon points="380,98 388,102 380,106" fill="#e2a73a"/>' +
+      '<circle r="4" fill="#3ad7c4"><animate attributeName="cx" values="138;188" dur="1.2s" repeatCount="indefinite"/><animate attributeName="cy" values="91;91" dur="1.2s" repeatCount="indefinite"/></circle>' +
+      '<circle r="4" fill="#3ad7c4"><animate attributeName="cx" values="332;380" dur="1.2s" repeatCount="indefinite"/><animate attributeName="cy" values="102;102" dur="1.2s" repeatCount="indefinite"/></circle>' +
+      '<circle r="4" fill="#3ad7c4"><animate attributeName="cx" values="536;572" dur="1.2s" repeatCount="indefinite"/><animate attributeName="cy" values="91;91" dur="1.2s" repeatCount="indefinite"/></circle>' +
+      '<circle r="4" fill="#e2a73a"><animate attributeName="cy" values="124;148" dur="1s" repeatCount="indefinite"/><animate attributeName="cx" values="636;636" dur="1s" repeatCount="indefinite"/></circle>' +
+      '<text x="20" y="222" fill="#8c9aab">ST 2110 走专用 PTP 视频网；进 LED 处理器前由网关转成 SDI/DP，再经 L3 Genlock 物理同步。</text>' +
+      '<text x="20" y="240" fill="#5d6b7a">两套时序域：L4 PTP（跨机确定）与 L3 Genlock（处理器旁物理锁）。第一版只做 L1–L3。</text>' +
+      '</g></svg>';
     host.innerHTML =
+      const cmpSvg =
+      '<svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PTP 确定性帧到达与 NDI 抖动的对比：PTP 标记严格落在理想帧边界上，NDI 标记在边界附近散布">' +
+      '<rect width="720" height="200" fill="#0d1218"/>' +
+      '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+      '<text x="20" y="20" fill="#e7eef5">PTP 确定性 vs NDI 抖动（帧到达时刻对比）</text>' +
+      '<g stroke="#2a3543" stroke-width="1">' +
+      '<line x1="80" y1="40" x2="80" y2="160"/><line x1="160" y1="40" x2="160" y2="160"/><line x1="240" y1="40" x2="240" y2="160"/>' +
+      '<line x1="320" y1="40" x2="320" y2="160"/><line x1="400" y1="40" x2="400" y2="160"/><line x1="480" y1="40" x2="480" y2="160"/>' +
+      '<line x1="560" y1="40" x2="560" y2="160"/><line x1="640" y1="40" x2="640" y2="160"/>' +
+      '</g>' +
+      '<text x="648" y="36" fill="#5d6b7a" font-size="10">理想帧边界</text>' +
+      '<rect x="60" y="110" width="600" height="44" fill="rgba(226,167,58,.10)"/>' +
+      '<text x="20" y="100" fill="#e2a73a">NDI（L2/L3）</text>' +
+      '<text x="600" y="100" fill="#e2a73a" font-size="10">抖动 1–3 帧</text>' +
+      '<text x="20" y="64" fill="#3ad7c4">PTP（L4）</text>' +
+      '<text x="600" y="64" fill="#3ad7c4" font-size="10">确定 &lt; 1 帧</text>' +
+      '<g fill="#e2a73a">' +
+      '<circle cx="68" cy="122" r="4"/><circle cx="156" cy="140" r="4"/><circle cx="249" cy="118" r="4"/><circle cx="305" cy="138" r="4"/>' +
+      '<circle cx="403" cy="120" r="4"/><circle cx="494" cy="142" r="4"/><circle cx="553" cy="126" r="4"/><circle cx="650" cy="145" r="4"/>' +
+      '</g>' +
+      '<g fill="#3ad7c4">' +
+      '<circle cx="80" cy="72" r="4"/><circle cx="160" cy="72" r="4"/><circle cx="240" cy="72" r="4"/><circle cx="320" cy="72" r="4"/>' +
+      '<circle cx="400" cy="72" r="4"/><circle cx="480" cy="72" r="4"/><circle cx="560" cy="72" r="4"/><circle cx="640" cy="72" r="4"/>' +
+      '</g>' +
+      '<rect x="78" y="40" width="2" height="120" fill="rgba(58,215,196,.5)"><animate attributeName="x" values="78;638" dur="3s" repeatCount="indefinite"/></rect>' +
+      '<text x="20" y="190" fill="#8c9aab" font-size="11">PTP：帧严格落在边界，跨机确定；NDI：到达时刻在边界附近散布，需按 VBlank 采样，可能晚 1–2 帧。</text>' +
+      '</g></svg>';
+      const essenceSvg =
+      '<svg viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="一条 SDI 源拆分为 2110-20 视频、2110-30 音频、2110-40 辅助三条独立 RTP 流，经 PTP 交换机到网关重组">' +
+      '<rect width="720" height="230" fill="#0d1218"/>' +
+      '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+      '<text x="20" y="22" fill="#e7eef5">一条 SDI 源拆成多条独立 RTP 流（essence），各自组播、独立路由</text>' +
+      '<line x1="240" y1="70" x2="600" y2="70" stroke="#3ad7c4" stroke-width="2" opacity=".45"/>' +
+      '<line x1="240" y1="120" x2="600" y2="120" stroke="#46c98b" stroke-width="2" opacity=".45"/>' +
+      '<line x1="240" y1="170" x2="600" y2="170" stroke="#e2a73a" stroke-width="2" opacity=".45"/>' +
+      '<rect x="20" y="90" width="90" height="50" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="65" y="112" fill="#e7eef5" text-anchor="middle" font-size="11">媒体源</text><text x="65" y="128" fill="#8c9aab" text-anchor="middle" font-size="10">SDI/相机</text>' +
+      '<rect x="150" y="58" width="90" height="134" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="195" y="118" fill="#e7eef5" text-anchor="middle" font-size="11">ST 2110</text><text x="195" y="134" fill="#8c9aab" text-anchor="middle" font-size="11">发送</text>' +
+      '<rect x="320" y="44" width="70" height="162" rx="8" fill="#121922" stroke="#7fe6d8"/>' +
+      '<text x="355" y="118" fill="#7fe6d8" text-anchor="middle" font-size="11">PTP</text><text x="355" y="134" fill="#8c9aab" text-anchor="middle" font-size="11">交换机</text>' +
+      '<rect x="470" y="58" width="90" height="134" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="515" y="118" fill="#e7eef5" text-anchor="middle" font-size="11">网关/接收</text><text x="515" y="134" fill="#8c9aab" text-anchor="middle" font-size="10">重组</text>' +
+      '<rect x="600" y="95" width="100" height="60" rx="8" fill="#121922" stroke="#e2a73a"/>' +
+      '<text x="650" y="118" fill="#e2a73a" text-anchor="middle" font-size="11">LED 处理器</text><text x="650" y="134" fill="#8c9aab" text-anchor="middle" font-size="10">/ SDI 输出</text>' +
+      '<text x="250" y="62" fill="#3ad7c4" font-size="10">2110-20 视频 · ~12 Gb/s</text>' +
+      '<text x="250" y="112" fill="#46c98b" font-size="10">2110-30 音频 · ~10 Mb/s</text>' +
+      '<text x="250" y="162" fill="#e2a73a" font-size="10">2110-40 辅助 · &lt;1 Mb/s</text>' +
+      '<circle r="3.5" fill="#3ad7c4"><animate attributeName="cx" values="240;600" dur="1s" repeatCount="indefinite"/><animate attributeName="cy" values="70;70" dur="1s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#46c98b"><animate attributeName="cx" values="240;600" dur="1.9s" repeatCount="indefinite"/><animate attributeName="cy" values="120;120" dur="1.9s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#e2a73a"><animate attributeName="cx" values="240;600" dur="2.5s" repeatCount="indefinite"/><animate attributeName="cy" values="170;170" dur="2.5s" repeatCount="indefinite"/></circle>' +
+      '<text x="20" y="214" fill="#8c9aab" font-size="11">视频流占带宽大头（未压缩 2110-20）；音频/辅助极轻。三者靠同一 PTP 时钟对齐，接收端按时戳重组为同步画面。</text>' +
+      '</g></svg>';
+      const scopeSvg =
+      '<svg viewBox="0 0 720 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="同步层级覆盖：第一版做 L1 帧同步、L2 帧锁定、L3 Genlock，L4 PTP（ST 2110）第一版不做">' +
+      '<rect width="720" height="132" fill="#0d1218"/>' +
+      '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+      '<text x="20" y="22" fill="#e7eef5">同步层级覆盖（第一版范围）</text>' +
+      '<rect x="20" y="44" width="160" height="38" rx="6" fill="rgba(58,215,196,.85)"/>' +
+      '<rect x="180" y="44" width="160" height="38" rx="6" fill="rgba(58,215,196,.85)"/>' +
+      '<rect x="340" y="44" width="160" height="38" rx="6" fill="rgba(58,215,196,.85)"/>' +
+      '<rect x="500" y="44" width="160" height="38" rx="6" fill="#39424f" stroke="#e2a73a" stroke-dasharray="5 4"/>' +
+      '<text x="100" y="68" fill="#06222a" text-anchor="middle" font-size="13">L1 帧同步</text>' +
+      '<text x="260" y="68" fill="#06222a" text-anchor="middle" font-size="13">L2 帧锁定</text>' +
+      '<text x="420" y="68" fill="#06222a" text-anchor="middle" font-size="13">L3 Genlock</text>' +
+      '<text x="580" y="68" fill="#e2a73a" text-anchor="middle" font-size="12">L4 PTP（不做）</text>' +
+      '<text x="100" y="100" fill="#8c9aab" text-anchor="middle" font-size="10">本机/同机</text>' +
+      '<text x="260" y="100" fill="#8c9aab" text-anchor="middle" font-size="10">处理器旁</text>' +
+      '<text x="420" y="100" fill="#8c9aab" text-anchor="middle" font-size="10">物理锁相</text>' +
+      '<text x="580" y="100" fill="#8c9aab" text-anchor="middle" font-size="10">跨机确定</text>' +
+      '<text x="20" y="124" fill="#8c9aab" font-size="11">L1–L3 + NVIDIA Frame Lock 已满足多数 LED 播控；L4 PTP（ST 2110）需独立域与专用视频网，第一版不做。</text>' +
+      '</g></svg>';
+      const nmosSvg =
+      '<svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NMOS 控制面：ST 2110 发送端与接收端向注册表注册，控制器经 IS-04 查询发现、经 IS-05 建立连接">' +
+      '<rect width="720" height="250" fill="#0d1218"/>' +
+      '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+      '<text x="20" y="18" fill="#e7eef5">设备发现与连接（NMOS 控制面，独立于媒体流）</text>' +
+      '<rect x="280" y="26" width="160" height="48" rx="8" fill="#121922" stroke="#7fe6d8"/>' +
+      '<text x="360" y="48" fill="#7fe6d8" text-anchor="middle" font-size="11">NMOS 注册表</text><text x="360" y="64" fill="#8c9aab" text-anchor="middle" font-size="10">IS-04 Registry</text>' +
+      '<rect x="40" y="120" width="140" height="66" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="110" y="148" fill="#e7eef5" text-anchor="middle" font-size="11">ST 2110 发送端</text><text x="110" y="166" fill="#8c9aab" text-anchor="middle" font-size="10">相机/网关</text>' +
+      '<rect x="540" y="120" width="140" height="66" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="610" y="148" fill="#e7eef5" text-anchor="middle" font-size="11">ST 2110 接收端</text><text x="610" y="166" fill="#8c9aab" text-anchor="middle" font-size="10">处理器/网关</text>' +
+      '<rect x="280" y="196" width="160" height="44" rx="8" fill="#121922" stroke="#e2a73a"/>' +
+      '<text x="360" y="216" fill="#e2a73a" text-anchor="middle" font-size="11">控制器</text><text x="360" y="232" fill="#8c9aab" text-anchor="middle" font-size="10">IS-04 查询 + IS-05 连接</text>' +
+      '<line x1="110" y1="120" x2="338" y2="74" stroke="#3ad7c4" stroke-width="1.5"/>' +
+      '<line x1="610" y1="120" x2="382" y2="74" stroke="#3ad7c4" stroke-width="1.5"/>' +
+      '<text x="196" y="100" fill="#3ad7c4" font-size="10">注册（mDNS/API）</text>' +
+      '<line x1="360" y1="196" x2="360" y2="74" stroke="#7fe6d8" stroke-width="1.5" stroke-dasharray="5 4"/>' +
+      '<text x="368" y="138" fill="#7fe6d8" font-size="10">IS-04 查询发现</text>' +
+      '<line x1="290" y1="218" x2="182" y2="160" stroke="#e2a73a" stroke-width="1.5"/>' +
+      '<line x1="430" y1="218" x2="538" y2="160" stroke="#e2a73a" stroke-width="1.5"/>' +
+      '<text x="298" y="194" fill="#e2a73a" font-size="10">IS-05 连接</text>' +
+      '<circle r="3.5" fill="#3ad7c4"><animate attributeName="cx" values="110;338" dur="1.6s" repeatCount="indefinite"/><animate attributeName="cy" values="120;74" dur="1.6s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#3ad7c4"><animate attributeName="cx" values="610;382" dur="1.6s" repeatCount="indefinite"/><animate attributeName="cy" values="120;74" dur="1.6s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#7fe6d8"><animate attributeName="cx" values="360;360" dur="2s" repeatCount="indefinite"/><animate attributeName="cy" values="196;74" dur="2s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#e2a73a"><animate attributeName="cx" values="290;182" dur="2.2s" repeatCount="indefinite"/><animate attributeName="cy" values="218;160" dur="2.2s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#e2a73a"><animate attributeName="cx" values="430;538" dur="2.2s" repeatCount="indefinite"/><animate attributeName="cy" values="218;160" dur="2.2s" repeatCount="indefinite"/></circle>' +
+      '<text x="20" y="246" fill="#8c9aab" font-size="11">媒体流走 PTP 视频网（数据面）；设备身份、能力、连接由 NMOS 注册表与控制器在控制面完成，互不干扰。</text>' +
+      '</g></svg>';
+      const ptpHierSvg =
+      '<svg viewBox="0 0 720 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PTP 时钟层级：Grandmaster 提供主时钟，经 Boundary Clock 交换机分发到 LED 处理器、网关、相机等设备 slave 锁相">' +
+      '<rect width="720" height="250" fill="#0d1218"/>' +
+      '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+      '<rect x="300" y="18" width="120" height="48" rx="8" fill="#121922" stroke="#7fe6d8"/>' +
+      '<text x="360" y="40" fill="#7fe6d8" text-anchor="middle" font-size="11">Grandmaster (GM)</text><text x="360" y="56" fill="#8c9aab" text-anchor="middle" font-size="10">主时钟源</text>' +
+      '<rect x="270" y="110" width="180" height="52" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="360" y="132" fill="#e7eef5" text-anchor="middle" font-size="11">PTP 感知交换机</text><text x="360" y="148" fill="#8c9aab" text-anchor="middle" font-size="10">Boundary Clock</text>' +
+      '<rect x="40" y="186" width="150" height="46" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="115" y="208" fill="#e7eef5" text-anchor="middle" font-size="11">LED 处理器</text><text x="115" y="224" fill="#8c9aab" text-anchor="middle" font-size="10">slave 锁相</text>' +
+      '<rect x="285" y="186" width="150" height="46" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="360" y="208" fill="#e7eef5" text-anchor="middle" font-size="11">网关 / 源</text><text x="360" y="224" fill="#8c9aab" text-anchor="middle" font-size="10">slave 锁相</text>' +
+      '<rect x="530" y="186" width="150" height="46" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="605" y="208" fill="#e7eef5" text-anchor="middle" font-size="11">相机</text><text x="605" y="224" fill="#8c9aab" text-anchor="middle" font-size="10">slave 锁相</text>' +
+      '<line x1="360" y1="66" x2="360" y2="110" stroke="#3ad7c4" stroke-width="1.5"/>' +
+      '<line x1="360" y1="162" x2="115" y2="186" stroke="#3ad7c4" stroke-width="1.5"/>' +
+      '<line x1="360" y1="162" x2="360" y2="186" stroke="#3ad7c4" stroke-width="1.5"/>' +
+      '<line x1="360" y1="162" x2="605" y2="186" stroke="#3ad7c4" stroke-width="1.5"/>' +
+      '<text x="372" y="92" fill="#3ad7c4" font-size="10">① Sync 向下</text>' +
+      '<text x="372" y="152" fill="#3ad7c4" font-size="10">② 时间分发</text>' +
+      '<circle r="3.5" fill="#3ad7c4"><animate attributeName="cx" values="360;360" dur="1.4s" repeatCount="indefinite"/><animate attributeName="cy" values="66;110" dur="1.4s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#3ad7c4"><animate attributeName="cx" values="360;115" dur="1.8s" repeatCount="indefinite"/><animate attributeName="cy" values="162;186" dur="1.8s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#3ad7c4"><animate attributeName="cx" values="360;360" dur="1.8s" repeatCount="indefinite"/><animate attributeName="cy" values="162;186" dur="1.8s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#3ad7c4"><animate attributeName="cx" values="360;605" dur="1.8s" repeatCount="indefinite"/><animate attributeName="cy" values="162;186" dur="1.8s" repeatCount="indefinite"/></circle>' +
+      '<circle r="3.5" fill="#e2a73a"><animate attributeName="cx" values="360;360" dur="2.2s" repeatCount="indefinite"/><animate attributeName="cy" values="110;66" dur="2.2s" repeatCount="indefinite"/></circle>' +
+      '<text x="20" y="246" fill="#8c9aab" font-size="11">Sync 向下分发时间，Delay Request（琥珀）向上回报链路延迟；两端收敛到同一时基。这就是 ST 2110 延迟确定的根因。</text>' +
+      '</g></svg>';
+      const redunSvg =
+      '<svg viewBox="0 0 720 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ST 2022-7 无缝冗余：A/B 双网同时发同一流，A 故障时流量无缝切到 B，接收端输出不中断">' +
+      '<rect width="720" height="260" fill="#0d1218"/>' +
+      '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+      '<text x="20" y="20" fill="#e7eef5">ST 2022-7 无缝冗余（命中无损 hitless）</text>' +
+      '<rect x="20" y="112" width="120" height="56" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="80" y="134" fill="#e7eef5" text-anchor="middle" font-size="11">2110 发送</text><text x="80" y="152" fill="#8c9aab" text-anchor="middle" font-size="10">双网同发</text>' +
+      '<rect x="580" y="112" width="120" height="56" rx="8" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="640" y="134" fill="#e7eef5" text-anchor="middle" font-size="11">2110 接收</text><text x="640" y="152" fill="#8c9aab" text-anchor="middle" font-size="10">择优重组</text>' +
+      '<text x="150" y="119" fill="#3ad7c4" font-size="11">A 网络（主用）</text>' +
+      '<text x="150" y="171" fill="#e2a73a" font-size="11">B 网络（热备）</text>' +
+      '<line x1="140" y1="125" x2="580" y2="125" stroke="#3ad7c4" stroke-width="3" stroke-dasharray="10 8">' +
+      '<animate attributeName="stroke-dashoffset" from="18" to="0" dur="0.7s" repeatCount="indefinite"/>' +
+      '<animate attributeName="stroke" values="#3ad7c4;#3ad7c4;#ff5a5a;#ff5a5a;#3ad7c4;#3ad7c4" keyTimes="0;0.40;0.43;0.72;0.75;1" dur="6s" repeatCount="indefinite"/></line>' +
+      '<line x1="140" y1="155" x2="580" y2="155" stroke="#e2a73a" stroke-width="2" opacity=".45" stroke-dasharray="10 8">' +
+      '<animate attributeName="stroke-dashoffset" from="18" to="0" dur="0.7s" repeatCount="indefinite"/></line>' +
+      '<g opacity="0">' +
+      '<animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0;0.40;0.43;0.72;0.75;1" dur="6s" repeatCount="indefinite"/>' +
+      '<line x1="338" y1="125" x2="382" y2="125" stroke="#ff5a5a" stroke-width="6"/>' +
+      '<line x1="350" y1="113" x2="370" y2="137" stroke="#ff5a5a" stroke-width="3"/>' +
+      '<line x1="370" y1="113" x2="350" y2="137" stroke="#ff5a5a" stroke-width="3"/>' +
+      '<line x1="140" y1="155" x2="580" y2="155" stroke="#e2a73a" stroke-width="4"/>' +
+      '<text x="150" y="200" fill="#ff7a7a" font-size="12">⚠ A 故障：流量无缝切到 B，接收端无丢帧、画面不中断</text>' +
+      '</g>' +
+      '<text x="150" y="200" fill="#3ad7c4" font-size="12">正常：A 主用 · B 热备（两网同时发同一 essence，接收端择优）<animate attributeName="opacity" values="1;1;0;0;1;1" keyTimes="0;0.40;0.43;0.72;0.75;1" dur="6s" repeatCount="indefinite"/></text>' +
+      '<circle cx="660" cy="140" r="6" fill="#46c98b"><animate attributeName="opacity" values="1;.45;1" dur="1s" repeatCount="indefinite"/></circle>' +
+      '<text x="600" y="196" fill="#46c98b" font-size="11">输出不中断</text>' +
+      '<text x="20" y="244" fill="#8c9aab" font-size="11">A、B 为两条独立物理网（不同交换机/链路）。2022-7 让接收端在故障瞬间无缝接管，对 LED 画面零可见中断。</text>' +
+      '</g></svg>';
       '<div class="enh-block st2110-block">' +
       '<div class="enh-head"><span class="enh-tag">深读</span><h3 class="enh-title">ST 2110 广播级 IP 视频</h3></div>' +
+      '<a class="st-back" href="#pat-st2110">↩ 回到「实时内容接入 · ST 2110 输入」条目</a>' +
       `<p class="enh-cap">${K.lead}</p>` +
       `<div class="st2110-svg">${svg}</div>` +
       '<h4 class="st-sub">标准族拆解</h4>' +
       `<div class="st2110-parts">${parts}</div>` +
+      '<h4 class="st-sub">一条源怎么拆成多条流（essence）</h4>' +
+      `<div class="st2110-svg">${essenceSvg}</div>` +
       '<h4 class="st-sub">带宽量级（典型配置，横轴 Gb/s）</h4>' +
       `<div class="st2110-svg">${bwChart}</div>` +
+      '<h4 class="st-sub">未压缩（2110-20）vs 压缩（2110-22）带宽对比</h4>' +
+      '<div class="st-toggle">' +
+      '<button class="st-tg on" data-mode="uncomp">2110-20 未压缩</button>' +
+      '<button class="st-tg" data-mode="comp">2110-22 浅压缩</button>' +
+      '</div>' +
+      '<div class="st2110-svg" id="st-bwcmp"></div>' +
       '<h4 class="st-sub">网络与设备要求</h4>' +
       '<div class="table-wrap">' + net + '</div>' +
       '<h4 class="st-sub">与 NDI 对比（六维雷达）</h4>' +
       `<div class="st2110-svg">${radarSvg}</div>` +
       radarLegend +
+      '<h4 class="st-sub">PTP 确定性 vs NDI 抖动（帧到达时刻）</h4>' +
+      `<div class="st2110-svg">${cmpSvg}</div>` +
+      '<h4 class="st-sub">PTP 时钟层级（GM → BC → 设备）</h4>' +
+      `<div class="st2110-svg">${ptpHierSvg}</div>` +
+      '<h4 class="st-sub">落地产品与方案</h4>' +
+      '<div class="table-wrap"><table class="plain-table"><thead><tr><th>厂商</th><th>角色</th><th>ST 2110 支持</th><th>备注</th></tr></thead><tbody>' +
+      K.products.map(p => `<tr><td>${p.vendor}</td><td>${p.role}</td><td>${p.support}</td><td>${p.note}</td></tr>`).join("") +
+      '</tbody></table></div>' +
+      '<h4 class="st-sub">接入拓扑（怎么接）</h4>' +
+      `<div class="st2110-svg">${topoSvg}</div>` +
+      '<h4 class="st-sub">设备发现与连接（NMOS 控制面）</h4>' +
+      `<div class="st2110-svg">${nmosSvg}</div>` +
+      '<h4 class="st-sub">冗余切换（ST 2022-7 无缝倒换）</h4>' +
+      `<div class="st2110-svg">${redunSvg}</div>` +
+      '<h4 class="st-sub">选型决策</h4>' +
+      '<div class="table-wrap"><table class="plain-table"><thead><tr><th>场景</th><th>建议</th><th>理由</th></tr></thead><tbody>' +
+      K.decision.map(d => `<tr class="st-dec-row" data-layers="${d.layers.join(" ")}"><td>${d.when}</td><td style="color:var(--cyan);white-space:normal;width:auto">${d.pick}</td><td>${d.why}</td></tr>`).join("") +
+      '</tbody></table></div>' +
+      '<p class="st-hint">点击任意场景行，看它要同步到第几层 ↓</p>' +
+      '<div class="st-sync-strip">' +
+      '<span class="st-chip" data-l="L1"><b>L1</b>帧同步</span>' +
+      '<span class="st-chip" data-l="L2"><b>L2</b>帧锁定</span>' +
+      '<span class="st-chip" data-l="L3"><b>L3</b>Genlock</span>' +
+      '<span class="st-chip" data-l="L4"><b>L4</b>PTP</span>' +
+      '</div>' +
+      '<h4 class="st-sub">同步层级覆盖（第一版范围）</h4>' +
+      `<div class="st2110-svg">${scopeSvg}</div>` +
       `<p class="callout">${K.whySkip}</p>` +
       `<p class="caption">${K.latency}</p>` +
       '</div>';
+    host.querySelectorAll(".st-dec-row").forEach(tr => {
+      tr.addEventListener("click", () => {
+        const sel = tr.getAttribute("data-layers").split(" ");
+        const wasOn = tr.classList.contains("sel");
+        host.querySelectorAll(".st-dec-row").forEach(r => r.classList.remove("sel"));
+        host.querySelectorAll(".st-chip").forEach(c => c.classList.remove("on"));
+        if (!wasOn) {
+          tr.classList.add("sel");
+          sel.forEach(l => {
+            const chip = host.querySelector('.st-chip[data-l="' + l + '"]');
+            if (chip) chip.classList.add("on");
+          });
+        }
+      });
+    });
+    function drawBwCmp(mode) {
+      const rows = K.bwCmp.map(r => ({ label: r.cfg, val: mode === "uncomp" ? r.uncomp : r.comp }));
+      const max = Math.max.apply(null, rows.map(r => r.val)) * 1.18;
+      const baseY = 196, topY = 36, h = baseY - topY, bw = 96;
+      const xs = [95, 255, 415, 575];
+      let grid = "";
+      [0, max / 2, max].forEach(v => {
+        const gy = baseY - (v / max) * h;
+        grid += '<line x1="44" y1="' + gy + '" x2="648" y2="' + gy + '" stroke="#2a3543"/>' +
+          '<text x="38" y="' + (gy + 4) + '" fill="#5d6b7a" font-size="10" text-anchor="end">' + v.toFixed(1) + '</text>';
+      });
+      let bars = "";
+      rows.forEach((r, i) => {
+        const bh = (r.val / max) * h;
+        const x = xs[i] - bw / 2, y = baseY - bh;
+        bars += '<rect x="' + x + '" y="' + y + '" width="' + bw + '" height="' + bh + '" rx="4" fill="' + (mode === "uncomp" ? "#3ad7c4" : "#46c98b") + '"/>' +
+          '<text x="' + xs[i] + '" y="' + (y - 8) + '" fill="#e7eef5" text-anchor="middle" font-size="12">' + r.val + ' Gb/s</text>' +
+          '<text x="' + xs[i] + '" y="' + (baseY + 18) + '" fill="#8c9aab" text-anchor="middle" font-size="10">' + r.label + '</text>';
+      });
+      const note = mode === "uncomp"
+        ? "未压缩 2110-20：单路即 10GbE 量级，需 25/100GbE 专用视频网 + 独立 PTP 域。"
+        : "浅压缩 2110-22：单路 ~1.5 Gb/s，可落 10GbE，硬件门槛大幅下降（代价：编码延迟 + 轻微画质折中）。";
+      const svg = '<svg viewBox="0 0 700 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="带宽对比柱状图">' +
+        '<rect width="700" height="240" fill="#0d1218"/>' +
+        '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+        '<text x="20" y="20" fill="#e7eef5">单路带宽（Gb/s，约值）</text>' + grid + bars +
+        '<text x="20" y="232" fill="#8c9aab" font-size="11">' + note + '</text>' +
+        '</g></svg>';
+      const box = document.getElementById("st-bwcmp");
+      if (box) box.innerHTML = svg;
+    }
+    host.querySelectorAll(".st-tg").forEach(btn => {
+      btn.addEventListener("click", () => {
+        host.querySelectorAll(".st-tg").forEach(b => b.classList.remove("on"));
+        btn.classList.add("on");
+        drawBwCmp(btn.getAttribute("data-mode"));
+      });
+    });
+    drawBwCmp("uncomp");
   }
 
   function renderArchDetail() {
