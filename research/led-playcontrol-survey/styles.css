@@ -1685,6 +1685,27 @@ figcaption, .figcaption {
 .enh-title { font-size: 17px; margin: 0; color: var(--text); }
 .enh-cap { margin: 4px 0 12px; color: var(--muted); font-size: 13px; }
 
+/* --- ST 2110 深读块 --- */
+.st2110-svg svg { width: 100%; height: auto; border: 1px solid var(--line); border-radius: 10px; margin: 6px 0 14px; display: block; }
+.st2110-parts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 6px 0 16px; }
+.st-part { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: var(--elev); }
+.st-code { display: block; font: 12px/1 var(--mono); color: var(--cyan); }
+.st-name { display: block; margin: 4px 0 2px; color: var(--text); font-weight: 600; font-size: 14px; }
+.st-note { display: block; color: var(--muted); font-size: 12px; line-height: 1.45; }
+.st2110-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.st-sub { margin: 14px 0 6px; font-size: 14px; color: var(--text); font-weight: 600; }
+.st-legend { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin: 8px 0 2px; font-size: 12px; color: var(--muted); }
+.st-lg { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+.st-lg i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.st-lg-note { flex-basis: 100%; line-height: 1.5; }
+@media (max-width: 1080px) {
+  .st2110-cols { grid-template-columns: 1fr; }
+  .st2110-parts { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+  .st2110-parts { grid-template-columns: 1fr; }
+}
+
 /* --- 四层自检台 --- */
 .sl-switches { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
 .sl-sw {

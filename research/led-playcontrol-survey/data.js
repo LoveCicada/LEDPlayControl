@@ -2085,7 +2085,7 @@ window.SURVEY = {
     patterns: [
       { name: "Spout / Syphon 注入", detail: "Notch / TouchDesigner / Unreal 把画面通过 GPU 纹理共享灌进播控。零拷贝但同机限。延迟 < 1 帧。", syncImpact: "注入的画面和播控自己的画面在同一 GPU 上合成，present 仍走同一 barrier。" },
       { name: "NDI 采集", detail: "外部摄像机或另一台机器的画面通过 NDI 进入播控。延迟约 1–3 帧（编码 + 网络 + 解码）。", syncImpact: "NDI 流本身不带帧锁信息。播控收到后按当前 VBlank 采样，可能比本机内容晚 1–2 帧。" },
-      { name: "ST 2110 输入（第一版不做）", detail: "广播级 IP 视频。PTP 对时后延迟确定（通常 1 帧内）。", syncImpact: "需要 L4 PTP 域。与 DP 输出的 L3 genlock 是两套。" },
+      { name: "ST 2110 输入（第一版不做）", detail: "广播级 IP 视频。PTP 对时后延迟确定（通常 1 帧内）。下方有 ST 2110 标准族深读。", syncImpact: "需要 L4 PTP 域。与 DP 输出的 L3 genlock 是两套。" },
       { name: "传感器触发", detail: "手势（MediaPipe / Kinect）、雷达、DMX 信号触发场景切换。", syncImpact: "从传感器事件到 JumpTo 指令下发，延迟取决于轮询间隔。建议事件驱动（中断 / WebSocket）而非轮询。" },
       { name: "实时渲染引擎", detail: "Unreal / Notch 作为背景层，LED 播控作为前景叠加。", syncImpact: "引擎的渲染帧率必须与播控输出帧率一致，否则合成时出现 judder。nDisplay 方案里引擎和播控是同一个进程。" }
     ],
@@ -2096,6 +2096,52 @@ window.SURVEY = {
       { stage: "处理器 → 箱体点亮", ms: "16–33 ms（1–2 帧）" },
       { stage: "总计（摄像机到屏幕）", ms: "45–80 ms" }
     ]
+  },
+
+  st2110: {
+    lead: "ST 2110 是广播设施级的「无压缩专业媒体 over IP」族。它解决的是 SDI 被拆成视频/音频/辅助数据后，在 IP 网上按同一时钟精确重组的问题。对 LED 播控，它是 L4 传输时钟层的候选来源，但第一版不接入。",
+    parts: [
+      { code: "ST 2110-10", name: "系统定义", note: "把 SDI 按 essence 拆分为独立流；定义 RTP 时间戳基准 = PTP / ST 2059。" },
+      { code: "ST 2110-20", name: "无压缩视频", note: "每路视频一条 RTP 流，12-bit 4:4:4 可选。2160p59.94 10bit 4:4:4 ≈ 12 Gb/s。" },
+      { code: "ST 2110-21", name: "流量整形", note: "N / NL / W 三类（VSF TR-04），约束 CBR 抖动，决定交换机选型。" },
+      { code: "ST 2110-30", name: "PCM 音频", note: "48k / 24bit，单流最多 16 通道。" },
+      { code: "ST 2110-40", name: "辅助数据", note: "时间码、字幕等 VANC / HANC。" },
+      { code: "ST 2110-22", name: "浅压缩视频", note: "JPEG XS / VC-2 / TICO；带宽降到 1/3–1/10，10GbE 可跑多路。" },
+      { code: "ST 2022-7", name: "无缝冗余", note: "A/B 双网，无丢包切换（mission-critical）。" },
+      { code: "NMOS", name: "发现与连接", note: "IS-04 设备发现 + IS-05 连接管理（AMWA）。" },
+      { code: "ST 2059-2", name: "PTP profile", note: "基于 IEEE 1588-2008 的广播 profile，定义报文率与采样率；全局 grandmaster。" }
+    ],
+    network: [
+      { item: "专用视频网", val: "25 / 100 GbE", note: "与控播网、节目网、Sync 菊花链物理隔离，不进同一交换机。" },
+      { item: "网卡", val: "ST 2110 NIC", note: "需支持 PTP 硬件时间戳；普通网卡抓包会偏，不能当接收。" },
+      { item: "交换机", val: "PTP 感知", note: "Boundary / Transparent Clock，否则抖动累积。" },
+      { item: "冗余", val: "ST 2022-7", note: "双网 A/B，链路故障无感切换。" },
+      { item: "抖动", val: "2110-21 N 型", note: "严格 CBR；缓冲区 21 ms 量级，要按类设计。" }
+    ],
+    vsNdi: [
+      { dim: "同步", a: "PTP 硬同步，跨机确定", b: "软同步，帧锁信息弱" },
+      { dim: "带宽", a: "无压缩 12 Gb/s 起，需 25/100G", b: "压缩，1 GbE 可跑" },
+      { dim: "延迟", a: "对时后 < 1 帧", b: "约 1–3 帧" },
+      { dim: "网络", a: "专用 + PTP + 专用 NIC", b: "通用 IP 即插即用" },
+      { dim: "运维", a: "NMOS + 专业排障", b: "软件即开即用" },
+      { dim: "适用", a: "广播设施 / 固定大型安装", b: "演播室 / 现场快速部署" }
+    ],
+    bwBars: [
+      { name: "NDI HX3 4K", gbps: 0.25, fill: "#e2a73a", note: "压缩，1GbE 可" },
+      { name: "ST 2110-22 浅压缩 4K", gbps: 1.5, fill: "#3ad7c4", note: "JPEG XS / VC-2" },
+      { name: "ST 2110-20 无压缩 4K", gbps: 12, fill: "#3ad7c4", note: "需 25GbE" },
+      { name: "ST 2110-20 无压缩 8K", gbps: 48, fill: "#e36b5c", note: "需 100GbE" }
+    ],
+    radar: [
+      { dim: "同步确定性", a: 5, b: 2, hint: "PTP 硬同步 / 软同步弱帧锁" },
+      { dim: "带宽效率", a: 2, b: 5, hint: "无压缩吃网 / 压缩省网" },
+      { dim: "低延迟", a: 5, b: 3, hint: "<1 帧 / 1–3 帧" },
+      { dim: "网络简易", a: 2, b: 5, hint: "专用+PTP+NIC / 通用即插" },
+      { dim: "运维简易", a: 2, b: 5, hint: "NMOS 专业 / 软件即开" },
+      { dim: "设施级适用", a: 5, b: 3, hint: "广播固定安装 / 现场快速" }
+    ],
+    whySkip: "需要独立的 L4 PTP 域 + 专用 25/100G 视频网 + ST 2110 NIC；它和 DP 输出的 L3 genlock 是两套时序域。第一版 DP/HDMI 点对点先把 L1–L3 做对，多机联机帧同步用 NVIDIA Frame Lock 已满足多数 LED 播控，上 ST 2110 复杂度/收益不匹配。",
+    latency: "PTP 对时后延迟确定，通常 1 帧内（< 16.7 ms @60 fps，< 20 ms @50 fps）。"
   },
 
   commissioning: {

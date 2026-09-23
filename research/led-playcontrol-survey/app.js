@@ -1658,6 +1658,100 @@
     }
   }
 
+  function renderSt2110() {
+    const K = S.st2110;
+    const host = document.getElementById("st2110");
+    if (!K || !host) return;
+    const readoutVals = ["0.2 帧", "0.4 帧", "0.3 帧", "0.5 帧"];
+    const svg =
+      '<svg viewBox="0 0 680 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PTP 全局钟对时后，两路 ST 2110 视频流按同一采样时刻对齐，偏差小于 1 帧">' +
+      '<rect width="680" height="210" fill="#0d1218"/>' +
+      '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+      '<circle cx="58" cy="46" r="22" fill="#121922" stroke="#3ad7c4"/>' +
+      '<text x="58" y="51" fill="#3ad7c4" text-anchor="middle" font-size="14">GM</text>' +
+      '<text x="20" y="86">PTP Grandmaster（全局钟）</text>' +
+      '<line x1="80" y1="46" x2="80" y2="150" stroke="#7fe6d8" stroke-width="1.5" stroke-dasharray="4 4"/>' +
+      '<line x1="80" y1="150" x2="640" y2="150" stroke="#314557"/>' +
+      '<text x="200" y="146" fill="#7fe6d8">PTP 时间分发（同一钟，亚微秒）</text>' +
+      '<text x="20" y="78" fill="#3ad7c4">流 A</text>' +
+      '<g><rect y="72" width="18" height="10" fill="#3ad7c4" x="80"/><rect y="72" width="18" height="10" fill="#3ad7c4" x="150"/><rect y="72" width="18" height="10" fill="#3ad7c4" x="220"/><rect y="72" width="18" height="10" fill="#3ad7c4" x="290"/><rect y="72" width="18" height="10" fill="#3ad7c4" x="360"/><rect y="72" width="18" height="10" fill="#3ad7c4" x="430"/><rect y="72" width="18" height="10" fill="#3ad7c4" x="500"/><rect y="72" width="18" height="10" fill="#3ad7c4" x="570"/><rect y="72" width="18" height="10" fill="#3ad7c4" x="640"/>' +
+      '<animateTransform attributeName="transform" type="translate" from="0 0" to="-70 0" dur="1.4s" repeatCount="indefinite"/></g>' +
+      '<text x="20" y="118" fill="#e2a73a">流 B</text>' +
+      '<g><rect y="112" width="18" height="10" fill="#e2a73a" x="80"/><rect y="112" width="18" height="10" fill="#e2a73a" x="150"/><rect y="112" width="18" height="10" fill="#e2a73a" x="220"/><rect y="112" width="18" height="10" fill="#e2a73a" x="290"/><rect y="112" width="18" height="10" fill="#e2a73a" x="360"/><rect y="112" width="18" height="10" fill="#e2a73a" x="430"/><rect y="112" width="18" height="10" fill="#e2a73a" x="500"/><rect y="112" width="18" height="10" fill="#e2a73a" x="570"/><rect y="112" width="18" height="10" fill="#e2a73a" x="640"/>' +
+      '<animateTransform attributeName="transform" type="translate" from="0 0" to="-70 0" dur="1.4s" repeatCount="indefinite"/></g>' +
+      '<line x1="150" y1="60" x2="150" y2="132" stroke="#e7eef5" stroke-width="1.5">' +
+      '<animate attributeName="x1" from="150" to="620" dur="2.8s" repeatCount="indefinite"/>' +
+      '<animate attributeName="x2" from="150" to="620" dur="2.8s" repeatCount="indefinite"/></line>' +
+      '<text x="150" y="172" fill="#e7eef5">采样线扫过：两路流在采样时刻都正好有包 → 偏差 &lt; 1 帧</text>' +
+      '<g>' +
+      '<rect x="452" y="12" width="208" height="54" rx="6" fill="#121922" stroke="#3ad7c4"/>' +
+      '<circle cx="468" cy="26" r="3" fill="#3ad7c4"><animate attributeName="opacity" values="1;0.2;1" dur="1s" repeatCount="indefinite"/></circle>' +
+      '<text x="478" y="30" fill="#8c9aab" font-size="11">对时偏差（实时）</text>' +
+      readoutVals.map((v, i) => { const b = (4 - i) % 4; return '<text x="478" y="54" fill="#3ad7c4" font-size="17" font-family="ui-monospace, Menlo, Consolas, monospace">' + v + '<animate attributeName="opacity" values="1;0;0;0" keyTimes="0;0.25;0.5;1" dur="4s" begin="' + (b === 0 ? "0s" : "-" + b + "s") + '" repeatCount="indefinite"/></text>'; }).join("") +
+      '</g>' +
+      '</g></svg>';
+    const parts = K.parts.map(p =>
+      `<div class="st-part"><span class="st-code">${p.code}</span><span class="st-name">${p.name}</span><span class="st-note">${p.note}</span></div>`
+    ).join("");
+    const net = '<table class="plain-table"><thead><tr><th>项</th><th>要求</th><th>备注</th></tr></thead><tbody>' +
+      K.network.map(n => `<tr><td>${n.item}</td><td>${n.val}</td><td>${n.note}</td></tr>`).join("") + '</tbody></table>';
+    const maxG = 50, x0 = 190, full = 330;
+    const bwChart = '<svg viewBox="0 0 700 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="带宽量级对比：NDI 0.25、2110-22 浅压缩 1.5、2110-20 无压缩 4K 12、8K 48 Gb/s">' +
+      '<rect width="660" height="200" fill="#0d1218"/>' +
+      '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
+      K.bwBars.map((b, i) => {
+        const y = 18 + i * 42, w = (b.gbps / maxG) * full;
+        return '<text x="16" y="' + (y + 15) + '" fill="#e7eef5">' + b.name + '</text>' +
+          '<rect x="' + x0 + '" y="' + y + '" height="20" width="0" rx="4" fill="' + b.fill + '">' +
+          '<animate attributeName="width" values="0;' + w + ';' + w + '" keyTimes="0;0.7;1" dur="2.2s" repeatCount="indefinite"/></rect>' +
+          '<text x="' + (x0 + w + 8) + '" y="' + (y + 15) + '" fill="#e7eef5">' + b.gbps + ' Gb/s · ' + b.note + '</text>';
+      }).join("") +
+      '<text x="16" y="190" fill="#5d6b7a">横轴 Gb/s（线性，满刻度 ' + maxG + '）。无压缩是 ST 2110 的默认形态，浅压缩 2110-22 才把带宽压到可 10GbE 跑多路。</text>' +
+      '</g></svg>';
+    const RD = K.radar, cx = 320, cy = 122, R = 86, ang = i => (-90 + i * 60) * Math.PI / 180;
+    const ring = L => RD.map((_, i) => { const a = ang(i), r = (L / 5) * R; return (cx + r * Math.cos(a)).toFixed(1) + "," + (cy + r * Math.sin(a)).toFixed(1); }).join(" ");
+    const axisLine = i => { const a = ang(i); return '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + R * Math.cos(a)).toFixed(1) + '" y2="' + (cy + R * Math.sin(a)).toFixed(1) + '" stroke="#314557"/>'; };
+    const poly = arr => RD.map((_, i) => { const a = ang(i), r = (arr[i] / 5) * R; return (r * Math.cos(a)).toFixed(1) + "," + (r * Math.sin(a)).toFixed(1); }).join(" ");
+    const axisLabel = d => { const i = RD.indexOf(d), a = ang(i), lx = cx + (R + 22) * Math.cos(a), ly = cy + (R + 22) * Math.sin(a);
+      const anchor = Math.abs(Math.cos(a)) < 0.3 ? "middle" : (Math.cos(a) > 0 ? "start" : "end");
+      return '<text x="' + lx.toFixed(1) + '" y="' + (ly + 4).toFixed(1) + '" fill="#e7eef5" font-size="12" text-anchor="' + anchor + '">' + d.dim + '</text>'; };
+    const radarSvg =
+      '<svg viewBox="0 0 640 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="ST 2110 与 NDI 六维雷达对比">' +
+      '<rect width="640" height="250" fill="#0d1218"/>' +
+      [1, 2, 3, 4, 5].map(L => '<polygon points="' + ring(L) + '" fill="none" stroke="#1d2a36"/>').join("") +
+      RD.map((_, i) => axisLine(i)).join("") +
+      '<g transform="translate(' + cx + ',' + cy + ')">' +
+      '<polygon points="' + poly(RD.map(d => d.b)) + '" fill="rgba(226,167,58,0.16)" stroke="#e2a73a" stroke-width="2">' +
+      '<animateTransform attributeName="transform" type="scale" from="0 0" to="1 1" dur="1.1s" fill="freeze"/></polygon>' +
+      '<polygon points="' + poly(RD.map(d => d.a)) + '" fill="rgba(58,215,196,0.18)" stroke="#3ad7c4" stroke-width="2">' +
+      '<animateTransform attributeName="transform" type="scale" from="0 0" to="1 1" dur="1.1s" fill="freeze"/></polygon>' +
+      '</g>' +
+      RD.map(axisLabel).join("") +
+      '</svg>';
+    const radarLegend = '<div class="st-legend">' +
+      '<span class="st-lg"><i style="background:#3ad7c4"></i>ST 2110</span>' +
+      '<span class="st-lg"><i style="background:#e2a73a"></i>NDI</span>' +
+      '<span class="st-lg-note">分值 0–5 相对示意。轴提示：' + K.radar.map(d => d.dim + '（' + d.hint + '）').join('；') + '</span>' +
+      '</div>';
+    host.innerHTML =
+      '<div class="enh-block st2110-block">' +
+      '<div class="enh-head"><span class="enh-tag">深读</span><h3 class="enh-title">ST 2110 广播级 IP 视频</h3></div>' +
+      `<p class="enh-cap">${K.lead}</p>` +
+      `<div class="st2110-svg">${svg}</div>` +
+      '<h4 class="st-sub">标准族拆解</h4>' +
+      `<div class="st2110-parts">${parts}</div>` +
+      '<h4 class="st-sub">带宽量级（典型配置，横轴 Gb/s）</h4>' +
+      `<div class="st2110-svg">${bwChart}</div>` +
+      '<h4 class="st-sub">网络与设备要求</h4>' +
+      '<div class="table-wrap">' + net + '</div>' +
+      '<h4 class="st-sub">与 NDI 对比（六维雷达）</h4>' +
+      `<div class="st2110-svg">${radarSvg}</div>` +
+      radarLegend +
+      `<p class="callout">${K.whySkip}</p>` +
+      `<p class="caption">${K.latency}</p>` +
+      '</div>';
+  }
+
   function renderArchDetail() {
     const A = S.archDetail;
     if (!A) return;
@@ -1796,6 +1890,7 @@
   renderPipeline();
   renderFailover();
   renderInteractive();
+  renderSt2110();
   renderArchDetail();
   renderScalability();
   renderCommission();
