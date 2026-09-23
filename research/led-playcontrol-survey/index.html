@@ -578,6 +578,34 @@
     <section id="pipeline">
       <div class="sec-head"><span class="sec-num">11</span><h2>内容准备管线</h2></div>
       <p class="sec-lead" id="pipe-lead"></p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 680 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="素材沿入库、转码、对齐、色彩、本机盘、校验走一圈">
+            <rect width="680" height="150" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+              <rect x="16" y="36" width="90" height="48" fill="#121922" stroke="#3ad7c4"/>
+              <text x="36" y="64">入库</text>
+              <rect x="122" y="36" width="90" height="48" fill="#121922" stroke="#3ad7c4"/>
+              <text x="142" y="64">转码</text>
+              <rect x="228" y="36" width="90" height="48" fill="#121922" stroke="#e2a73a"/>
+              <text x="248" y="64">对齐</text>
+              <rect x="334" y="36" width="90" height="48" fill="#121922" stroke="#3ad7c4"/>
+              <text x="354" y="64">色彩</text>
+              <rect x="440" y="36" width="90" height="48" fill="#121922" stroke="#3ad7c4"/>
+              <text x="452" y="64">本机盘</text>
+              <rect x="546" y="36" width="90" height="48" fill="#121922" stroke="#8c9aab"/>
+              <text x="566" y="64">校验</text>
+              <circle class="mot pipe-dot" cy="60" r="5" fill="#3ad7c4"/>
+              <text x="16" y="118" fill="#8c9aab">要随机跳转就转成帧内或序列帧。实时播放源是每台机器自己的盘。</text>
+            </g>
+          </svg>
+          <figcaption>一帧素材从入库走到校验。表里的容量仍按配置估算，不在这张图里重算。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>转码是播出之前的工序。</strong>连续播放可以留 H.265；一点就要跳，就换成 HAP、NotchLC 或序列帧。</p>
+          <p>第一版色彩按 BT.709 8bit。NAS 不拿来当实时播放源。</p>
+        </div>
+      </div>
       <div class="steps" id="pipe-steps"></div>
       <h3 class="subhead">存储量级估算</h3>
       <div class="table-wrap">
@@ -588,6 +616,33 @@
     <section id="rack">
       <div class="sec-head"><span class="sec-num">12</span><h2>机柜与编码矩阵</h2></div>
       <p class="sec-lead">厂商卡里的 GPU、Sync 卡、编码是散文，没法扫。两张表只填能核到的；空着就空着。点行滚到厂商卡。</p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 640 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="机柜里 GPU、同步卡和输出口，空着的格子保持空白">
+            <rect width="640" height="180" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+              <rect x="24" y="28" width="200" height="120" fill="#121922" stroke="#314557"/>
+              <text x="36" y="52" fill="#8c9aab">播出机</text>
+              <rect x="40" y="68" width="70" height="36" fill="#18222d" stroke="#3ad7c4"/>
+              <text x="56" y="90">GPU</text>
+              <rect x="122" y="68" width="80" height="36" fill="#18222d" stroke="#e2a73a"/>
+              <text x="136" y="90">Sync</text>
+              <rect class="mot head-a" x="250" y="36" width="70" height="28" fill="#121922" stroke="#3ad7c4"/>
+              <rect class="mot head-b" x="336" y="36" width="70" height="28" fill="#121922" stroke="#3ad7c4"/>
+              <rect class="mot head-c" x="422" y="36" width="70" height="28" fill="#121922" stroke="#3ad7c4"/>
+              <text x="250" y="88" fill="#8c9aab">DP / HDMI</text>
+              <rect x="250" y="104" width="150" height="36" fill="none" stroke="#314557" stroke-dasharray="4 4"/>
+              <text x="262" y="126" fill="#8c9aab">核不到就留空</text>
+              <text x="24" y="168" fill="#8c9aab">处理器那一行没有 GPU，是故意空着的。</text>
+            </g>
+          </svg>
+          <figcaption>输出口依次亮起。编码表仍只填公开页能核到的格子。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>机柜先看三样东西：</strong>几张 GPU、有没有 Sync 卡、口够不够带这块屏。</p>
+          <p>编码决定超 8K 是转码还是硬解。表里的空心不是「没有」，是公开资料没写。</p>
+        </div>
+      </div>
       <h3 class="subhead">机柜 BOM</h3>
       <div class="table-wrap">
         <table class="heat data-table" id="rack-table">
@@ -609,6 +664,27 @@
     <section id="tears">
       <div class="sec-head"><span class="sec-num">13</span><h2>撕缝与故障对照</h2></div>
       <p class="sec-lead">WATCHOUT 那句 NTP≠扫出已经是全页最硬的证据。扩成现场清单。点一条，矩阵和厂商卡亮起对应产品。</p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 640 180" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="两台机器时钟一致，扫描线却不在同一高度">
+            <rect width="640" height="180" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+              <text x="36" y="28" fill="#3ad7c4">节点 A · 12:00:01.000</text>
+              <rect x="36" y="40" width="240" height="90" fill="#121922" stroke="#3ad7c4"/>
+              <rect x="36" y="78" width="240" height="3" fill="#3ad7c4"/>
+              <text x="340" y="28" fill="#e2a73a">节点 B · 12:00:01.000</text>
+              <rect x="340" y="40" width="240" height="90" fill="#121922" stroke="#e2a73a"/>
+              <rect class="mot scan-miss" x="340" width="240" height="3" fill="#e2a73a"/>
+              <text x="36" y="156" fill="#8c9aab">钟已经对齐。扫出相位差一个亚帧，接缝还是会撕。</text>
+            </g>
+          </svg>
+          <figcaption>同一秒，两条扫描线不在同一高度。点下面一条故障，可以滤到对应产品。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>NTP 把钟拉齐，并不等于 GPU 一起扫。</strong>这个差在普通投影上几乎看不见，在已经 Genlock 的 LED 墙上会变成整帧错位。</p>
+          <p>清单里还有 Mosaic/EDID、主备切错对象、Leader 丢失、LTC 毛刺，以及跳转到了但目标帧还没换上。</p>
+        </div>
+      </div>
       <div class="tears" id="tear-list"></div>
     </section>
 
@@ -625,6 +701,31 @@
     <section id="scenes">
       <div class="sec-head"><span class="sec-num">15</span><h2>场景与外部控制</h2></div>
       <p class="sec-lead">产品落到场景，不落到「谁更强」。点场景高亮厂商。下方热图从各卡 control 字段抽出，空心就是公开页没写。</p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 680 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="五种现场：展厅、巡演、XR、球幕、楼宇">
+            <rect width="680" height="150" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+              <rect class="mot phase" x="20" y="28" width="112" height="64" fill="#121922" stroke="#3ad7c4"/>
+              <text x="52" y="64">展厅</text>
+              <rect class="mot phase phase-d1" x="148" y="28" width="112" height="64" fill="#121922" stroke="#3ad7c4"/>
+              <text x="180" y="64">巡演</text>
+              <rect class="mot phase phase-d2" x="276" y="28" width="112" height="64" fill="#121922" stroke="#e2a73a"/>
+              <text x="312" y="64">XR</text>
+              <rect class="mot phase phase-d3" x="404" y="28" width="112" height="64" fill="#121922" stroke="#3ad7c4"/>
+              <text x="436" y="64">球幕</text>
+              <rect class="mot phase phase-d4" x="532" y="28" width="112" height="64" fill="#121922" stroke="#8c9aab"/>
+              <text x="564" y="64">楼宇</text>
+              <text x="20" y="124" fill="#8c9aab">控台信号落到哪一类现场，下面的热图再告诉你公开页写了没有。</text>
+            </g>
+          </svg>
+          <figcaption>五类现场依次亮起。热图本身不加动画，空心仍然表示公开页没写。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>先问这场是什么，再问软件有没有那一列。</strong>展厅长卷、巡演、XR、球幕和楼宇亮化，要的同步不一样。</p>
+          <p>Art-Net、OSC、MIDI、LTC、NDI、Spout、中控 UDP 留在热图里点。</p>
+        </div>
+      </div>
       <div class="scenes" id="scene-list"></div>
       <h3 class="subhead">外部控制热图</h3>
       <div class="table-wrap">
@@ -649,6 +750,28 @@
     <section id="matrix">
       <div class="sec-head"><span class="sec-num">17</span><h2>对比矩阵</h2></div>
       <p class="sec-lead">实心青点 = 公开资料可确认；琥珀 = 部分/间接；空心 = 未检索到；暗点 = 明确不是这条路。点行可滚到对应厂商卡。点同步层可过滤。</p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 640 120" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="四种证据点：确认、部分、未检索到、不是这条路">
+            <rect width="640" height="120" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">
+              <circle class="mot phase" cx="48" cy="48" r="10" fill="#3ad7c4"/>
+              <text x="70" y="52">确认</text>
+              <circle class="mot phase phase-d1" cx="180" cy="48" r="10" fill="#e2a73a"/>
+              <text x="202" y="52">部分</text>
+              <circle class="mot phase phase-d2" cx="320" cy="48" r="10" fill="none" stroke="#8c9aab"/>
+              <text x="342" y="52">未检索到</text>
+              <circle class="mot phase phase-d3" cx="490" cy="48" r="10" fill="#314557"/>
+              <text x="512" y="52">不是这条路</text>
+            </g>
+          </svg>
+          <figcaption>四个点依次亮一下，提醒空心不是「没做」。矩阵本身保持可扫。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>点一行，滚到那张厂商卡。</strong>点上面的同步层，矩阵只留下用到该层的产品。</p>
+          <p>Quadro Sync 这一列含 RTX PRO Sync，是同一块板的更名。</p>
+        </div>
+      </div>
       <div class="filters" id="filters"></div>
       <div class="table-wrap">
         <table class="heat" id="heat-table">
@@ -662,18 +785,85 @@
     <section id="vendors">
       <div class="sec-head"><span class="sec-num">18</span><h2>厂商方案</h2></div>
       <p class="sec-lead">深潜卡片带顶栏青线。对照样本用来把矩阵撑完整。琥珀顶栏是处理器，不是播控：Brompton Tessera、诺瓦 MX/COEX，用来钉屏端同步。创凯等拼接器公开手册核不到 genlock 专章，不编。</p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 640 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="青线是播控深潜，琥珀线是处理器">
+            <rect width="640" height="140" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="13" fill="#e7eef5">
+              <rect x="24" y="24" width="280" height="88" fill="#121922" stroke="#314557"/>
+              <rect class="mot bar-cyan" x="24" y="24" width="280" height="6" fill="#3ad7c4"/>
+              <text x="40" y="64">深潜播控</text>
+              <text x="40" y="88" fill="#8c9aab" font-size="12">时间线、切片、集群</text>
+              <rect x="332" y="24" width="280" height="88" fill="#121922" stroke="#314557"/>
+              <rect class="mot bar-amber" x="332" y="24" width="280" height="6" fill="#e2a73a"/>
+              <text x="348" y="64">处理器</text>
+              <text x="348" y="88" fill="#8c9aab" font-size="12">屏端 Genlock，不是时间线</text>
+            </g>
+          </svg>
+          <figcaption>顶栏颜色先分开两类卡片。下面的厂商卡仍按原样点进详情。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>琥珀顶栏不是播控。</strong>Brompton Tessera 和诺瓦 MX/COEX 放进来，是为了钉住屏端同步。</p>
+          <p>公开手册没有 genlock 专章的拼接器，不编成一张卡。</p>
+        </div>
+      </div>
       <div class="cards" id="vendor-cards"></div>
     </section>
 
     <section id="patents">
       <div class="sec-head"><span class="sec-num">19</span><h2>专利地图</h2></div>
       <p class="sec-lead">同步与几何分开列。几何支线保留三思球形坐标和华院裸眼离轴，并加上球形灯珠分区、投影鱼眼两条摘要。申请人没在摘要页写全的，不编名字。同步方面仍未找到与 GrandShow Sync、KFS 同名的授权文本。</p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="专利分成同步和几何两列，中间不相通">
+            <rect width="640" height="150" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="13" fill="#e7eef5">
+              <rect x="24" y="24" width="250" height="100" fill="#121922" stroke="#3ad7c4"/>
+              <text x="40" y="56" fill="#3ad7c4">同步</text>
+              <text x="40" y="84" fill="#8c9aab" font-size="12">帧计数、校准、1588</text>
+              <rect x="366" y="24" width="250" height="100" fill="#121922" stroke="#e2a73a"/>
+              <text x="382" y="56" fill="#e2a73a">几何</text>
+              <text x="382" y="84" fill="#8c9aab" font-size="12">球形坐标、离轴、鱼眼</text>
+              <path d="M274 74 H366" stroke="#314557" stroke-dasharray="4 6"/>
+            </g>
+          </svg>
+          <figcaption>两列分开长。中间的虚线表示不要把几何专利写成同步方案。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>同步专利和几何专利各说各的。</strong>三思球形坐标、华院裸眼离轴留在几何这边。</p>
+          <p>摘要页没写全的申请人不编名字。GrandShow Sync、KFS 仍没有对得上的授权文本。</p>
+        </div>
+      </div>
       <div class="patents" id="patent-list"></div>
     </section>
 
     <section id="oss">
       <div class="sec-head"><span class="sec-num">20</span><h2>开源项目</h2></div>
       <p class="sec-lead">没有一个开源仓库等于完整的超分辨 LED 播控产品。有用的部分是：集群 present 屏障、穹顶播放、UV 工具。WebSocket 软同步明确标为精度不够。</p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 640 150" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="可借鉴屏障、穹顶和 UV；软同步划掉">
+            <rect width="640" height="150" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="13" fill="#e7eef5">
+              <rect class="mot phase" x="20" y="28" width="130" height="64" fill="#121922" stroke="#3ad7c4"/>
+              <text x="48" y="64">屏障</text>
+              <rect class="mot phase phase-d1" x="166" y="28" width="130" height="64" fill="#121922" stroke="#3ad7c4"/>
+              <text x="194" y="64">穹顶</text>
+              <rect class="mot phase phase-d2" x="312" y="28" width="130" height="64" fill="#121922" stroke="#3ad7c4"/>
+              <text x="352" y="64">UV</text>
+              <rect x="458" y="28" width="160" height="64" fill="#121922" stroke="#e36b5c"/>
+              <text x="486" y="64">软同步</text>
+              <path d="M470 40 L606 80 M606 40 L470 80" stroke="#e36b5c"/>
+              <text x="20" y="124" fill="#8c9aab">50–150 ms 的 WebSocket 对时，不能拿来开 LED 墙。</text>
+            </g>
+          </svg>
+          <figcaption>前三块可以借结构。划掉的那块只说明精度不够，不是仓库名单。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>没有一个仓库等于整套播控。</strong>节点描述和 swap barrier、穹顶播放、UV 工具，各自能借一块。</p>
+          <p>MapMap / UV Studio 放在内容管线，不放进播出内核。</p>
+        </div>
+      </div>
       <div class="oss" id="oss-list"></div>
     </section>
 
@@ -767,6 +957,37 @@
     <section id="commission">
       <div class="sec-head"><span class="sec-num">22</span><h2>Commissioning 检查清单</h2></div>
       <p class="sec-lead" id="comm-lead"></p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 680 140" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="从硬件上架到长时间烤机的八个阶段">
+            <rect width="680" height="140" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="11" fill="#e7eef5">
+              <rect class="mot phase" x="16" y="36" width="70" height="40" fill="#121922" stroke="#3ad7c4"/>
+              <text x="32" y="60">上架</text>
+              <rect class="mot phase phase-d1" x="98" y="36" width="70" height="40" fill="#121922" stroke="#3ad7c4"/>
+              <text x="114" y="60">配置</text>
+              <rect class="mot phase phase-d2" x="180" y="36" width="70" height="40" fill="#121922" stroke="#3ad7c4"/>
+              <text x="196" y="60">同步</text>
+              <rect class="mot phase phase-d3" x="262" y="36" width="70" height="40" fill="#121922" stroke="#3ad7c4"/>
+              <text x="278" y="60">导入</text>
+              <rect class="mot phase phase-d4" x="344" y="36" width="70" height="40" fill="#121922" stroke="#e2a73a"/>
+              <text x="360" y="60">跳转</text>
+              <rect class="mot phase phase-d5" x="426" y="36" width="70" height="40" fill="#121922" stroke="#3ad7c4"/>
+              <text x="442" y="60">中控</text>
+              <rect class="mot phase phase-d6" x="508" y="36" width="70" height="40" fill="#121922" stroke="#3ad7c4"/>
+              <text x="524" y="60">主备</text>
+              <rect class="mot phase phase-d7" x="590" y="36" width="70" height="40" fill="#121922" stroke="#e2a73a"/>
+              <text x="606" y="60">烤机</text>
+              <text x="16" y="108" fill="#8c9aab">每一步下面有一个可看的信号：Sync 灯、接缝、240 fps、72 小时。</text>
+            </g>
+          </svg>
+          <figcaption>八个阶段依次点亮。完整勾选仍在下面的卡片里。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>从开箱走到能演出，每步要能看见。</strong>同步组建看接缝测试图，跳转用高速摄像机拍，主备要模拟断电。</p>
+          <p>烤机看的是温度、显存、磁盘，以及帧计数有没有溢出复位。</p>
+        </div>
+      </div>
       <div class="steps" id="comm-steps"></div>
     </section>
 
