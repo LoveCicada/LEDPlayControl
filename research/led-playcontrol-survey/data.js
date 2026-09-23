@@ -830,7 +830,9 @@ window.SURVEY = {
         { t: "T3 产品页（凯视达）", u: "https://www.kystar.com.cn/Products_desc/236/2144.html" },
         { t: "Kommander T3 产品页", u: "https://www.kommander.com.cn/goods/special/pid/1/cid/7/sid/76.html" },
         { t: "F30 规格（含 Sync II）", u: "https://kystar.com.cn/filespath/files/pdf/20250616135957.pdf" },
-        { t: "F30 英文规格（Framelock / Genlock 口）", u: "https://en.kystar.net/wp-content/uploads/2025/10/Kommander-F30-Media-Server-Datasheet_2509.pdf" }
+        { t: "F30 英文规格（Framelock / Genlock 口）", u: "https://en.kystar.net/wp-content/uploads/2025/10/Kommander-F30-Media-Server-Datasheet_2509.pdf" },
+        { t: "T1 手册 §7.6 异形屏", u: "https://www.kystar.net/filespath/files/pdf/20200115175755.pdf" },
+        { t: "2025 Software Manual（素材类型 / §7.8）", u: "https://www.kommander.com.cn/filespath/files/USER%20MANUAL%202025-%20Software.pdf" }
       ]
     },
     {
@@ -860,7 +862,8 @@ window.SURVEY = {
       sources: [
         { t: "Kompass 下载中心", u: "https://www.novastar-led.cn/index/downloadcenter/downloaddatacontent.html?cateID=47&type=software" },
         { t: "FX3 Pro 产品页", u: "https://www.novastar-led.cn/index.php/index/products/index/id/130.html" },
-        { t: "专利 CN202210927168.1 报道", u: "http://stock.stockstar.com/RB2024051100002237.shtml" }
+        { t: "专利 CN202210927168.1 报道", u: "http://stock.stockstar.com/RB2024051100002237.shtml" },
+        { t: "SmartLCT V3.5.14（K16 自由走线，不是播控 UV）", u: "https://www.novastar-led.cn/index/downloadcenter/downloaddatacontent.html?cateID=7&catename=%E6%99%BA%E8%83%BD%E9%85%8D%E5%B1%8F%E8%BD%AF%E4%BB%B6+SmartLCT&type=software" }
       ]
     },
     {
@@ -890,7 +893,8 @@ window.SURVEY = {
       sources: [
         { t: "Hirender 官网", u: "https://www.hirender.com/" },
         { t: "S3 4.5.0 更新（帧同步需 Sync II）", u: "http://www.hirender.com.cn/post/21.html" },
-        { t: "S2 手册", u: "https://www.hirender.com/files/Hirender%20S2%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E%E4%B9%A6.pdf" }
+        { t: "S2 手册", u: "https://www.hirender.com/files/Hirender%20S2%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E%E4%B9%A6.pdf" },
+        { t: "S3 手册（虚拟屏幕 / 几何变形）", u: "https://www.hirender.com/files/Hirender%20S3%E4%BD%BF%E7%94%A8%E8%AF%B4%E6%98%8E%EF%BC%8811.13%EF%BC%89.pdf" }
       ]
     },
     {
@@ -939,7 +943,7 @@ window.SURVEY = {
       multi: "公开资料强调设计-执行闭环与协议联动，多机帧同步实现未达到 disguise 手册级透明度。",
       sync: { wallClock: "时间线 + Art-Net / TCP / UDP / DMX（B）", frameId: "未公开帧屏障细节", scanout: "未公开 Sync 卡要求", transport: "无" },
       backup: "未作为主卖点披露。",
-      irregular: "国内少有的「先 3D 再播控」。预演材质、灯光、摄像机机位后交给 Server。适合异形空间，但 LED 像素级 UV 是否达到 disguise 对象映射深度，公开页不够细。",
+      irregular: "Quick Guide 把显示面写成矩形、穹顶和带 UV 的自定义模型，导入只认 OBJ，软件不能改 UV 图。逐步例子是投影标定，不是接收卡 UV。",
       coupling: "设备库含多家灯具/投影，LED 不绑单一发送卡。",
       control: "Art-Net、TCP/IP、UDP、DMX、USB、中控与云控",
       mapping: ["map3d"],
@@ -948,7 +952,7 @@ window.SURVEY = {
       mappingStage: [1, 2, 3, 5],
       uiArch: ["stage"],
       evidence: "B",
-      evidenceNote: "产品结构来自官网 Quick Guide 与澜景介绍。多机硬同步不是其公开文档的核心章节。",
+      evidenceNote: "显示面、OBJ 和 UV 约束来自 Quick User Guide。多机硬同步仍不是其公开文档的核心章节。实时视锥只有目录里的跟踪一句，没有逐步说明。",
       sources: [
         { t: "hecoos 快速指南 PDF", u: "https://www.hecoos.com/download/Quick_User_Guide_en.pdf" },
         { t: "澜景：Studio/Server 体系", u: "https://www.kk77.cn/com/lanjing/news/itemid-25.html" }
@@ -1412,11 +1416,11 @@ window.SURVEY = {
   ],
 
   geomMatrix: [
-    { id: "kommander", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "no", stereo: "未检索到", evidence: "B", note: "主界面是虚拟屏和预案。球形路径未在公开手册展开。" },
-    { id: "novastar", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "no", stereo: "未检索到", evidence: "B", note: "播控主路径是窗口/预案。屏端几何在接收卡配屏，不是 3D 舞台。" },
-    { id: "hirender", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "no", stereo: "未检索到", evidence: "B", note: "网格拼接和窗口模式。未检索到 OBJ/UV 专章。" },
-    { id: "grandshow", slice2d: "yes", mesh: "partial", uv: "partial", eye: "partial", dome: "partial", frustum: "unknown", stereo: "未检索到", evidence: "C", note: "GrandShow 内是 2D 切片。GrandMapping 宣传：模型 → 视角 → 自动切片 → 发送卡连接关系。AI 建模维持 C。" },
-    { id: "hecoos", slice2d: "partial", mesh: "partial", uv: "unknown", eye: "partial", dome: "unknown", frustum: "unknown", stereo: "未检索到", evidence: "B", note: "Studio 先做三维预演和机位，再交给 Server。像素级 UV 公开页不够细。" },
+    { id: "kommander", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "partial", frustum: "no", stereo: "未检索到", evidence: "B", checked: "T1 手册 §7.6，以及 2025 Software Manual §7.8、素材类型表和功能特效列表。", note: "异形章是把多块矩形屏塞进同一个显示口，再在布局里旋转。2025 手册把 360° Panorama、Hemispherical Dome、Spherical 写成素材类型，UV Unwrapping 和 Dome Projection 是特效名。这两处都没有屏体 OBJ，也没有一张 UV 表。网格、UV、观察点保持空。" },
+    { id: "novastar", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "no", stereo: "未检索到", evidence: "B", checked: "诺瓦下载中心的 Kompass 手册目录，以及 SmartLCT V3.5.14 更新说明。FX 手册正文这次没有打开到 PDF。", note: "播控主路径仍是窗口和预案。下载中心列了 FX 用户手册，本次没有打开到写 OBJ 或 UV 的章节，格子保持空。走线、抽点和异型箱在 SmartLCT / 接收卡，不在 Kompass 时间线里。" },
+    { id: "hirender", slice2d: "yes", mesh: "unknown", uv: "unknown", eye: "unknown", dome: "unknown", frustum: "no", stereo: "未检索到", evidence: "B", checked: "Hirender S3 用户使用手册（虚拟屏幕、多边形切片、附录二几何变形）。", note: "手册写的是虚拟屏幕、任意多边形切片，以及投影用的几何变形网格（线性、透视、全面）。这是 2D 网格拉点，不是导入屏体 OBJ。OBJ、屏体 UV、穹顶、观察点这几格保持空。" },
+    { id: "grandshow", slice2d: "yes", mesh: "partial", uv: "partial", eye: "partial", dome: "partial", frustum: "unknown", stereo: "未检索到", evidence: "B", checked: "GrandMapping 产品页；投影时代 2025-05 报道只作球形宣传，不升格。", note: "GrandShow 内仍是 2D 切片。产品页写：导入三维模型、调相机视角、按行列或分辨率自动切片、导入 Colorlight 发送端连接关系文件。模型格式、UV 公式和连接关系字段没写。AI 推断和「球形」字样维持 C，不把穹顶格涂实。" },
+    { id: "hecoos", slice2d: "partial", mesh: "yes", uv: "partial", eye: "partial", dome: "yes", frustum: "unknown", stereo: "未检索到", evidence: "B", checked: "hecoos Quick User Guide（显示面、Import Model、3D Mapping）。", note: "显示面包含穹顶，以及带 UV 的自定义模型；导入格式写明是 OBJ。指南要求 UV 已经展开，软件不能改 UV 图。逐步例子是投影机标定和平行/透视投影。目录提到红外跟踪，没有每帧 LED 体积视锥的步骤，实时视锥保持空。" },
     { id: "disguise", slice2d: "partial", mesh: "yes", uv: "yes", eye: "yes", dome: "unknown", frustum: "yes", stereo: "跟踪视锥，不是双目", evidence: "A", note: "显示网格必须有 UV，否则黑屏。xR 推荐 LIDAR 扫描并展开的 OBJ。Spatial Mapping 跟活动摄像机。" },
     { id: "watchout", slice2d: "yes", mesh: "yes", uv: "unknown", eye: "yes", dome: "unknown", frustum: "partial", stereo: "未检索到", evidence: "A", note: "3D 映射把投影机当成带 Eye/Target 的视锥，用至少六点标定贴到模型上。对象是投影表面，不是 LED 接收卡 UV。" },
     { id: "vmeet", slice2d: "yes", mesh: "partial", uv: "unknown", eye: "unknown", dome: "partial", frustum: "unknown", stereo: "未检索到", evidence: "C", note: "产品页写自定义模型、球幕、隧道、穹顶、CAVE。步骤未到手册级。" },
@@ -1496,22 +1500,22 @@ window.SURVEY = {
     {
       id: "grandshow",
       kinds: ["surface"],
-      grade: "C",
-      title: "GrandMapping：公开页只有路径，没有参数",
-      body: "GrandShow 本体是 2D 批量切片、变形和旋转。球形和弧形被指到独立软件 GrandMapping：用预设或推断的屏体模型，调观察视角，自动切片，再把结果送进卡莱特发送卡的连接关系文件。",
-      more: "「AI 推断屏体」出现在宣传，不出现在可复核的参数页。这次没有打开到 UV 归一化、经纬公式或观察点矩阵的说明，所以表上这三格是部分，证据保持 C。能确定的是它把几何结果写成发送卡文件，而不是写成 NVIDIA Sync 组。",
+      grade: "B",
+      title: "GrandMapping：产品页写了四步，没写文件字段",
+      body: "GrandShow 本体是 2D 批量切片、变形和旋转。GrandMapping 产品页写的路径是：导入三维模型，调整相机视角，按行列或分辨率生成切片，再导入 Colorlight 发送端连接关系文件。",
+      more: "模型是 OBJ 还是别的格式、UV 怎么归一化、连接关系文件里有哪些字段，这三件产品页都没写，所以网格、UV、观察点仍是部分。AI 推断和投影时代稿里的「球形」维持 C，不拿来把穹顶格涂成确认。几何结果进的是发送卡文件，不是 NVIDIA Sync 组。",
       url: "https://colorlightinside.com/product/special/6255",
       source: "GrandMapping"
     },
     {
       id: "hecoos",
-      kinds: ["surface"],
+      kinds: ["surface", "sky"],
       grade: "B",
-      title: "hecoos：先在 Studio 里摆三维，再交给 Server",
-      body: "设计端 Studio 默认不出画，里面摆灯、屏、机械和摄像机机位。Server 或带输出模块的 Studio Pro 才负责现场输出。这是国内少数把三维预演放在播控前面的结构。",
-      more: "公开介绍没有 disguise 那种「无 UV 则黑屏」的句子，也没有经纬展开或离轴矩阵。所以它证明的是工作流分端，不是像素级贴图已经写进手册。快速指南 PDF 此前为 404，这里不拿海报补步骤。",
-      url: "https://www.kk77.cn/com/lanjing/news/itemid-25.html",
-      source: "澜景：Studio / Server"
+      title: "hecoos：显示面要自带展开好的 UV",
+      body: "Quick User Guide 把显示面写成矩形、穹顶、三角、圆，以及带 UV 的自定义模型，用来模拟 LED、投影和 LCD。导入只认 OBJ。软件不能改导入模型的表面、材质和 UV 图，能改的是位置、缩放、旋转，以及投到显示面上的内容。显示面必须已经展开好 UV。",
+      more: "指南里的逐步例子是投影：平行投影、透视投影、投影机标定，再用虚拟投影机抓融合画面。目录写了红外跟踪以及 Notch、Unity、Unreal，但没有每帧重算 LED 体积视锥的步骤，实时视锥格保持空。穹顶是内置显示面，不是展台文案补上去的。",
+      url: "https://www.hecoos.com/download/Quick_User_Guide_en.pdf",
+      source: "hecoos Quick User Guide"
     }
   ],
 
@@ -1937,9 +1941,22 @@ window.SURVEY = {
         "screens/：glTF/OBJ 模型 + UV 贴图",
         "media/：素材目录（按哈希命名，不依赖文件名）",
         "sync.json：同步组配置（哪些 GPU 进哪个 swap group）",
-        "layout.json：切片清单（每个输出 viewport 对应屏体的哪个矩形/网格区域）"
+        "layout.json：outputId、viewport 像素矩形、cabinets（发送卡 / 网口 / 接收卡序号 / 原点 / 宽高 / 旋转，数组顺序即走线）。灯板抽点不在此文件。"
       ],
-      versioning: "project.json 带 schemaVersion 字段。升级时写 migration 脚本。"
+      versioning: "project.json 带 schemaVersion 字段。升级时写 migration 脚本。",
+      layoutShape: {
+        lead: "layout.json 只回答一件事：这一路 GPU 输出的哪一块像素，落到哪些箱体上。灯板抽点和数据组交换留在接收卡配置里，不写进这个文件，也不编造厂商连接关系的私有字段。",
+        fields: [
+          { name: "outputId", detail: "Display 节点、GPU、DP/HDMI 口编号。" },
+          { name: "viewport", detail: "相对该口帧缓冲的像素矩形：x、y、宽、高。" },
+          { name: "cabinets", detail: "箱体列表。每项有 id、发送卡、网口、接收卡序号、像素原点、宽、高、旋转。数组顺序就是该网口上的走线顺序。" },
+          { name: "source", detail: "manual，或导入文件的文件名。文件内部字段以对方公开说明为准，这里不补。" }
+        ],
+        split: [
+          { who: "GrandMapping", detail: "产品页写明导入 Colorlight 发送端连接关系文件，用来把切片接到硬件。文件里有哪些字段，公开页没写。", url: "https://colorlightinside.com/product/special/6255", source: "GrandMapping 产品页" },
+          { who: "诺瓦", detail: "Kompass 管窗口和节目。接收卡走线、抽点、异型箱在 SmartLCT；V3.5.14 的更新说明写支持 K16 自由走线。VMP 另有极速配屏和图层。三张表不要并成一张。", url: "https://www.novastar-led.cn/index/downloadcenter/downloaddatacontent.html?cateID=7&catename=%E6%99%BA%E8%83%BD%E9%85%8D%E5%B1%8F%E8%BD%AF%E4%BB%B6+SmartLCT&type=software", source: "SmartLCT 下载页" }
+        ]
+      }
     }
   },
 
@@ -2169,13 +2186,29 @@ window.SURVEY = {
     steps: [
       { phase: "1 硬件上架", items: ["GPU 型号/数量与工程配置一致", "Sync 卡排线接好（每 GPU 一根到 SYNC 口）", "BNC house-sync 发生器到各机 + 处理器", "CAT5 菊花链不走交换机", "DP/HDMI 口编号与切片清单对应"], verify: "NVIDIA 控制面板 → 查看 Sync 卡状态灯" },
       { phase: "2 系统配置", items: ["各机分辨率/刷新率一致", "EDID 统一（用处理器 EDID 写入或锁 EDID 器）", "Windows GPU 驱动版本一致", "电源计划设为高性能，关闭 USB 选择性暂停"], verify: "dxdiag / nvidia-smi 确认" },
-      { phase: "3 同步组建", items: ["打开 Mosaic 或手动多屏", "创建 Hardware Sync Group / Framelock Group", "确认 timing server 角色", "输出测试图（黑白格 + 帧号）"], verify: "相邻箱体接缝无错位" },
-      { phase: "4 工程导入", items: ["导入屏体模型/UV", "配置切片清单", "素材路径校验", "时间线/预案配置"], verify: "预监画面与输出一致" },
-      { phase: "5 跳转测试", items: ["每个 Cue 手动跳一次", "观察有无黑帧或旧帧残留", "记录跳转延迟（从指令到画面变化）"], verify: "高速摄像机 240fps 拍接缝，确认同帧切" },
+      { phase: "3 同步组建", items: ["打开 Mosaic 或手动多屏", "创建 Hardware Sync Group / Framelock Group", "确认 timing server 角色", "输出测试图（黑白格 + 帧号 + 节点名 + 输出口）"], verify: "相邻箱体上的帧号相同，黑白格不错位" },
+      { phase: "4 工程导入", items: ["导入屏体模型/UV", "配置 layout.json：输出口 viewport 与箱体走线", "素材路径校验", "时间线/预案配置"], verify: "预监画面与输出一致" },
+      { phase: "5 跳转测试", items: ["每个 Cue 手动跳一次", "观察有无黑帧或旧帧残留", "记录跳转延迟（从指令到画面变化）", "未齐备时日志必须是 ABORTED，并记下保持的旧帧"], verify: "240 fps 拍接缝时，两侧烧录帧号相同；日志里的 targetFrame 与画面一致" },
       { phase: "6 外部控制", items: ["中控 UDP / OSC 连通性", "LTC 锁定测试（拔线、毛刺）", "Art-Net universe 映射"], verify: "从控台触发全部 Cue" },
       { phase: "7 主备切换", items: ["模拟主端断电", "观察备端接管时间和丢帧数", "恢复后回切"], verify: "观众位看不到黑屏" },
       { phase: "8 长时间烤机", items: ["连续 72 小时循环播放", "监控 GPU 温度、显存、磁盘 IO", "检查 Sync 卡帧计数有无溢出复位"], verify: "无丢帧、无撕缝、无内存泄漏" }
-    ]
+    ],
+    frameProof: {
+      lead: "同帧不靠眼睛看接缝。下面是第一版自己的观测约定，不依赖未公开的集群报文，也不是某一家手册里的字段。",
+      pattern: [
+        { item: "帧号", rule: "烧在画面上的是 Sync 卡帧计数。没有卡时用本地 VBlank 计数。不用素材时间码代替它。" },
+        { item: "节点", rule: "同一张图写 Display 节点名。" },
+        { item: "输出口", rule: "写 GPU 输出编号，并写该口在 layout.json 里的 viewport。" },
+        { item: "图案", rule: "黑白格跨过接缝。格线在箱体边上对齐。相邻箱体上的帧号必须是同一个数。" }
+      ],
+      barrierLog: [
+        { name: "targetFrame", detail: "这一拍约定要 present 的帧号。" },
+        { name: "ready", detail: "已经把该帧纹理交进显存的节点名单。" },
+        { name: "held", detail: "有节点未就绪时，整组继续播的旧帧号。" },
+        { name: "decision", detail: "COMMITTED 或 ABORTED。不写「已同步」这种没有帧号的句子。" }
+      ],
+      audio: "声画用同一条 LTC。视频侧记下 present 帧号对应的时间码；音频侧在数字口或声卡回路上录 LTC 和节目声。量的是同一帧 LTC 的沿，和节目声起振点的差。只在观众位听，不能代替这条记录。LTC 毛刺帧仍然丢掉，不拿来当播放头。"
+    }
   },
 
   scalability: {

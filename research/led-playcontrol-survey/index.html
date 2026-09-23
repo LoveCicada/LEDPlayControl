@@ -319,13 +319,13 @@
         <div class="panel">
           <h3>谁走 3D 主路径</h3>
           <p><strong>GrandMapping</strong>：预设模型 / AI 推断屏体 → 调观察视角自动切片 → 导入卡莱特发送卡连接关系。公开页把球形、弧形写成目标场景。</p>
-          <p><strong>hecoos</strong>：Studio 三维预演（灯、屏、机械、摄像机）无缝交给 Server。设计端与播放端分离，是国内最接近 disguise 工作流的结构。</p>
+          <p><strong>hecoos</strong>：Studio 三维预演交给 Server。Quick Guide 写明显示面含穹顶和带 UV 的 OBJ，软件不能改 UV。逐步例子是投影标定，不是接收卡走线。</p>
           <p><strong>disguise / PIXERA</strong>：屏是舞台对象。VP 还要求摄像机、跟踪、LED 处理器与服务器同 genlock。</p>
           <p><strong>VMEET</strong>：自定义模型、球幕 / 隧道 / CAVE、任意多边形重组，作为国内球幕对照。</p>
         </div>
         <div class="panel">
           <h3>谁停在 2D 快路径</h3>
-          <p><strong>Kommander / GrandShow / HiRender / Kompass</strong> 的主交互仍是虚拟屏、网格、变形、融合带。够用折面和超长卷，球形要另接 mapping 模块或离线预畸变。</p>
+          <p><strong>Kommander / GrandShow / HiRender / Kompass</strong> 的主交互仍是虚拟屏、网格、变形、融合带。够用折面和超长卷。Kommander 2025 手册把穹顶和 360 写成素材特效，T1 与 §7.8 的异形步骤仍是矩形拼进显示口再旋转。HiRender S3 的网格是投影几何变形。Kompass 的走线在 SmartLCT，不在播控时间线。</p>
           <svg class="inline-svg" viewBox="0 0 360 88" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <rect width="360" height="88" fill="#0d1218"/>
             <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="11" fill="#8c9aab">
@@ -996,6 +996,7 @@
         </div>
       </div>
       <div class="steps" id="comm-steps"></div>
+      <div id="frame-proof"></div>
     </section>
 
     <section id="refs">

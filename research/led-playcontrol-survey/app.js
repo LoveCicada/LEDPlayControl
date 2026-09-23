@@ -650,8 +650,9 @@
         const gaps = S.geomKeys.filter((k) => (row[k.id] || "unknown") === "unknown").map((k) => k.label);
         if (row.stereo && String(row.stereo).indexOf("未检索") >= 0) gaps.push("立体输出");
         if (!gaps.length) return;
+        const looked = row.checked ? `本次打开：${row.checked}` : "";
         questions.appendChild(el("p", null,
-          `<strong>${vendorLabel(row.id)}</strong> 的空项：${gaps.join("、")}。问对方：手册哪一章写了这一步，做完之后像素从哪张表来。`));
+          `<strong>${vendorLabel(row.id)}</strong> 的空项：${gaps.join("、")}。${looked ? looked + " " : ""}问对方：手册哪一章写了这一步，做完之后像素从哪张表来。`));
       });
     }
   }
@@ -1770,8 +1771,7 @@
       '<text x="20" y="222" fill="#8c9aab">ST 2110 走专用 PTP 视频网；进 LED 处理器前由网关转成 SDI/DP，再经 L3 Genlock 物理同步。</text>' +
       '<text x="20" y="240" fill="#5d6b7a">两套时序域：L4 PTP（跨机确定）与 L3 Genlock（处理器旁物理锁）。第一版只做 L1–L3。</text>' +
       '</g></svg>';
-    host.innerHTML =
-      const cmpSvg =
+    const cmpSvg =
       '<svg viewBox="0 0 720 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PTP 确定性帧到达与 NDI 抖动的对比：PTP 标记严格落在理想帧边界上，NDI 标记在边界附近散布">' +
       '<rect width="720" height="200" fill="#0d1218"/>' +
       '<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">' +
@@ -1927,6 +1927,7 @@
       '<text x="600" y="196" fill="#46c98b" font-size="11">输出不中断</text>' +
       '<text x="20" y="244" fill="#8c9aab" font-size="11">A、B 为两条独立物理网（不同交换机/链路）。2022-7 让接收端在故障瞬间无缝接管，对 LED 画面零可见中断。</text>' +
       '</g></svg>';
+    host.innerHTML =
       '<div class="enh-block st2110-block">' +
       '<div class="enh-head"><span class="enh-tag">深读</span><h3 class="enh-title">ST 2110 广播级 IP 视频</h3></div>' +
       '<a class="st-back" href="#pat-st2110">↩ 回到「实时内容接入 · ST 2110 输入」条目</a>' +
@@ -2107,9 +2108,20 @@
     const proj = document.getElementById("arch-project");
     if (proj) {
       const P = A.projectFormat;
+      const L = P.layoutShape;
+      const layoutHtml = L
+        ? `<h3 class="subhead">切片到接收卡走线</h3><p class="sec-lead">${L.lead}</p>` +
+          `<div class="table-wrap"><table class="plain-table"><thead><tr><th>字段</th><th>写什么</th></tr></thead><tbody>` +
+          L.fields.map(f => `<tr><td><code>${f.name}</code></td><td>${f.detail}</td></tr>`).join("") +
+          `</tbody></table></div>` +
+          `<div class="problem-grid">${L.split.map(s =>
+            `<div class="panel"><h3>${s.who}</h3><p>${s.detail}</p><p><a href="${s.url}" target="_blank" rel="noopener">${s.source}</a></p></div>`
+          ).join("")}</div>`
+        : "";
       proj.innerHTML = `<h3 class="subhead">工程文件格式</h3><p class="sec-lead">${P.lead}</p>` +
         `<ul>${P.schema.map(s=>`<li><code>${s}</code></li>`).join("")}</ul>` +
-        `<p class="caption">${P.versioning}</p>`;
+        `<p class="caption">${P.versioning}</p>` +
+        layoutHtml;
     }
   }
 
@@ -2141,6 +2153,20 @@
           <p style="font-size:12px;color:var(--cyan);margin:0">验证：${s.verify}</p>
         </article>`
       ).join("");
+    }
+    const proof = document.getElementById("frame-proof");
+    const F = C.frameProof;
+    if (proof && F) {
+      proof.innerHTML =
+        `<h3 class="subhead">同帧怎么证明</h3><p class="sec-lead">${F.lead}</p>` +
+        `<div class="table-wrap"><table class="plain-table"><thead><tr><th>测试图上</th><th>约定</th></tr></thead><tbody>` +
+        F.pattern.map(p => `<tr><td>${p.item}</td><td>${p.rule}</td></tr>`).join("") +
+        `</tbody></table></div>` +
+        `<h3 class="subhead">barrier 未齐时日志记什么</h3>` +
+        `<div class="table-wrap"><table class="plain-table"><thead><tr><th>字段</th><th>含义</th></tr></thead><tbody>` +
+        F.barrierLog.map(p => `<tr><td><code>${p.name}</code></td><td>${p.detail}</td></tr>`).join("") +
+        `</tbody></table></div>` +
+        `<p class="caption">${F.audio}</p>`;
     }
   }
 
