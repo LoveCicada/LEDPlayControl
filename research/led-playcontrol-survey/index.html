@@ -68,6 +68,66 @@
     <section id="problem">
       <div class="sec-head"><span class="sec-num">01</span><h2>问题定义</h2></div>
       <p class="sec-lead">超 8K / 16K 点对点、超长卷、球形屏，单台工作站的解码、PCIe、DP 口数量和 Mosaic 桌面都会先撞墙。多机是扩空间；同步和几何才是扩完之后还像一块屏。</p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg viewBox="0 0 640 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="相邻箱体先错一帧，再锁成同一帧">
+            <rect width="640" height="240" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif">
+              <g>
+                <rect x="28" y="24" width="118" height="78" fill="#121922" stroke="#3ad7c4"/>
+                <rect x="40" y="58" width="94" height="8" fill="#3ad7c4"/>
+                <text x="40" y="48" fill="#e7eef5" font-size="13">1042</text>
+              </g>
+              <g class="mot tear-shift">
+                <rect x="158" y="24" width="118" height="78" fill="#121922" stroke="#e2a73a"/>
+                <rect x="170" y="58" width="94" height="8" fill="#e2a73a"/>
+                <text class="mot fnum-bad" x="170" y="48" fill="#e2a73a" font-size="13">1043</text>
+                <text class="mot fnum-good" x="170" y="48" fill="#3ad7c4" font-size="13">1042</text>
+              </g>
+              <g>
+                <rect x="288" y="24" width="118" height="78" fill="#121922" stroke="#3ad7c4"/>
+                <rect x="300" y="58" width="94" height="8" fill="#3ad7c4"/>
+                <text x="300" y="48" fill="#e7eef5" font-size="13">1042</text>
+              </g>
+              <g class="mot tear-shift">
+                <rect x="418" y="24" width="118" height="78" fill="#121922" stroke="#e2a73a"/>
+                <rect x="430" y="58" width="94" height="8" fill="#e2a73a"/>
+                <text class="mot fnum-bad" x="430" y="48" fill="#e2a73a" font-size="13">1043</text>
+                <text class="mot fnum-good" x="430" y="48" fill="#3ad7c4" font-size="13">1042</text>
+              </g>
+              <g>
+                <rect x="28" y="114" width="118" height="78" fill="#121922" stroke="#3ad7c4"/>
+                <rect x="40" y="148" width="94" height="8" fill="#3ad7c4"/>
+                <text x="40" y="138" fill="#e7eef5" font-size="13">1042</text>
+              </g>
+              <g class="mot tear-shift">
+                <rect x="158" y="114" width="118" height="78" fill="#121922" stroke="#e2a73a"/>
+                <rect x="170" y="148" width="94" height="8" fill="#e2a73a"/>
+                <text class="mot fnum-bad" x="170" y="138" fill="#e2a73a" font-size="13">1043</text>
+                <text class="mot fnum-good" x="170" y="138" fill="#3ad7c4" font-size="13">1042</text>
+              </g>
+              <g>
+                <rect x="288" y="114" width="118" height="78" fill="#121922" stroke="#3ad7c4"/>
+                <rect x="300" y="148" width="94" height="8" fill="#3ad7c4"/>
+                <text x="300" y="138" fill="#e7eef5" font-size="13">1042</text>
+              </g>
+              <g class="mot tear-shift">
+                <rect x="418" y="114" width="118" height="78" fill="#121922" stroke="#e2a73a"/>
+                <rect x="430" y="148" width="94" height="8" fill="#e2a73a"/>
+                <text class="mot fnum-bad" x="430" y="138" fill="#e2a73a" font-size="13">1043</text>
+                <text class="mot fnum-good" x="430" y="138" fill="#3ad7c4" font-size="13">1042</text>
+              </g>
+              <rect class="mot wall-scan" x="28" y="24" width="508" height="3" fill="#e7eef5"/>
+              <text x="28" y="222" fill="#8c9aab" font-size="12">前半段接缝错一帧 · 后半段帧号与扫描线对齐</text>
+            </g>
+          </svg>
+          <figcaption>只切片、不锁帧时，相邻箱体各播各的。锁上帧号和扫出相位之后，整面墙才是同一拍。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>空间切开了，时间还没对齐。</strong>多机把一块超大屏拆到几张显卡上，接缝两边如果差一帧，观众看到的就是撕开的画面。</p>
+          <p>前半段是只做了切片的状态：奇数箱体还在 1042，偶数箱体已经走到 1043。后半段帧号收回同一拍，一条扫描线扫过整面墙。</p>
+        </div>
+      </div>
       <div class="problem-grid">
         <div class="panel">
           <h3>单机为什么不够</h3>
@@ -92,37 +152,37 @@
       <div class="sec-head"><span class="sec-num">02</span><h2>多机帧同步：四层模型</h2></div>
       <p class="sec-lead">点选一层，矩阵里用到该层的厂商会亮起。这是全页共用的坐标系，后面每张厂商卡都映射到这里，而不是各说各的「帧同步」。</p>
 
-      <div class="stack-svg" aria-hidden="true">
-        <svg viewBox="0 0 980 220" xmlns="http://www.w3.org/2000/svg">
+      <div class="stack-svg" id="stack-figure">
+        <svg viewBox="0 0 980 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="四层同步：时钟、帧号、扫描线。传输时钟保持暗。">
           <rect width="980" height="220" fill="#0d1218"/>
           <g font-family="Microsoft YaHei UI, PingFang SC, Noto Sans SC, Segoe UI, sans-serif" font-size="13" fill="#e7eef5">
-            <rect x="20" y="24" width="200" height="172" fill="#121922" stroke="#3ad7c4"/>
+            <rect class="box-l1" x="20" y="24" width="200" height="172" fill="#121922" stroke="#3ad7c4"/>
             <text x="40" y="52" fill="#3ad7c4" font-size="11">L1 时间对齐</text>
             <text x="40" y="84">NTP / LTC</text>
             <text x="40" y="106" fill="#8c9aab">节目进度</text>
-            <text x="40" y="150" font-size="11" fill="#8c9aab">WATCHOUT Director</text>
-            <text x="40" y="168" font-size="11" fill="#8c9aab">7thSense Leader</text>
+            <circle cx="168" cy="138" r="18" fill="none" stroke="#243140" stroke-width="2"/>
+            <circle class="mot mot-l1 clock-arc" cx="168" cy="138" r="18" fill="none" stroke="#3ad7c4" stroke-width="3"/>
+            <text x="40" y="164" font-size="11" fill="#8c9aab">WATCHOUT Director</text>
 
-            <rect x="250" y="24" width="200" height="172" fill="#121922" stroke="#3ad7c4"/>
+            <rect class="box-l2" x="250" y="24" width="200" height="172" fill="#121922" stroke="#3ad7c4"/>
             <text x="270" y="52" fill="#3ad7c4" font-size="11">L2 帧身份</text>
             <text x="270" y="84">帧计数 / 校准</text>
-            <text x="270" y="106" fill="#8c9aab">present 同一帧</text>
-            <text x="270" y="150" font-size="11" fill="#8c9aab">Sync Group / Barrier</text>
-            <text x="270" y="168" font-size="11" fill="#8c9aab">诺瓦从端帧指示</text>
+            <text class="mot mot-l2 tick-a" x="270" y="132" fill="#3ad7c4" font-size="20">#18421</text>
+            <text class="mot mot-l2 tick-b" x="270" y="132" fill="#e2a73a" font-size="20">#18422</text>
+            <text x="270" y="168" font-size="11" fill="#8c9aab">present 同一帧</text>
 
-            <rect x="480" y="24" width="200" height="172" fill="#121922" stroke="#e2a73a"/>
+            <rect class="box-l3" x="480" y="24" width="200" height="172" fill="#121922" stroke="#e2a73a"/>
             <text x="500" y="52" fill="#e2a73a" font-size="11">L3 扫描相位</text>
-            <text x="500" y="84">Genlock / Framelock</text>
-            <text x="500" y="106" fill="#8c9aab">何时开始扫</text>
-            <text x="500" y="150" font-size="11" fill="#8c9aab">Quadro Sync II</text>
-            <text x="500" y="168" font-size="11" fill="#8c9aab">RJ45 不进交换机</text>
+            <text x="500" y="78">Genlock / Framelock</text>
+            <rect class="mot mot-l3 scan-sweep" x="496" width="168" height="3" fill="#e2a73a"/>
+            <text x="500" y="168" font-size="11" fill="#8c9aab">何时开始扫</text>
 
-            <rect x="710" y="24" width="250" height="172" fill="#121922" stroke="#314557"/>
+            <rect class="box-l4" x="710" y="24" width="250" height="172" fill="#121922" stroke="#314557"/>
             <text x="730" y="52" fill="#8c9aab" font-size="11">L4 传输时钟</text>
             <text x="730" y="84">PTP / ST 2110</text>
-            <text x="730" y="106" fill="#8c9aab">IP 包对齐</text>
+            <text x="730" y="106" fill="#8c9aab">第一版保持暗</text>
             <text x="730" y="150" font-size="11" fill="#8c9aab">disguise IP-VFC</text>
-            <text x="730" y="168" font-size="11" fill="#8c9aab">第一版 DP 可不上</text>
+            <text x="730" y="168" font-size="11" fill="#8c9aab">DP / HDMI 可不上</text>
           </g>
         </svg>
       </div>
@@ -163,6 +223,40 @@
     <section id="command">
       <div class="sec-head"><span class="sec-num">03</span><h2>指令何时生效</h2></div>
       <p class="sec-lead">跳转、时间线 Seek、场景切换不是再广播一次播放命令。Genlock 只保证各机同一时刻开始扫，不保证扫的是切换后的那一帧。包到即执行时，网络抖动会让相邻箱体差一到数帧。点一种生效方式，对照表和厂商卡会亮起用到它的产品。</p>
+      <div class="explain">
+        <figure class="explain-fig">
+          <svg id="jump-stage" class="jump-svg" viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="到达即执行会各切各的；等齐备再一起换面">
+            <rect width="720" height="230" fill="#0d1218"/>
+            <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
+              <g class="scene-arrival">
+                <text x="24" y="28" fill="#e2a73a">到达即执行</text>
+                <rect x="24" y="44" width="140" height="88" fill="#121922" stroke="#314557"/>
+                <rect class="mot cut-a" x="24" y="44" width="140" height="88" fill="#3ad7c4"/>
+                <text x="36" y="92">箱体 A</text>
+                <rect x="180" y="44" width="140" height="88" fill="#121922" stroke="#314557"/>
+                <rect class="mot cut-b" x="180" y="44" width="140" height="88" fill="#e2a73a"/>
+                <text x="192" y="92">箱体 B</text>
+                <text x="24" y="156" fill="#8c9aab">包到了就切，两边不在同一帧</text>
+              </g>
+              <g class="scene-barrier">
+                <text x="380" y="28" fill="#3ad7c4">预取之后齐切</text>
+                <rect x="380" y="44" width="140" height="88" fill="#121922" stroke="#314557"/>
+                <rect class="mot cut-both" x="380" y="44" width="140" height="88" fill="#3ad7c4"/>
+                <text x="392" y="92">箱体 A</text>
+                <rect x="536" y="44" width="140" height="88" fill="#121922" stroke="#314557"/>
+                <rect class="mot cut-both" x="536" y="44" width="140" height="88" fill="#3ad7c4"/>
+                <text x="548" y="92">箱体 B</text>
+                <text x="380" y="156" fill="#8c9aab">先等目标帧进显存，再一起换</text>
+              </g>
+            </g>
+          </svg>
+          <figcaption>点「到达即执行」看错帧；点「延迟生效」或「两阶段 Take」看齐切。播放头跟随仍可能差约 1 帧，图上按未对齐显示。</figcaption>
+        </figure>
+        <div class="explain-copy">
+          <p><strong>Genlock 只保证同时开始扫，不保证扫的是新画面。</strong>指令如果在包到达时就执行，网络抖动会让相邻箱体差一到数帧。</p>
+          <p>等预取完成、在同一帧换面，两边才一起离开旧画面。有一台还没把目标帧解出来，这一拍就先不切。</p>
+        </div>
+      </div>
       <div class="cmds" id="cmd-list"></div>
       <h3 class="subhead">厂商对照</h3>
       <div class="table-wrap">
@@ -209,6 +303,7 @@
             <rect x="522" y="28" width="100" height="52" fill="#121922" stroke="#8c9aab"/>
             <text x="542" y="58">5 锁帧</text>
             <path d="M116 54 H140 M240 54 H264 M374 54 H398 M498 54 H522" stroke="#314557"/>
+            <circle class="mot flow-dot" cy="54" r="4" fill="#3ad7c4"/>
             <text x="16" y="104" fill="#8c9aab">第 05 章把第 3 步拆开：曲面贴图、天空盒、裸眼烘焙、双目两路、XR 跟踪，不是同一个开关。</text>
           </g>
         </svg>
@@ -379,8 +474,8 @@
       <p class="sec-lead">现有叙事停在服务器。现场撕缝经常出在处理器没进同一 house-sync，或发送卡「自己对齐」被当成 GPU 锁。点每一跳，看谁负责、常见翻车，并高亮矩阵与厂商卡。</p>
 
       <div class="chain-svg" aria-hidden="true">
-        <svg viewBox="0 0 980 168" xmlns="http://www.w3.org/2000/svg">
-          <rect width="980" height="168" fill="#0d1218"/>
+        <svg viewBox="0 0 980 188" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="信号沿播出链路走到箱体，处理器未进同步时末端错一格">
+          <rect width="980" height="188" fill="#0d1218"/>
           <g font-family="Microsoft YaHei UI, PingFang SC, Noto Sans SC, Segoe UI, sans-serif" font-size="12" fill="#e7eef5">
             <rect id="svg-hop-media" x="16" y="36" width="140" height="88" fill="#121922" stroke="#3ad7c4"/>
             <text x="28" y="64" fill="#3ad7c4" font-size="10">1 素材</text>
@@ -421,6 +516,11 @@
             <text x="828" y="64" fill="#8c9aab" font-size="10">6 箱体扫出</text>
             <text x="828" y="88">灯珠刷新</text>
             <text x="828" y="108" fill="#8c9aab" font-size="11">整数倍帧率</text>
+            <circle class="mot packet" r="5" fill="#3ad7c4"/>
+            <g class="mot seam-miss">
+              <rect x="816" y="128" width="148" height="8" fill="#e36b5c"/>
+              <text x="816" y="156" fill="#e36b5c" font-size="11">处理器未进 house-sync · 末端错一格</text>
+            </g>
           </g>
         </svg>
       </div>
