@@ -15,19 +15,26 @@
       <a href="#problem"><span class="nav-index">01</span>问题</a>
       <a href="#stack"><span class="nav-index">02</span>四层同步</a>
       <a href="#command"><span class="nav-index">03</span>指令生效</a>
-      <a href="#mapping"><span class="nav-index">04</span>异形切片</a>
-      <a href="#geom"><span class="nav-index">05</span>三种 3D</a>
-      <a href="#ui"><span class="nav-index">06</span>主界面</a>
-      <a href="#chain"><span class="nav-index">07</span>全链路</a>
-      <a href="#rack"><span class="nav-index">08</span>机柜编码</a>
-      <a href="#tears"><span class="nav-index">09</span>撕缝</a>
-      <a href="#scenes"><span class="nav-index">10</span>场景控制</a>
-      <a href="#matrix"><span class="nav-index">11</span>对比矩阵</a>
-      <a href="#vendors"><span class="nav-index">12</span>厂商</a>
-      <a href="#patents"><span class="nav-index">13</span>专利</a>
-      <a href="#oss"><span class="nav-index">14</span>开源</a>
-      <a href="#build"><span class="nav-index">15</span>自研建议</a>
-      <a href="#refs"><span class="nav-index">16</span>出处</a>
+      <a href="#audio"><span class="nav-index">04</span>音频与帧率</a>
+      <a href="#mapping"><span class="nav-index">05</span>异形切片</a>
+      <a href="#geom"><span class="nav-index">06</span>三种 3D</a>
+      <a href="#ui"><span class="nav-index">07</span>主界面</a>
+      <a href="#chain"><span class="nav-index">08</span>全链路</a>
+      <a href="#network"><span class="nav-index">09</span>网络与带宽</a>
+      <a href="#panel"><span class="nav-index">10</span>LED 面板</a>
+      <a href="#pipeline"><span class="nav-index">11</span>内容准备</a>
+      <a href="#rack"><span class="nav-index">12</span>机柜编码</a>
+      <a href="#tears"><span class="nav-index">13</span>撕缝</a>
+      <a href="#failover"><span class="nav-index">14</span>主备容灾</a>
+      <a href="#scenes"><span class="nav-index">15</span>场景控制</a>
+      <a href="#interactive"><span class="nav-index">16</span>实时交互</a>
+      <a href="#matrix"><span class="nav-index">17</span>对比矩阵</a>
+      <a href="#vendors"><span class="nav-index">18</span>厂商</a>
+      <a href="#patents"><span class="nav-index">19</span>专利</a>
+      <a href="#oss"><span class="nav-index">20</span>开源</a>
+      <a href="#build"><span class="nav-index">21</span>自研架构</a>
+      <a href="#commission"><span class="nav-index">22</span>Commissioning</a>
+      <a href="#refs"><span class="nav-index">23</span>出处</a>
     </div>
     <div class="legend">
       <b>证据</b><br />
@@ -54,7 +61,7 @@
         <div class="stat"><div class="n">18</div><div class="l">产品样本（深潜 7 + 对照 11，含 2 家处理器）</div></div>
         <div class="stat"><div class="n">4</div><div class="l">同步层：钟 / 帧号 / 扫出 / PTP</div></div>
         <div class="stat"><div class="n">5</div><div class="l">异形屏：模型 → UV → 投影 → 切片 → 锁帧</div></div>
-        <div class="stat"><div class="n">A/B/C</div><div class="l">每条结论带证据等级与出处</div></div>
+        <div class="stat"><div class="n">23</div><div class="l">章节：同步 / 指令 / 音频 / 网络 / 容灾 / 架构 / Commissioning</div></div>
       </div>
     </header>
 
@@ -168,8 +175,23 @@
       <div id="cmd-decode"></div>
     </section>
 
+    <section id="audio">
+      <div class="sec-head"><span class="sec-num">04</span><h2>音频同步与帧率适配</h2></div>
+      <p class="sec-lead" id="audio-lead"></p>
+      <h3 class="subhead">音频与帧锁的交互</h3>
+      <div class="tears" id="audio-issues"></div>
+      <h3 class="subhead">音频建议</h3>
+      <div id="audio-recs" class="geom-questions"></div>
+      <h3 class="subhead">六层帧率对齐</h3>
+      <p class="sec-lead" id="fr-lead"></p>
+      <div class="table-wrap">
+        <table class="plain-table" id="fr-table"><thead></thead><tbody></tbody></table>
+      </div>
+      <div id="fr-notes"></div>
+    </section>
+
     <section id="mapping">
-      <div class="sec-head"><span class="sec-num">04</span><h2>球形与异形屏：3D 切片流水线</h2></div>
+      <div class="sec-head"><span class="sec-num">05</span><h2>球形与异形屏：3D 切片流水线</h2></div>
       <p class="sec-lead">2D 多边形切片适合矩形拼缝和折角。球、环、自由曲面更合适的源是三维模型。几何映射和多机同步是两条支线。曲面、天空盒和立体视差拆在下一章，这里仍只讲切片流水线。</p>
       <div class="steps" id="map-steps"></div>
       <figure class="geom-fig map-fig">
@@ -219,7 +241,7 @@
     </section>
 
     <section id="geom">
-      <div class="sec-head"><span class="sec-num">05</span><h2>三种 3D 不要混</h2></div>
+      <div class="sec-head"><span class="sec-num">06</span><h2>三种 3D 不要混</h2></div>
       <p class="sec-lead">行业话术里的「3D」至少是五件不同的事。曲面几何决定灯珠在空间的哪个位置；天空盒和穹顶决定贴上去的是一张 360 图还是鱼眼；裸眼立面是离线算好的一张图；眼镜双目是左右两张图；XR 是摄像机每帧重新算视锥。播控内核最后都落到按口输出的像素，差别在像素生成之前。</p>
       <ol class="geom-read">
         <li>先看图，确认是哪一种 3D。</li>
@@ -271,7 +293,7 @@
     </section>
 
     <section id="ui">
-      <div class="sec-head"><span class="sec-num">06</span><h2>主界面对照</h2></div>
+      <div class="sec-head"><span class="sec-num">07</span><h2>主界面对照</h2></div>
       <p class="sec-lead">公开手册里的播控主界面其实是三种骨架。先点示意图过滤图库、高亮对应厂商；再看各家手册/帮助页抽出的主界面图。没有独立配图的不留破图。</p>
 
       <div class="arch-grid" id="ui-archetypes">
@@ -353,7 +375,7 @@
     </section>
 
     <section id="chain">
-      <div class="sec-head"><span class="sec-num">07</span><h2>播出全链路</h2></div>
+      <div class="sec-head"><span class="sec-num">08</span><h2>播出全链路</h2></div>
       <p class="sec-lead">现有叙事停在服务器。现场撕缝经常出在处理器没进同一 house-sync，或发送卡「自己对齐」被当成 GPU 锁。点每一跳，看谁负责、常见翻车，并高亮矩阵与厂商卡。</p>
 
       <div class="chain-svg" aria-hidden="true">
@@ -432,8 +454,39 @@
       </p>
     </section>
 
+    <section id="network">
+      <div class="sec-head"><span class="sec-num">09</span><h2>网络拓扑与带宽规划</h2></div>
+      <p class="sec-lead" id="net-lead"></p>
+      <h3 class="subhead">带宽量级</h3>
+      <div class="table-wrap">
+        <table class="plain-table" id="bw-table"><thead></thead><tbody></tbody></table>
+      </div>
+      <h3 class="subhead">VLAN / 物理隔离方案</h3>
+      <div class="table-wrap">
+        <table class="plain-table" id="vlan-table"><thead></thead><tbody></tbody></table>
+      </div>
+    </section>
+
+    <section id="panel">
+      <div class="sec-head"><span class="sec-num">10</span><h2>LED 面板特性对同步的影响</h2></div>
+      <p class="sec-lead" id="panel-lead"></p>
+      <div class="tears" id="panel-chars"></div>
+      <h3 class="subhead">摄像机交互</h3>
+      <div id="panel-camera" class="geom-questions"></div>
+    </section>
+
+    <section id="pipeline">
+      <div class="sec-head"><span class="sec-num">11</span><h2>内容准备管线</h2></div>
+      <p class="sec-lead" id="pipe-lead"></p>
+      <div class="steps" id="pipe-steps"></div>
+      <h3 class="subhead">存储量级估算</h3>
+      <div class="table-wrap">
+        <table class="plain-table" id="storage-table"><thead></thead><tbody></tbody></table>
+      </div>
+    </section>
+
     <section id="rack">
-      <div class="sec-head"><span class="sec-num">08</span><h2>机柜与编码矩阵</h2></div>
+      <div class="sec-head"><span class="sec-num">12</span><h2>机柜与编码矩阵</h2></div>
       <p class="sec-lead">厂商卡里的 GPU、Sync 卡、编码是散文，没法扫。两张表只填能核到的；空着就空着。点行滚到厂商卡。</p>
       <h3 class="subhead">机柜 BOM</h3>
       <div class="table-wrap">
@@ -454,13 +507,23 @@
     </section>
 
     <section id="tears">
-      <div class="sec-head"><span class="sec-num">09</span><h2>撕缝与故障对照</h2></div>
+      <div class="sec-head"><span class="sec-num">13</span><h2>撕缝与故障对照</h2></div>
       <p class="sec-lead">WATCHOUT 那句 NTP≠扫出已经是全页最硬的证据。扩成现场清单。点一条，矩阵和厂商卡亮起对应产品。</p>
       <div class="tears" id="tear-list"></div>
     </section>
 
+    <section id="failover">
+      <div class="sec-head"><span class="sec-num">14</span><h2>主备与容灾架构</h2></div>
+      <p class="sec-lead" id="fail-lead"></p>
+      <div class="layers" id="fail-models"></div>
+      <h3 class="subhead">对比维度</h3>
+      <div class="table-wrap">
+        <table class="plain-table" id="fail-table"><thead></thead><tbody></tbody></table>
+      </div>
+    </section>
+
     <section id="scenes">
-      <div class="sec-head"><span class="sec-num">10</span><h2>场景与外部控制</h2></div>
+      <div class="sec-head"><span class="sec-num">15</span><h2>场景与外部控制</h2></div>
       <p class="sec-lead">产品落到场景，不落到「谁更强」。点场景高亮厂商。下方热图从各卡 control 字段抽出，空心就是公开页没写。</p>
       <div class="scenes" id="scene-list"></div>
       <h3 class="subhead">外部控制热图</h3>
@@ -473,8 +536,18 @@
       <p class="caption">Art-Net / OSC / MIDI / LTC / NDI / Spout / 中控 UDP。nDisplay 不是播控，多数列为空是预期。Brompton / 诺瓦 MX 是处理器，控台走 eDMX 或 VMP，不是时间线。</p>
     </section>
 
+    <section id="interactive">
+      <div class="sec-head"><span class="sec-num">16</span><h2>实时交互内容接入</h2></div>
+      <p class="sec-lead" id="inter-lead"></p>
+      <div class="layers" id="inter-patterns"></div>
+      <h3 class="subhead">延迟预算示例（XR 场景）</h3>
+      <div class="table-wrap">
+        <table class="plain-table" id="latency-table"><thead></thead><tbody></tbody></table>
+      </div>
+    </section>
+
     <section id="matrix">
-      <div class="sec-head"><span class="sec-num">11</span><h2>对比矩阵</h2></div>
+      <div class="sec-head"><span class="sec-num">17</span><h2>对比矩阵</h2></div>
       <p class="sec-lead">实心青点 = 公开资料可确认；琥珀 = 部分/间接；空心 = 未检索到；暗点 = 明确不是这条路。点行可滚到对应厂商卡。点同步层可过滤。</p>
       <div class="filters" id="filters"></div>
       <div class="table-wrap">
@@ -487,25 +560,25 @@
     </section>
 
     <section id="vendors">
-      <div class="sec-head"><span class="sec-num">12</span><h2>厂商方案</h2></div>
+      <div class="sec-head"><span class="sec-num">18</span><h2>厂商方案</h2></div>
       <p class="sec-lead">深潜卡片带顶栏青线。对照样本用来把矩阵撑完整。琥珀顶栏是处理器，不是播控：Brompton Tessera、诺瓦 MX/COEX，用来钉屏端同步。创凯等拼接器公开手册核不到 genlock 专章，不编。</p>
       <div class="cards" id="vendor-cards"></div>
     </section>
 
     <section id="patents">
-      <div class="sec-head"><span class="sec-num">13</span><h2>专利地图</h2></div>
+      <div class="sec-head"><span class="sec-num">19</span><h2>专利地图</h2></div>
       <p class="sec-lead">同步与几何分开列。几何支线保留三思球形坐标和华院裸眼离轴，并加上球形灯珠分区、投影鱼眼两条摘要。申请人没在摘要页写全的，不编名字。同步方面仍未找到与 GrandShow Sync、KFS 同名的授权文本。</p>
       <div class="patents" id="patent-list"></div>
     </section>
 
     <section id="oss">
-      <div class="sec-head"><span class="sec-num">14</span><h2>开源项目</h2></div>
+      <div class="sec-head"><span class="sec-num">20</span><h2>开源项目</h2></div>
       <p class="sec-lead">没有一个开源仓库等于完整的超分辨 LED 播控产品。有用的部分是：集群 present 屏障、穹顶播放、UV 工具。WebSocket 软同步明确标为精度不够。</p>
       <div class="oss" id="oss-list"></div>
     </section>
 
     <section id="build">
-      <div class="sec-head"><span class="sec-num">15</span><h2>LEDPlayControl 可抄的分层</h2></div>
+      <div class="sec-head"><span class="sec-num">21</span><h2>LEDPlayControl 可抄的分层</h2></div>
       <p class="sec-lead">不是产品愿景，是把上面对照完之后仍然成立的约束写成第一版架构。ST 2110 / PTP 明确不做，除非目标改成广播级 IP 输出。</p>
       <div class="arch">
         <div>
@@ -577,10 +650,28 @@
         <h3>不从开源项目里抄错的东西</h3>
         <p>可借鉴 SGCT / Equalizer 的节点描述与 swap barrier，C-Play 的主从播放器结构，nDisplay 文档的 NVIDIA 接线。不要借鉴 Polycast 的 50–150 ms WebSocket 对时来开 LED 墙。MapMap / UV Studio 放在内容管线，不要当成播出内核。</p>
       </div>
+      <h3 class="subhead">模块划分与线程模型</h3>
+      <p class="sec-lead" id="arch-det-lead"></p>
+      <div class="table-wrap">
+        <table class="plain-table" id="arch-modules"><thead></thead><tbody></tbody></table>
+      </div>
+      <div id="arch-threading"></div>
+      <div id="arch-gpu"></div>
+      <div id="arch-sync"></div>
+      <div id="arch-jump"></div>
+      <div id="arch-project"></div>
+      <h3 class="subhead">可扩展性与瓶颈</h3>
+      <div id="arch-scale"></div>
+    </section>
+
+    <section id="commission">
+      <div class="sec-head"><span class="sec-num">22</span><h2>Commissioning 检查清单</h2></div>
+      <p class="sec-lead" id="comm-lead"></p>
+      <div class="steps" id="comm-steps"></div>
     </section>
 
     <section id="refs">
-      <div class="sec-head"><span class="sec-num">16</span><h2>资料出处</h2></div>
+      <div class="sec-head"><span class="sec-num">23</span><h2>资料出处</h2></div>
       <p class="sec-lead">只使用公开页、PDF、Google Patents 与 GitHub。未登录厂商后台，未把未公开协议写成可实施步骤。</p>
       <ol class="sources-all" id="all-sources"></ol>
     </section>

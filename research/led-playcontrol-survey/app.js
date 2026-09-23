@@ -1345,6 +1345,252 @@
     tick();
   }
 
+  // ===== 新增章节渲染 =====
+
+  function renderAudioSync() {
+    const A = S.audioSync;
+    if (!A) return;
+    const lead = document.getElementById("audio-lead");
+    if (lead) lead.textContent = A.lead;
+    const issues = document.getElementById("audio-issues");
+    if (issues) {
+      issues.innerHTML = A.issues.map(item =>
+        `<article class="tear"><div class="tear-head"><h3>${item.t}</h3></div><p>${item.d}</p></article>`
+      ).join("");
+    }
+    const recs = document.getElementById("audio-recs");
+    if (recs) recs.innerHTML = A.recommendations.map(r => `<p>${r}</p>`).join("");
+  }
+
+  function renderFrameRates() {
+    const F = S.frameRates;
+    if (!F) return;
+    const lead = document.getElementById("fr-lead");
+    if (lead) lead.textContent = F.lead;
+    const table = document.getElementById("fr-table");
+    if (table) {
+      const thead = table.querySelector("thead");
+      const tbody = table.querySelector("tbody");
+      thead.innerHTML = "<tr><th>约束对</th><th>规则</th></tr>";
+      tbody.innerHTML = F.constraints.map(c =>
+        `<tr><td>${c.pair}</td><td>${c.rule}</td></tr>`
+      ).join("");
+    }
+    const notes = document.getElementById("fr-notes");
+    if (notes) notes.innerHTML = `<p class="callout">${F.dropFrame}</p><p class="caption">${F.pulldown}</p>`;
+  }
+
+  function renderNetwork() {
+    const N = S.networkPlan;
+    if (!N) return;
+    const lead = document.getElementById("net-lead");
+    if (lead) lead.textContent = N.lead;
+    const bwTable = document.getElementById("bw-table");
+    if (bwTable) {
+      const thead = bwTable.querySelector("thead");
+      const tbody = bwTable.querySelector("tbody");
+      thead.innerHTML = "<tr><th>项目</th><th>带宽 / 吞吐</th><th>备注</th></tr>";
+      tbody.innerHTML = N.bandwidths.map(b =>
+        `<tr><td>${b.item}</td><td>${b.bw}</td><td>${b.note}</td></tr>`
+      ).join("");
+    }
+    const vlanTable = document.getElementById("vlan-table");
+    if (vlanTable) {
+      const thead = vlanTable.querySelector("thead");
+      const tbody = vlanTable.querySelector("tbody");
+      thead.innerHTML = "<tr><th>VLAN / 物理</th><th>用途</th><th>备注</th></tr>";
+      tbody.innerHTML = N.vlanPlan.map(v => {
+        const label = v.vlan || v.physical;
+        return `<tr><td>${label}</td><td>${v.use}</td><td>${v.note}</td></tr>`;
+      }).join("");
+    }
+  }
+
+  function renderPanel() {
+    const P = S.ledPanel;
+    if (!P) return;
+    const lead = document.getElementById("panel-lead");
+    if (lead) lead.textContent = P.lead;
+    const chars = document.getElementById("panel-chars");
+    if (chars) {
+      chars.innerHTML = P.characteristics.map(c =>
+        `<article class="tear"><div class="tear-head"><h3>${c.t}</h3></div><p>${c.d}</p></article>`
+      ).join("");
+    }
+    const cam = document.getElementById("panel-camera");
+    if (cam) cam.innerHTML = P.cameraInteraction.map(c => `<p>${c}</p>`).join("");
+  }
+
+  function renderPipeline() {
+    const C = S.contentPipeline;
+    if (!C) return;
+    const lead = document.getElementById("pipe-lead");
+    if (lead) lead.textContent = C.lead;
+    const steps = document.getElementById("pipe-steps");
+    if (steps) {
+      steps.innerHTML = C.steps.map((s, i) =>
+        `<article class="step"><div class="n">STEP ${i + 1}</div><h3>${s.step}</h3><p>${s.detail}</p></article>`
+      ).join("");
+    }
+    const stTable = document.getElementById("storage-table");
+    if (stTable) {
+      const thead = stTable.querySelector("thead");
+      const tbody = stTable.querySelector("tbody");
+      thead.innerHTML = "<tr><th>配置</th><th>估算容量</th></tr>";
+      tbody.innerHTML = C.storageSizing.map(s =>
+        `<tr><td>${s.config}</td><td>${s.size}</td></tr>`
+      ).join("");
+    }
+  }
+
+  function renderFailover() {
+    const F = S.failover;
+    if (!F) return;
+    const lead = document.getElementById("fail-lead");
+    if (lead) lead.textContent = F.lead;
+    const models = document.getElementById("fail-models");
+    if (models) {
+      models.innerHTML = F.models.map(m =>
+        `<article class="layer" style="cursor:default">
+          <div class="layer-idx" style="font-size:12px;width:72px">${m.name.split(' ')[0]}</div>
+          <div class="layer-body">
+            <h3>${m.name}</h3>
+            <p><strong>拓扑：</strong>${m.topology}</p>
+            <p><strong>切换：</strong>${m.switch}</p>
+            <p><strong>一致性：</strong>${m.consistency}</p>
+            <p style="color:var(--amber)"><strong>风险：</strong>${m.risk}</p>
+          </div>
+        </article>`
+      ).join("");
+    }
+    const table = document.getElementById("fail-table");
+    if (table) {
+      const thead = table.querySelector("thead");
+      const tbody = table.querySelector("tbody");
+      const cols = ["维度", "disguise", "WATCHOUT", "7thSense", "国内主备", "环路备份"];
+      const keys = ["dimension", "understudy", "multiRunner", "leaderFollower", "cnHotStandby", "ringBackup"];
+      thead.innerHTML = "<tr>" + cols.map(c => `<th>${c}</th>`).join("") + "</tr>";
+      tbody.innerHTML = F.comparison.map(row =>
+        "<tr>" + keys.map(k => `<td>${row[k] || "—"}</td>`).join("") + "</tr>"
+      ).join("");
+    }
+  }
+
+  function renderInteractive() {
+    const I = S.interactiveContent;
+    if (!I) return;
+    const lead = document.getElementById("inter-lead");
+    if (lead) lead.textContent = I.lead;
+    const patterns = document.getElementById("inter-patterns");
+    if (patterns) {
+      patterns.innerHTML = I.patterns.map(p =>
+        `<article class="layer" style="cursor:default">
+          <div class="layer-idx" style="font-size:11px">${p.name.split(' ')[0]}</div>
+          <div class="layer-body">
+            <h3>${p.name}</h3>
+            <p>${p.detail}</p>
+            <p style="color:var(--amber)"><strong>同步影响：</strong>${p.syncImpact}</p>
+          </div>
+        </article>`
+      ).join("");
+    }
+    const latTable = document.getElementById("latency-table");
+    if (latTable) {
+      const thead = latTable.querySelector("thead");
+      const tbody = latTable.querySelector("tbody");
+      thead.innerHTML = "<tr><th>阶段</th><th>延迟</th></tr>";
+      tbody.innerHTML = I.latencyBudget.map(l =>
+        `<tr><td>${l.stage}</td><td>${l.ms}</td></tr>`
+      ).join("");
+    }
+  }
+
+  function renderArchDetail() {
+    const A = S.archDetail;
+    if (!A) return;
+    const lead = document.getElementById("arch-det-lead");
+    if (lead) lead.textContent = A.lead;
+    const modTable = document.getElementById("arch-modules");
+    if (modTable) {
+      const thead = modTable.querySelector("thead");
+      const tbody = modTable.querySelector("tbody");
+      thead.innerHTML = "<tr><th>模块</th><th>职责</th><th>线程</th><th>部署</th></tr>";
+      tbody.innerHTML = A.modules.map(m =>
+        `<tr><td><strong>${m.name}</strong></td><td>${m.role}</td><td>${m.thread}</td><td>${m.deploy}</td></tr>`
+      ).join("");
+    }
+    const thr = document.getElementById("arch-threading");
+    if (thr) {
+      const T = A.threading;
+      thr.innerHTML = `<h3 class="subhead">线程模型</h3><p class="sec-lead">${T.lead}</p>` +
+        `<div class="table-wrap"><table class="plain-table"><thead><tr><th>线程</th><th>优先级</th><th>职责</th><th>同步点</th></tr></thead><tbody>` +
+        T.threads.map(t => `<tr><td>${t.name}</td><td>${t.priority}</td><td>${t.duty}</td><td>${t.sync}</td></tr>`).join("") +
+        `</tbody></table></div>` +
+        `<ol class="ltc-steps">${T.notes.map((n,i) => `<li><span class="n">${i+1}</span>${n}</li>`).join("")}</ol>`;
+    }
+    const gpu = document.getElementById("arch-gpu");
+    if (gpu) {
+      const G = A.gpuApi;
+      gpu.innerHTML = `<h3 class="subhead">GPU API 选型</h3><p class="sec-lead">${G.lead}</p>` +
+        `<div class="table-wrap"><table class="plain-table"><thead><tr><th>API</th><th>优势</th><th>劣势</th><th>结论</th></tr></thead><tbody>` +
+        G.options.map(o => `<tr><td>${o.api}</td><td>${o.pros}</td><td>${o.cons}</td><td><strong>${o.verdict}</strong></td></tr>`).join("") +
+        `</tbody></table></div>`;
+    }
+    const sync = document.getElementById("arch-sync");
+    if (sync) {
+      const SY = A.syncImpl;
+      sync.innerHTML = `<h3 class="subhead">帧同步实现（硬件路径 / 软件近似）</h3><p class="sec-lead">${SY.lead}</p>` +
+        `<div class="problem-grid"><div class="panel"><h3>硬件：Quadro Sync + Swap Barrier</h3><ol>${SY.hwPath.map(s=>`<li>${s}</li>`).join("")}</ol></div>` +
+        `<div class="panel"><h3>软件近似（无 Sync 卡）</h3><ol>${SY.swApprox.map(s=>`<li>${s}</li>`).join("")}</ol></div></div>`;
+    }
+    const jump = document.getElementById("arch-jump");
+    if (jump) {
+      const J = A.jumpImpl;
+      jump.innerHTML = `<h3 class="subhead">跳转状态机</h3><p class="sec-lead">${J.lead}</p>` +
+        `<p class="callout">${J.states.join(" → ")}</p>` +
+        `<ol class="ltc-steps">${J.steps.map((s,i)=>`<li><span class="n">${i+1}</span>${s}</li>`).join("")}</ol>` +
+        `<p class="caption">${J.timeout}</p>`;
+    }
+    const proj = document.getElementById("arch-project");
+    if (proj) {
+      const P = A.projectFormat;
+      proj.innerHTML = `<h3 class="subhead">工程文件格式</h3><p class="sec-lead">${P.lead}</p>` +
+        `<ul>${P.schema.map(s=>`<li><code>${s}</code></li>`).join("")}</ul>` +
+        `<p class="caption">${P.versioning}</p>`;
+    }
+  }
+
+  function renderScalability() {
+    const SC = S.scalability;
+    if (!SC) return;
+    const root = document.getElementById("arch-scale");
+    if (!root) return;
+    root.innerHTML = `<p class="sec-lead">${SC.lead}</p>` +
+      `<div class="table-wrap"><table class="plain-table"><thead><tr><th>组件</th><th>上限</th><th>解法</th></tr></thead><tbody>` +
+      SC.limits.map(l => `<tr><td>${l.item}</td><td>${l.limit}</td><td>${l.workaround}</td></tr>`).join("") +
+      `</tbody></table></div>` +
+      `<p class="callout">${SC.futurePath}</p>`;
+  }
+
+  function renderCommission() {
+    const C = S.commissioning;
+    if (!C) return;
+    const lead = document.getElementById("comm-lead");
+    if (lead) lead.textContent = C.lead;
+    const steps = document.getElementById("comm-steps");
+    if (steps) {
+      steps.style.gridTemplateColumns = "repeat(4, 1fr)";
+      steps.innerHTML = C.steps.map((s, i) =>
+        `<article class="step" style="min-height:auto">
+          <div class="n">PHASE ${i + 1}</div>
+          <h3>${s.phase}</h3>
+          <ul style="margin:8px 0;padding-left:16px;font-size:12px;color:var(--muted)">${s.items.map(it=>`<li>${it}</li>`).join("")}</ul>
+          <p style="font-size:12px;color:var(--cyan);margin:0">验证：${s.verify}</p>
+        </article>`
+      ).join("");
+    }
+  }
+
   renderLayers();
   renderSteps();
   renderLineage();
@@ -1367,6 +1613,16 @@
   renderOss();
   renderPrinciples();
   renderSources();
+  renderAudioSync();
+  renderFrameRates();
+  renderNetwork();
+  renderPanel();
+  renderPipeline();
+  renderFailover();
+  renderInteractive();
+  renderArchDetail();
+  renderScalability();
+  renderCommission();
   applyFilters();
   applyUiArch();
   spyNav();

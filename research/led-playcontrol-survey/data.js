@@ -1866,5 +1866,261 @@ window.SURVEY = {
       t: "垂直整合是产品策略不是同步策略",
       d: "诺瓦、卡莱特、凯视达把播控接到自家发送卡，降低现场配屏成本。帧同步仍然要在 GPU 与处理器之间成立，发送卡协议替代不了 Quadro 菊花链。"
     }
-  ]
+  ],
+
+  // ===== 以下为新增章节数据 =====
+
+  archDetail: {
+    lead: "把上面的约束落到可以动手写代码的程度。第一版目标：2–4 台 DP/HDMI 输出的超分辨 LED 墙，NTP + Quadro Sync，不做 ST 2110。",
+    modules: [
+      { id: "director", name: "Director", role: "工程编辑、时间线播放控制、预监、素材管理、外部协议响应", thread: "主线程 UI + 后台工程同步", deploy: "1 台，可不接 LED 输出" },
+      { id: "display", name: "Display Node", role: "解码、几何映射、合成、present", thread: "渲染线程 + 解码线程 + 同步控制线程", deploy: "每台出画 GPU 一个实例" },
+      { id: "syncmgr", name: "Sync Manager", role: "管理帧计数、present barrier、跳转协商", thread: "专用高优先级线程，绑定 Sync 卡中断", deploy: "每机一个，与 Display 同进程" },
+      { id: "decoder", name: "Decoder", role: "H.264/H.265 硬解、HAP/NotchLC GPU 解、序列帧 IO", thread: "独立线程池，按视频轨分配", deploy: "Display Node 内部" },
+      { id: "mapper", name: "Geometry Mapper", role: "加载 glTF/OBJ → UV → 切片坐标 → 输出 viewport", thread: "渲染线程内，初始化时构建", deploy: "Display Node 内部" },
+      { id: "playback", name: "Playback Engine", role: "时间线状态机、Cue 跳转、预取调度", thread: "与 Director 通信的后台线程", deploy: "Director + Display 各一份" },
+      { id: "ctrlapi", name: "Control API", role: "OSC / UDP / Art-Net / HTTP 外部控制入口", thread: "IOCP / epoll 网络线程", deploy: "Director 进程" },
+      { id: "project", name: "Project Store", role: "工程文件读写、版本校验、素材清单", thread: "主线程或后台", deploy: "Director 进程" }
+    ],
+    threading: {
+      lead: "Display Node 是三线程模型。关键约束：渲染线程的 SwapBuffers / QueuePresent 必须在 Sync Manager 给出的 barrier 帧号上才放行。",
+      threads: [
+        { name: "Render Thread", priority: "TIME_CRITICAL", duty: "VBlank 等待 → 提交合成帧 → SwapBuffers", sync: "在 QueuePresent 前调 syncBarrier.wait(targetFrame)" },
+        { name: "Decode Thread(s)", priority: "HIGH", duty: "从磁盘/网络读 → 硬解/GPU 解 → 写入纹理池", sync: "解码完成后通知 Playback 该帧可用" },
+        { name: "Sync Control Thread", priority: "REAL_TIME (或 HIGH)", duty: "监听 Sync 卡帧计数中断、维护 barrier 表、协商跳转", sync: "广播当前帧号、收集各节点 ready 状态" }
+      ],
+      notes: [
+        "Windows 下用 QueryThreadCycleTime 做每帧耗时监控，超预算告警。",
+        "Linux 下用 SCHED_FIFO + mlockall 锁定同步线程。",
+        "解码线程与渲染线程通过无锁环形缓冲（frame queue）交换纹理指针，避免 mutex 抖动。"
+      ]
+    },
+    gpuApi: {
+      lead: "第一版选 DX11 flip model。理由：NVIDIA Sync 卡的 Quadro / RTX PRO Sync 驱动对 DX11 的 swap barrier 支持最成熟；disguise / WATCHOUT / PIXERA 当前主力仍是 DX11。",
+      options: [
+        { api: "DX11 (flip model)", pros: "成熟；IDXGIDevice::WaitIdle 可做 barrier；NVIDIA 驱动覆盖全", cons: "单线程提交瓶颈", verdict: "第一版" },
+        { api: "DX12 / Vulkan", pros: "多线程提交；显式内存控制", cons: "swap barrier 在 NVIDIA Sync SDK 里支持不如 DX11 直观；开发周期长", verdict: "第二版评估" },
+        { api: "OpenGL", pros: "跨平台", cons: "NVIDIA 已弱化专业 GL 驱动更新；present 控制粒度粗", verdict: "不推荐" }
+      ]
+    },
+    syncImpl: {
+      lead: "有 Quadro Sync II / RTX PRO Sync 时走硬件；没有时走软件近似（精度降级但可用）。",
+      hwPath: [
+        "通过 NVIDIA Sync API（nvsync.h）注册到 swap group。",
+        "Sync 卡产生帧计数中断；Sync Control Thread 读取当前帧号。",
+        "渲染线程在 QueuePresent 前等待：当前帧号 == targetFrame 才放行。",
+        "所有 GPU 在同一帧计数上完成 present → 屏端看到同一帧。"
+      ],
+      swApprox: [
+        "无 Sync 卡时用高精度多媒体定时器（timeBeginPeriod(1)）+ DwmGetCompositionTimingInfo 获取 VBlank 相位。",
+        "多机间通过 UDP 广播本机当前 VBlank 帧号 + 时间戳（PTP 软件对时，精度约 100 μs）。",
+        "Leader 发出「第 N 帧切」，各节点等到本地 VBlank 计数 == N 才 present。",
+        "精度：同机多 GPU 约 ±1 行；跨机约 ±半帧（取决于网络抖动）。适合展厅长卷，不适合巡演级 LED 墙。"
+      ]
+    },
+    jumpImpl: {
+      lead: "跳转是一个带截止时间的状态机。核心原则：没就绪不切。",
+      states: ["IDLE → RECEIVED → PREFETCHING → READY_WAIT → BARRIER_HOLD → COMMITTED / ABORTED"],
+      steps: [
+        "Director 发出 JumpTo(targetTime, effectiveFrame, prefetchDeadline)。effectiveFrame 通常 = 当前帧 + 预卷帧数。",
+        "各 Display Node 收到后进入 PREFETCHING：解码器退 IDR → 向前解到 targetTime → 纹理上传后台。",
+        "解完回报 READY。Sync Manager 收集所有节点状态。",
+        "到 effectiveFrame 的 VBlank 沿：全部 READY → 一起 QueuePresent 新画面。",
+        "有节点未 READY → 整组保持旧画面，effectiveFrame 往后推，直到全部就绪或超时 ABORTED。"
+      ],
+      timeout: "超时阈值建议 = 2× GOP 长度 + 200 ms。超时后告警但不黑屏，继续播旧画面。"
+    },
+    projectFormat: {
+      lead: "工程文件是可 diff 的 JSON + 二进制素材分离。不用专有二进制格式。",
+      schema: [
+        "project.json：时间线、Cue、图层、输出配置、同步组名单",
+        "screens/：glTF/OBJ 模型 + UV 贴图",
+        "media/：素材目录（按哈希命名，不依赖文件名）",
+        "sync.json：同步组配置（哪些 GPU 进哪个 swap group）",
+        "layout.json：切片清单（每个输出 viewport 对应屏体的哪个矩形/网格区域）"
+      ],
+      versioning: "project.json 带 schemaVersion 字段。升级时写 migration 脚本。"
+    }
+  },
+
+  failover: {
+    lead: "主备是选型第一影响因子。公开资料里至少有五种模型，恢复时间和工程一致性完全不同。",
+    models: [
+      {
+        id: "understudy",
+        name: "disguise Understudy",
+        topology: "Director + 1~N Understudy。Understudy 实时镜像 Director 的时间线状态和渲染参数。",
+        switch: "Director 故障时，Understudy 接管输出。手册写：切换期间可能丢 1–2 帧。",
+        consistency: "工程级同步——Understudy 持有完整工程副本。",
+        risk: "Understudy 不跑渲染时 GPU 温度低，冷启动到满帧有延迟；建议 Understudy 也进同步组。"
+      },
+      {
+        id: "multi-runner",
+        name: "WATCHOUT 多 Runner",
+        topology: "Director 广播播放状态；多个 Runner 各自渲染自己的切片。没有「镜像桌面」概念。",
+        switch: "Director 挂了，Runner 继续播当前节目。新指令无法下发。",
+        consistency: "Runner 本地有 show 缓存（load 时拉取），不需要实时连 Director。",
+        risk: "不是热备模型——Director 是控制面单点。巡演常配双 Director + 手动切。"
+      },
+      {
+        id: "leader-follower",
+        name: "7thSense Timing Group",
+        topology: "Leader 广播 playhead；Follower 跟帧。",
+        switch: "Leader 挂了全组停——这是架构取舍，不是缺陷。",
+        consistency: "Follower 本地有完整素材和时间线，缺的是时间参考。",
+        risk: "需要外接 LTC 或 GPS 做独立时间源才能避免 Leader 单点。"
+      },
+      {
+        id: "cn-hot-standby",
+        name: "国内主备实时同步（Kommander / HiRender）",
+        topology: "一主一备，主端异常时切备端输出。备端实时同步主端操作。",
+        switch: "宣称无缝切换。具体丢帧数未公开。",
+        consistency: "工程与素材需事先同步到备端。主端修改后同步窗口内可能不一致。",
+        risk: "切换机制是软件检测 + 网络心跳。心跳超时阈值、切换时是否等 Sync 卡帧号对齐，公开页未写。"
+      },
+      {
+        id: "ring-backup",
+        name: "拼接器环路备份（卡莱特 / 诺瓦）",
+        topology: "发送卡网口做环路：正常时 A 路输出，A 断时 B 路接上。",
+        switch: "处理器侧冗余，不是播控侧。切换在接收卡层面。",
+        consistency: "播控机不需要感知——处理器继续输出同一画面。",
+        risk: "只覆盖「一台发送卡或一段网线故障」。播控机本身挂了不在此范围。"
+      }
+    ],
+    comparison: [
+      { dimension: "恢复时间", understudy: "1–2 帧", multiRunner: "0（Runner 不停）", leaderFollower: "全停", cnHotStandby: "未公开，宣称无缝", ringBackup: "亚帧（接收卡层）" },
+      { dimension: "工程一致性", understudy: "完整镜像", multiRunner: "本地缓存", leaderFollower: "本地有素材缺时间源", cnHotStandby: "同步窗口内可能不一致", ringBackup: "不涉及" },
+      { dimension: "控制面单点", understudy: "Director 挂后 Understudy 接管", multiRunner: "Director 挂后无法下发新指令", leaderFollower: "Leader 挂后全停", cnHotStandby: "主端挂后切备端", ringBackup: "无控制面" },
+      { dimension: "是否进同步组", understudy: "建议进", multiRunner: "Runner 已在", leaderFollower: "Follower 已在", cnHotStandby: "备端是否进 Sync 组未公开", ringBackup: "不相关" }
+    ]
+  },
+
+  audioSync: {
+    lead: "音频在 LED 播控里通常不是主角，但它和帧锁的交互是现场高频问题。音频设备缓冲比视频长，切换时声画错位比画面撕更容易被观众察觉。",
+    issues: [
+      { t: "缓冲差异", d: "视频流水线 1–3 帧（16–50 ms @60fps）。USB / ASIO 声卡缓冲通常 5–20 ms 额外延迟。多机各自出声卡型号不同，差值可达 10 ms 以上。" },
+      { t: "LTC 与音频", d: "7thSense 手册写：音频要无缝接上，下一段得提前在下一个时钟周期 cue 好。音频预卷帧数通常大于视频（建议 100–200 帧）。" },
+      { t: "嵌音频的陷阱", d: "Pandoras Box 帮助页明确：视频文件必须用基本流（elementary stream）。嵌了音频会把视频同步拐到音频时钟上，导致画面跟 genlock 脱节。" },
+      { t: "Dante / AVB", d: "专业音频网络走 PTP（IEEE 1588）。如果 LED 播控机同时是 Dante 节点，PTP 域和 ST 2110 的 PTP 域可能冲突。第一版 DP/HDMI 方案不引入 Dante。" },
+      { t: "MADI / AES3", d: "巡演场景常用外置音频处理器做延迟补偿。播控只需保证输出帧与音频触发信号（GPI / LTC）对齐。" }
+    ],
+    recommendations: [
+      "播控软件内部维护独立的音频时钟，不要从视频 VBlank 派生。",
+      "跳转时音频先 mute 或走交叉淡入，等新画面稳定后再恢复。",
+      "多机音频输出走同一张声卡或数字链路（AES / MADI），避免各机模拟输出相位不同。",
+      "LTC 驱动时间线时，音频缓冲比视频深，预卷帧数取 max(视频预卷, 音频预卷)。"
+    ]
+  },
+
+  frameRates: {
+    lead: "源素材帧率、工程时间线帧率、GPU 输出帧率、Genlock 参考帧率、LED 处理器输入帧率、箱体刷新率——六层帧率必须对齐或有明确转换策略。",
+    commonRates: ["23.98", "24", "25", "29.97", "30", "50", "59.94", "60", "100", "120"],
+    constraints: [
+      { pair: "工程帧率 ↔ GPU 输出", rule: "必须相等。Quadro Sync 卡的帧计数按输出刷新率走。工程 25 fps 但输出设 60 Hz，每 3 帧里有一帧是重复的。" },
+      { pair: "GPU 输出 ↔ Genlock 参考", rule: "BNC 进来的 house-sync 频率必须等于输出刷新率（或整数倍）。MX40 Pro 支持 23.98–60 Hz；Brompton 支持 23.98–250 Hz。" },
+      { pair: "处理器输入 ↔ 箱体刷新", rule: "Tessera 手册：输入帧率与参考不一致会加倍或丢帧。箱体刷新率 = 输入帧率 × 扫描深度整数倍。" },
+      { pair: "源素材 ↔ 工程", rule: "29.97 源在 25 fps 工程里需要去隔行 + 帧率转换。转换策略（drop/duplicate/blend）必须在工程设置里声明。" }
+    ],
+    dropFrame: "59.94 / 29.97 是 drop-frame 时间码：每分钟丢掉特定帧号使墙钟对齐。LTC 解码时必须知道 DF/NDF 模式，否则长节目会漂约 3.6 秒/小时。",
+    pulldown: "24 → 29.97 用 3:2 pulldown。24 → 60 用 2:2:2:2:2（每帧重复一次）。LED 播控一般不做实时 pulldown——转码阶段处理，播出时帧率一致。"
+  },
+
+  networkPlan: {
+    lead: "没有带宽数字，BOM 做不出来。下面按典型配置给出量级。",
+    bandwidths: [
+      { item: "16K@60 无损序列帧（DPX 12bit）", bw: "单帧 ≈ 16384×9216×4.5 bytes ≈ 680 MB；60 fps ≈ 40.8 GB/s", note: "走本地 NVMe RAID 0（PCIe 4.0 x4 单盘约 7 GB/s，需 6 盘以上）。不走网络。" },
+      { item: "16K@60 HAP", bw: "码率约 1.5–3 Gb/s", note: "单机本地播放。多机分发走节目网。" },
+      { item: "8K@60 ProRes 422 HQ", bw: "码率约 3.3 Gb/s", note: "本地 SSD 即可。" },
+      { item: "工程文件同步（Director → Display）", bw: "典型 5–50 MB", note: "load 时一次性拉取，不是持续流。走控制网。" },
+      { item: "Art-Net / sACN", bw: "每 universe 约 44 bytes × 44 fps ≈ 8 KB/s", note: "流量极小，但需要低延迟。走控制网 VLAN。" },
+      { item: "NDI HX3 4K", bw: "约 125–250 Mb/s", note: "走节目网或专用采集网。" },
+      { item: "Quadro Sync CAT5 菊花链", bw: "不走 IP，不占带宽", note: "物理隔离，绝不进交换机。" },
+      { item: "ST 2110（第一版不做）", bw: "单路 2160p59.94 10bit 4:4:4 ≈ 12 Gb/s", note: "需要 25GbE 或 100GbE 专用视频网。" }
+    ],
+    vlanPlan: [
+      { vlan: "VLAN 10 – 控制网", use: "Director ↔ Display 心跳、OSC/UDP、Art-Net、Pad 中控", note: "1 GbE 即可" },
+      { vlan: "VLAN 20 – 节目网", use: "素材分发、NDI 采集、工程同步", note: "10 GbE 推荐" },
+      { vlan: "VLAN 30 – 音频（如用 Dante）", use: "PTP + 音频流", note: "第一版可不做" },
+      { physical: "Sync 卡 RJ45", use: "NVIDIA Frame Lock 菊花链", note: "物理隔离，不接任何交换机" },
+      { physical: "BNC", use: "House-sync 发生器 → Sync 卡 / 处理器", note: "75Ω 同轴，不进网络" }
+    ]
+  },
+
+  contentPipeline: {
+    lead: "从源素材到播出格式，是转码阶段的工序，不是现场同步手段。自研软件必须定义输入格式和存储架构。",
+    steps: [
+      { step: "1 源素材入库", detail: "支持格式：ProRes 422/4444、H.264/H.265、DNxHR、EXR/DPX 序列、PNG 序列、TIFF 序列。入库时自动探测帧率、色彩空间、GOP 结构。" },
+      { step: "2 转码决策", detail: "需要随机跳转 → 转 HAP / NotchLC / 序列帧。只需连续播 → 保留 H.265 硬解。超 8K → 拆成多路 4K 或走序列帧。" },
+      { step: "3 分辨率对齐", detail: "输出分辨率 = 屏体点对点。转码时按切片清单预裁切（每个 Display Node 一份），或运行时 GPU viewport 裁切。前者省 GPU 带宽，后者灵活。" },
+      { step: "4 色彩空间", detail: "LED 处理器通常接收 RGB 4:4:4。HDR 内容（BT.2020 PQ/HLG）需要处理器支持 12bit 输入。第一版按 BT.709 8bit 做。" },
+      { step: "5 存储部署", detail: "每台 Display Node 本地 NVMe 存素材副本。工程同步走控制网。不用 NAS 做实时播放源（网络抖动 = 掉帧）。" },
+      { step: "6 校验与回滚", detail: "转码后逐帧 CRC 校验。保留原始素材 30 天。工程文件每次保存写双份（主 + .bak）。" }
+    ],
+    storageSizing: [
+      { config: "8K@60 HAP 10 分钟", size: "约 150 GB" },
+      { config: "16K@60 序列帧（DPX 12bit）10 分钟", size: "约 24 TB" },
+      { config: "16K@60 HAP 10 分钟", size: "约 300 GB" },
+      { config: "4K@25 ProRes 422 HQ 1 小时", size: "约 110 GB" }
+    ]
+  },
+
+  ledPanel: {
+    lead: "LED 箱体不是显示器终端。它的刷新方式、扫描深度、余辉特性直接影响同步策略和摄像机拍摄效果。",
+    characteristics: [
+      { t: "刷新率 vs 输入帧率", d: "箱体刷新率（3840 / 7680 Hz）是灯珠 PWM 扫描频率。输入帧率（60 Hz）是每帧完整数据到达率。两者是整数倍关系。Tessera 手册：输入帧率 ≠ 参考时加倍或丢帧。" },
+      { t: "扫描方式", d: "1/4、1/8、1/16 扫：一帧数据分多行轮流点亮。摄像机 rolling shutter 会拍到扫描黑条。1/1 扫（高刷箱体）无此问题但成本高。" },
+      { t: "余辉（Persistence）", d: "LED 是采样保持型（整帧亮到下一帧替换）。与 CRT 脉冲型不同，运动物体在摄像机里有拖影。缓解：黑帧插入（降低亮度）或提高输入帧率到 120 Hz。" },
+      { t: "处理器延迟", d: "Brompton / MX40 从输入到灯珠输出有 1–3 帧处理延迟。多处理器级联时延迟叠加。Brompton 手册要求匹配端到端延迟。" },
+      { t: "低延迟模式与 Genlock 互斥", d: "MX40 Pro 手册明确：开低延迟模式不能同时开 Genlock。巡演需要低延迟时，帧同步靠 NVIDIA Sync 卡，处理器按内部钟。" }
+    ],
+    cameraInteraction: [
+      "摄像机快门角度 180° + LED 输入帧率 60 Hz → 无闪烁。",
+      "25 fps 电影快门 + 60 Hz LED → 可能出现拍频条纹。Tessera Phase Offset 可调。",
+      "XR 虚拟制片：摄像机帧率 = LED 输入帧率 = Genlock 参考帧率 = 三件事锁在一起。"
+    ]
+  },
+
+  interactiveContent: {
+    lead: "实时生成内容和互动触发越来越多。它们接入播控链路的方式影响延迟预算和同步策略。",
+    patterns: [
+      { name: "Spout / Syphon 注入", detail: "Notch / TouchDesigner / Unreal 把画面通过 GPU 纹理共享灌进播控。零拷贝但同机限。延迟 < 1 帧。", syncImpact: "注入的画面和播控自己的画面在同一 GPU 上合成，present 仍走同一 barrier。" },
+      { name: "NDI 采集", detail: "外部摄像机或另一台机器的画面通过 NDI 进入播控。延迟约 1–3 帧（编码 + 网络 + 解码）。", syncImpact: "NDI 流本身不带帧锁信息。播控收到后按当前 VBlank 采样，可能比本机内容晚 1–2 帧。" },
+      { name: "ST 2110 输入（第一版不做）", detail: "广播级 IP 视频。PTP 对时后延迟确定（通常 1 帧内）。", syncImpact: "需要 L4 PTP 域。与 DP 输出的 L3 genlock 是两套。" },
+      { name: "传感器触发", detail: "手势（MediaPipe / Kinect）、雷达、DMX 信号触发场景切换。", syncImpact: "从传感器事件到 JumpTo 指令下发，延迟取决于轮询间隔。建议事件驱动（中断 / WebSocket）而非轮询。" },
+      { name: "实时渲染引擎", detail: "Unreal / Notch 作为背景层，LED 播控作为前景叠加。", syncImpact: "引擎的渲染帧率必须与播控输出帧率一致，否则合成时出现 judder。nDisplay 方案里引擎和播控是同一个进程。" }
+    ],
+    latencyBudget: [
+      { stage: "摄像机跟踪 → 引擎收到", ms: "5–15 ms" },
+      { stage: "引擎渲染 → 纹理就绪", ms: "8–16 ms（一帧）" },
+      { stage: "合成 → GPU present", ms: "0–16 ms（等 VBlank）" },
+      { stage: "处理器 → 箱体点亮", ms: "16–33 ms（1–2 帧）" },
+      { stage: "总计（摄像机到屏幕）", ms: "45–80 ms" }
+    ]
+  },
+
+  commissioning: {
+    lead: "从开箱到演出就绪的正向检查清单。每一步有可观测信号。",
+    steps: [
+      { phase: "1 硬件上架", items: ["GPU 型号/数量与工程配置一致", "Sync 卡排线接好（每 GPU 一根到 SYNC 口）", "BNC house-sync 发生器到各机 + 处理器", "CAT5 菊花链不走交换机", "DP/HDMI 口编号与切片清单对应"], verify: "NVIDIA 控制面板 → 查看 Sync 卡状态灯" },
+      { phase: "2 系统配置", items: ["各机分辨率/刷新率一致", "EDID 统一（用处理器 EDID 写入或锁 EDID 器）", "Windows GPU 驱动版本一致", "电源计划设为高性能，关闭 USB 选择性暂停"], verify: "dxdiag / nvidia-smi 确认" },
+      { phase: "3 同步组建", items: ["打开 Mosaic 或手动多屏", "创建 Hardware Sync Group / Framelock Group", "确认 timing server 角色", "输出测试图（黑白格 + 帧号）"], verify: "相邻箱体接缝无错位" },
+      { phase: "4 工程导入", items: ["导入屏体模型/UV", "配置切片清单", "素材路径校验", "时间线/预案配置"], verify: "预监画面与输出一致" },
+      { phase: "5 跳转测试", items: ["每个 Cue 手动跳一次", "观察有无黑帧或旧帧残留", "记录跳转延迟（从指令到画面变化）"], verify: "高速摄像机 240fps 拍接缝，确认同帧切" },
+      { phase: "6 外部控制", items: ["中控 UDP / OSC 连通性", "LTC 锁定测试（拔线、毛刺）", "Art-Net universe 映射"], verify: "从控台触发全部 Cue" },
+      { phase: "7 主备切换", items: ["模拟主端断电", "观察备端接管时间和丢帧数", "恢复后回切"], verify: "观众位看不到黑屏" },
+      { phase: "8 长时间烤机", items: ["连续 72 小时循环播放", "监控 GPU 温度、显存、磁盘 IO", "检查 Sync 卡帧计数有无溢出复位"], verify: "无丢帧、无撕缝、无内存泄漏" }
+    ]
+  },
+
+  scalability: {
+    lead: "第一版 2–4 台。写排期时要有意识：哪些设计在 8 台以上会遇到瓶颈。",
+    limits: [
+      { item: "Quadro Sync II", limit: "4 GPU/卡，2 卡/机 = 8 GPU/机", workaround: "超过 8 GPU 需要多机 + Frame Lock 菊花链。菊花链长度 NVIDIA 未写硬上限，但建议 ≤ 8 节点。" },
+      { item: "CAT5 菊花链", limit: "物理走线距离短（< 5 m 推荐）", workaround: "大型场馆用 Timing Server 分两路链。不能用交换机扩展。" },
+      { item: "24-bit 帧计数", limit: "@60fps 约 3 天溢出", workaround: "WATCHOUT 文档写：溢出时软件复位，有约 4 帧毛刺。长时间展览需规划复位窗口。" },
+      { item: "工程同步", limit: "节点越多，load 时间越长", workaround: "素材预分发 + 增量同步。第一版 4 台内不是问题。" },
+      { item: "present barrier", limit: "协商轮次随节点数线性增长", workaround: "用组播代替逐台单播。8 台以上时评估。" }
+    ],
+    futurePath: "当集群超过 8 台或需要广播级 IP 输出时，L4（ST 2110 + PTP）变成必选项。第一版架构里把 Sync Manager 做成可插拔后端（hw-sync / sw-sync / future-ptp-sync），不写死。"
+  }
 };

@@ -1159,3 +1159,35 @@ footer {
   body { background: #fff; color: #111; }
   .panel, .card, .layer, .patent { break-inside: avoid; }
 }
+
+/* 新增章节样式 */
+#commission .steps {
+  grid-template-columns: repeat(4, 1fr);
+}
+#fail-models .layer,
+#inter-patterns .layer {
+  cursor: default;
+}
+#fail-models .layer:hover {
+  border-color: var(--line);
+  background: var(--bg-2);
+}
+#inter-patterns .layer:hover {
+  border-color: var(--line);
+  background: var(--bg-2);
+}
+#audio-issues .tear,
+#panel-chars .tear {
+  cursor: default;
+}
+#audio-issues .tear:hover,
+#panel-chars .tear:hover {
+  border-color: var(--line);
+  background: var(--elev);
+}
+.plain-table td {
+  line-height: 1.5;
+}
+@media (max-width: 1080px) {
+  #commission .steps { grid-template-columns: 1fr 1fr; }
+}

@@ -34,15 +34,19 @@ LTC 单独写了接收侧：坏帧要校验、飞轮、迟滞锁定，不能直�
 - **到达即执行**：中控包只有目标时间、Cue 或场景号。诺瓦 Kompass FX3 的方法 389 / 390 / 10005 是这种外形。它描述中控对一台软件说什么，不是多机在哪一帧一起切。
 - **播放头跟随**：指令只打到 Leader / Director，从机跟「现在播这一帧」。7thSense、WATCHOUT 7、PIXERA、Pandoras Box 走这条。没有 genlock 时，7thSense 仍可能差约 1 帧。
 - **延迟生效**：命令现在收下，过若干帧或等预载完成再换画面。disguise 从 r30.4 起默认延迟 2 帧，用来跨机对齐并让 prefetcher 先读跳转点。PIXERA 26.3 的 TC Jump Preload Delay 是指针先跳、画面晚切。
-- **两阶段 Take**：先装载、等就绪，再短指令一起开播。WATCHOUT 是 `load` → `wait` → `run`。国内预监 / KV 跳场景是同一种交互；Take 有没有量化到同步卡帧号，公开页没写。
+- **两阶段 Take**：先装载、等就绪，再短指令一起开播。WATCHOUT 是 load -> wait -> run。国内预监 / KV 跳场景是同一种交互；Take 有没有量化到同步卡帧号，公开页没写。
 
-解码约束写在同一章：帧号对齐不等于显存里已经有那一帧。长 GOP 的 H.264/H.265 要先退回 IDR 再向前解；7thSense 纯视频预卷至少 5 帧，编码或音频建议 100–200 帧。disguise 的 2 帧只够对齐命令并开始预取，盖不住一个 2 秒的 GOP。序列帧和帧内编码（ProRes、HAP、NotchLC）可以在切点直接取那一帧。有节点没把目标帧解出来，这一拍不应先切。
+解码约束写在同一章：帧号对齐不等于显存里已经有那一帧。长 GOP 的 H.264/H.265 要先退回 IDR 再向前解；7thSense 纯视频预卷至少 5 帧，编码或音频建议 100-200 帧。disguise 的 2 帧只够对齐命令并开始预取，盖不住一个 2 秒的 GOP。序列帧和帧内编码（ProRes、HAP、NotchLC）可以在切点直接取那一帧。有节点没把目标帧解出来，这一拍不应先切。
 
 HiRender、hecoos、KFS、GrandShow Sync 的集群跳转报文没有公开文本，页面保持空项。
 
+### 音频同步与帧率适配
+
+音频缓冲比视频长，切换时声画错位比画面撕更容易被察觉。多机音频设备差异、嵌音频把 Pandoras Box 同步拐走、Dante PTP 域冲突等常见问题单独成章。帧率对齐约束列出工程帧率、GPU 输出、Genlock 参考、处理器输入、箱体刷新、源素材六层之间的关系。
+
 ### 异形屏的像素从哪来
 
-切片流水线是：网格 → UV → 观察点 → 切片 → 锁帧。2D 多边形留给矩形和折面；球、环、自由曲面以三维模型为源。
+切片流水线是：网格 -> UV -> 观察点 -> 切片 -> 锁帧。2D 多边形留给矩形和折面；球、环、自由曲面以三维模型为源。
 
 「3D」在公开资料里被拆开，避免混成一个开关：
 
@@ -54,13 +58,18 @@ HiRender、hecoos、KFS、GrandShow Sync 的集群跳转报文没有公开文本
 
 三条输出都在切片之后，帧号和扫出相位仍走上面的第 2、3 层。
 
-### 现场链路、界面和对照表
+### 现场链路、网络与内容准备
 
+- **播出全链路**：素材 -> 播控 -> GPU -> LED 处理器 -> 接收卡 -> 箱体。处理器没进同一 house-sync 时，服务器锁了屏端仍撕。
+- **网络拓扑与带宽**：16K@60 序列帧约 40.8 GB/s、HAP 约 1.5-3 Gb/s、VLAN 隔离方案、Sync 卡 CAT5 物理隔离。
+- **LED 面板特性**：刷新率 vs 输入帧率、扫描方式、余辉、处理器延迟与 Genlock 互斥、摄像机交互。
+- **内容准备管线**：入库 -> 转码决策 -> 分辨率对齐 -> 色彩空间 -> 存储部署 -> 校验回滚。存储量级估算。
 - **主界面**：窗口/预案、时间线、3D 舞台三种骨架，配有可离线看的手册截图或布局示意。
-- **播出全链路**：素材 → 播控 → GPU → LED 处理器 → 接收卡 → 箱体。处理器没进同一 house-sync 时，服务器锁了屏端仍撕。
 - **机柜与编码**：GPU、Sync 卡、输出口、H.264/H.265、ProRes、序列帧。核不到的格子留空。
 - **撕缝清单**：NTP 不等于扫出、Mosaic/EDID、主备切错对象、Leader 丢失、LTC 毛刺、跳转已到但目标帧还没换上。
+- **主备与容灾**：五种热备模型对比（disguise Understudy、WATCHOUT 多 Runner、7thSense Leader-Follower、国内主备、环路备份）。按恢复时间、工程一致性、控制面单点、是否进同步组四维度对照。
 - **场景与外部控制**：展厅、巡演、XR、球幕、楼宇。热图覆盖 Art-Net、OSC、MIDI、LTC、NDI、Spout、中控 UDP。
+- **实时交互内容接入**：Spout/Syphon、NDI、ST 2110、传感器触发、实时渲染引擎五种模式及其同步影响。XR 延迟预算 45-80 ms。
 - **厂商卡与热图**：点同步层或一条故障，可以滤到对应产品。
 - **专利与开源**：同步和几何分开列。开源里可借鉴的是集群 present 屏障和 UV 工具；WebSocket 软同步标明精度不够，不能当 LED 墙的对时方案。
 
@@ -79,9 +88,25 @@ HiRender、hecoos、KFS、GrandShow Sync 的集群跳转报文没有公开文本
 - 播放时钟默认 NTP / 内部时码。超分辨拼接叠加 NVIDIA Sync：Framelock 菊花链、可选外置 genlock、present barrier。
 - 跳转对外可以是「跳到时间 / 跳到 Cue」。集群内部是目标、生效帧、预取截止。未齐备则不切。
 - 异形/球形走 glTF/FBX + UV；矩形和折面保留 2D 切片。
-- Director 默认不出画。出画才进硬件同步组。Backup 同步的是操作和工程。
+- Director 默认不出画。出画才进入硬件同步组。Backup 同步的是操作和工程。
 - 第一版不做 ST 2110 / PTP。发送卡连接关系可以读，同步栈不绑死一家。
+
+### 架构细化
+
+把约束落到可以动手写代码的程度：
+
+- **模块划分**：Director / Display Node / Sync Manager / Decoder / Geometry Mapper / Playback Engine / Control API / Project Store
+- **线程模型**：三线程（Render TIME_CRITICAL / Decode HIGH / Sync REAL_TIME），无锁环形缓冲交换纹理
+- **GPU API**：第一版 DX11 flip model，第二版评估 DX12/Vulkan
+- **帧同步实现**：硬件路径（NVIDIA Sync API + swap barrier）与软件近似（VBlank 相位 + UDP 帧号广播）
+- **跳转状态机**：IDLE -> RECEIVED -> PREFETCHING -> READY_WAIT -> BARRIER_HOLD -> COMMITTED/ABORTED
+- **工程文件格式**：JSON + glTF + 素材哈希命名，可 diff、可版本迁移
+- **可扩展性**：Sync II 8 GPU 上限、24-bit 帧计数 3 天溢出、菊花链长度限制
+
+### Commissioning 检查清单
+
+从开箱到演出就绪的 8 阶段正向清单：硬件上架 -> 系统配置 -> 同步组建 -> 工程导入 -> 跳转测试 -> 外部控制 -> 主备切换 -> 长时间烤机。每步有可观测信号。
 
 ## 下一步
 
-按上面的约束实现 LEDPlayControl。播控软件、集群协议和工程文件格式都还没写。
+按上面的约束和架构细化实现 LEDPlayControl。播控软件、集群协议和工程文件格式都还没写。
