@@ -46,6 +46,7 @@
       btn.classList.add("active");
       btn.setAttribute("aria-pressed", "true");
     }
+    if (typeof syncLabSet === "function") syncLabSet(id, activeLayer === id);
     applyFilters();
   }
 
@@ -1801,4 +1802,411 @@
   applyFilters();
   applyUiArch();
   spyNav();
+  initEnhancements();
 })();
+
+  /* ============================================================
+     视觉增强与新交互组件（UI / 可视化 / 配图 / 小动画）
+     ============================================================ */
+  function initEnhancements() {
+    initProgressBar();
+    initHeroWall();
+    initNavMeta();
+    initSyncLab();
+    initBwCalc();
+    initPixelBudget();
+    initSphereFigure();
+    initSeamGallery();
+    initReveal();
+  }
+
+  /* 顶部阅读进度条 + 回到顶部 + 滚动提示 */
+  function initProgressBar() {
+    const bar = document.getElementById("page-progress");
+    const top = document.getElementById("to-top");
+    const cue = document.getElementById("scroll-cue");
+    function onScroll() {
+      const h = document.documentElement;
+      const max = h.scrollHeight - h.clientHeight;
+      const p = max > 0 ? h.scrollTop / max : 0;
+      if (bar) bar.querySelector("i").style.setProperty("--p", p.toFixed(4));
+      if (top) top.hidden = h.scrollTop < 600;
+      if (cue) cue.style.opacity = h.scrollTop > 60 ? "0" : "";
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    if (top) top.addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+  }
+
+  /* Hero 动态 LED 墙 */
+  function initHeroWall() {
+    const wall = document.getElementById("hero-wall");
+    if (!wall) return;
+    const cols = 36, rows = 12, total = cols * rows;
+    let html = "";
+    for (let i = 0; i < total; i++) {
+      const d = (Math.random() * 4).toFixed(2);
+      const dur = (2.6 + Math.random() * 3).toFixed(2);
+      html += '<i style="--d:' + d + 's;--dur:' + dur + 's"></i>';
+    }
+    wall.style.setProperty("--cols", cols);
+    wall.innerHTML = html;
+  }
+
+  /* 导航阅读刻度 */
+  function initNavMeta() {
+    const nav = document.querySelector(".nav");
+    if (!nav) return;
+    const meta = document.createElement("div");
+    meta.className = "nav-meta";
+    meta.innerHTML = '<span class="nav-meta-bar"><i></i></span>' +
+      '<span class="nav-meta-pct">0%</span><span class="nav-meta-sec">问题定义</span>';
+    const legend = nav.querySelector(".legend");
+    nav.insertBefore(meta, legend);
+    const pct = meta.querySelector(".nav-meta-pct");
+    const sec = meta.querySelector(".nav-meta-sec");
+    const fill = meta.querySelector(".nav-meta-bar i");
+    function onScroll() {
+      const h = document.documentElement;
+      const p = h.scrollHeight - h.clientHeight > 0 ? h.scrollTop / (h.scrollHeight - h.clientHeight) : 0;
+      pct.textContent = Math.round(p * 100) + "%";
+      fill.style.width = (p * 100) + "%";
+      let cur = null;
+      nav.querySelectorAll(".watch").forEach((a) => {
+        const el = document.getElementById(a.getAttribute("href").slice(1));
+        if (el && el.getBoundingClientRect().top <= 120) cur = a;
+      });
+      sec.textContent = cur ? cur.querySelector("span:last-child").textContent : "问题定义";
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+  }
+
+  /* 统计数字滚动 + 滚动入场 */
+  function countUp(el) {
+    const target = +el.dataset.count;
+    const dur = 1200, t0 = performance.now();
+    function step(now) {
+      const k = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      el.textContent = Math.round(target * e);
+      if (k < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+  function initReveal() {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    document.querySelectorAll(".stat .n[data-count]").forEach((el, i) => {
+      if (reduce) { el.textContent = el.dataset.count; return; }
+      setTimeout(() => countUp(el), 350 + i * 120);
+    });
+    if (reduce) return;
+    document.documentElement.classList.add("js-reveal");
+    const targets = document.querySelectorAll([
+      "section > .sec-head", "section > .sec-lead", "section > .subhead",
+      "section > .caption", "section > p", ".table-wrap",
+      ".steps", ".wire-proto", ".filters", ".enh-block"
+    ].join(","));
+    targets.forEach((t) => t.classList.add("reveal"));
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+    targets.forEach((t) => io.observe(t));
+  }
+
+  /* §02 四层自检台 */
+  function syncLabSet(layer, on) {
+    const lab = document.getElementById("sync-lab");
+    if (!lab) return;
+    const map = { wallClock: "l1", frameId: "l2", phaseLock: "l3", clockSync: "l4" };
+    const k = map[layer];
+    if (!k) return;
+    lab.classList.toggle("on-" + k, on);
+    const btn = lab.querySelector('.sl-sw[data-layer="' + layer + '"]');
+    if (btn) btn.classList.toggle("is-on", on);
+    renderSyncLab();
+  }
+  function renderSyncLab() {
+    const lab = document.getElementById("sync-lab");
+    if (!lab) return;
+    const s = {
+      l1: lab.classList.contains("on-l1"),
+      l2: lab.classList.contains("on-l2"),
+      l3: lab.classList.contains("on-l3"),
+      l4: lab.classList.contains("on-l4")
+    };
+    let msg;
+    if (!s.l1) msg = "L1 关：两台机器的节目进度已经不同，先错的是内容。上层再整齐也救不回。";
+    else if (!s.l2) msg = "L1 在、L2 关：节目进度一致，但接缝两侧帧号差一帧 → 整帧错位。";
+    else if (!s.l3) msg = "帧号一致，但两台机器扫描相位差一个亚帧。LED 处理器已 genlock，接缝只剩一条细缝。";
+    else msg = "L1 + L2 + L3 齐：帧号与扫出相位都对齐，整面墙同一拍，无撕缝。";
+    if (s.l4) msg += " L4 只在 IP 输出（ST 2110 / PTP）时才需要；DP/HDMI 点对点第一版用不到。";
+    const out = document.getElementById("sl-status");
+    if (out) out.textContent = msg;
+  }
+  function initSyncLab() {
+    const host = document.querySelector("#stack .explain");
+    if (!host) return;
+    const defs = '<defs><clipPath id="labCap"><rect x="0" y="0" width="154" height="120" rx="4"/></clipPath>' +
+      '<pattern id="labPat" width="38" height="120" patternUnits="userSpaceOnUse">' +
+      '<rect width="38" height="120" fill="#0c1a22"/><rect x="0" width="14" height="120" fill="#11323c"/>' +
+      '<rect x="20" width="9" height="120" fill="#1b4a57"/></pattern></defs>';
+    const nodeA = '<g class="sl-node-a" transform="translate(24,64)">' +
+      '<rect class="sl-cab" width="154" height="120" rx="6"/>' +
+      '<g clip-path="url(#labCap)"><g class="lab-stripes"><rect width="308" height="120" fill="url(#labPat)"/></g></g>' +
+      '<line class="sl-scan" x1="0" y1="0" x2="154" y2="0"/>' +
+      '<text class="sl-chip" x="8" y="16">#1042</text></g>';
+    const nodeB = '<g class="sl-node-b" transform="translate(372,64)">' +
+      '<rect class="sl-cab" width="154" height="120" rx="6"/>' +
+      '<g clip-path="url(#labCap)"><g class="lab-stripes"><rect width="308" height="120" fill="url(#labPat)"/></g></g>' +
+      '<line class="sl-scan" x1="0" y1="0" x2="154" y2="0"/>' +
+      '<text class="sl-chip sl-fr-on" x="8" y="16">#1042</text>' +
+      '<text class="sl-chip sl-fr-off" x="8" y="16">#1043</text></g>';
+    const seams =
+      '<g class="sl-seam sl-seam-1"><rect x="332" y="64" width="40" height="120" fill="rgba(227,107,92,0.22)"/>' +
+      '<path d="M352 84 L344 96 L360 96 Z" fill="#e36b5c"/><path d="M352 116 L344 104 L360 104 Z" fill="#e36b5c"/>' +
+      '<text class="sl-seam-label" x="352" y="202" fill="#e36b5c" text-anchor="middle">节目进度不同</text></g>' +
+      '<g class="sl-seam sl-seam-2"><rect x="346" y="64" width="12" height="120" fill="#e36b5c" opacity="0.5"/>' +
+      '<text class="sl-seam-label" x="352" y="202" fill="#e36b5c" text-anchor="middle">整帧错位</text></g>' +
+      '<g class="sl-seam sl-seam-3"><line x1="352" y1="64" x2="352" y2="184" stroke="#e2a73a" stroke-width="2" stroke-dasharray="3 3"/>' +
+      '<text class="sl-seam-label" x="352" y="202" fill="#e2a73a" text-anchor="middle">亚帧相位缝</text></g>' +
+      '<g class="sl-seam sl-seam-4"><rect x="346" y="64" width="12" height="120" fill="#3ad7c4" opacity="0.28"/>' +
+      '<text class="sl-seam-label" x="352" y="202" fill="#3ad7c4" text-anchor="middle">同一拍 ✓</text></g>';
+    const l4 = '<g class="sl-l4"><line x1="190" y1="40" x2="332" y2="40" stroke="#7fe6d8" stroke-width="1.5" stroke-dasharray="4 4"/>' +
+      '<circle cx="190" cy="40" r="3" fill="#3ad7c4"><animate attributeName="cx" from="190" to="332" dur="1.4s" repeatCount="indefinite"/></circle>' +
+      '<line x1="372" y1="40" x2="560" y2="40" stroke="#7fe6d8" stroke-width="1.5" stroke-dasharray="4 4"/>' +
+      '<circle cx="372" cy="40" r="3" fill="#3ad7c4"><animate attributeName="cx" from="372" to="560" dur="1.4s" repeatCount="indefinite"/></circle>' +
+      '<text class="sl-seam-label" x="376" y="34" fill="#7fe6d8">PTP / ST 2110</text></g>';
+    const fig = document.createElement("figure");
+    fig.className = "enh-block synclab on-l1 on-l2 on-l3";
+    fig.id = "sync-lab";
+    fig.innerHTML =
+      '<div class="enh-head"><span class="enh-tag">交互</span><h3 class="enh-title">四层自检台</h3></div>' +
+      '<p class="enh-cap">逐层打开 / 关闭下面的开关，看接缝如何变化。点 §02 中的「层卡」也会联动这里的开关。</p>' +
+      '<div class="sl-switches" role="group" aria-label="同步层开关">' +
+      '<button type="button" class="sl-sw is-on" data-layer="wallClock"><b>L1</b> 时间对齐</button>' +
+      '<button type="button" class="sl-sw is-on" data-layer="frameId"><b>L2</b> 帧身份</button>' +
+      '<button type="button" class="sl-sw is-on" data-layer="phaseLock"><b>L3</b> 扫出相位</button>' +
+      '<button type="button" class="sl-sw" data-layer="clockSync"><b>L4</b> 传输时钟</button>' +
+      '</div>' +
+      '<div class="sl-stage"><svg viewBox="0 0 720 300" role="img" aria-label="两节点 LED 墙接缝自检示意图">' +
+      defs + nodeA + nodeB + seams + l4 +
+      '<text class="sl-chip" x="24" y="52" fill="#8c9aab">节点 A</text>' +
+      '<text class="sl-chip" x="372" y="52" fill="#8c9aab">节点 B</text>' +
+      '</svg></div>' +
+      '<p class="sl-status" id="sl-status"></p>';
+    host.insertAdjacentElement("afterend", fig);
+    fig.querySelectorAll(".sl-sw").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const L = btn.dataset.layer;
+        const map = { wallClock: "l1", frameId: "l2", phaseLock: "l3", clockSync: "l4" };
+        const k = map[L];
+        const on = !fig.classList.contains("on-" + k);
+        fig.classList.toggle("on-" + k, on);
+        btn.classList.toggle("is-on", on);
+        renderSyncLab();
+      });
+    });
+    renderSyncLab();
+  }
+
+  /* §09 未压缩带宽计算器 */
+  function initBwCalc() {
+    const host = document.querySelector("#network .explain");
+    if (!host) return;
+    const reses = [
+      { l: "1080p", w: 1920, h: 1080 },
+      { l: "4K", w: 3840, h: 2160 },
+      { l: "8K", w: 7680, h: 4320 },
+      { l: "16K (15360×8640)", w: 15360, h: 8640 },
+      { l: "16K (16384×9216)", w: 16384, h: 9216 }
+    ];
+    const bits = [8, 10, 12];
+    const chromas = [{ l: "4:4:4", k: "444" }, { l: "4:2:2", k: "422" }, { l: "4:2:0", k: "420" }];
+    const fpss = [24, 25, 30, 50, 60, 120];
+    const refs = [
+      { n: "10 GbE", g: 10 }, { n: "12G-SDI", g: 11.88 }, { n: "25 GbE", g: 25 },
+      { n: "DisplayPort 1.4 (HBR3)", g: 25.92 }, { n: "HDMI 2.1 (FRL)", g: 48 },
+      { n: "NVMe Gen4 ×4", g: 56 }, { n: "100 GbE", g: 100 }, { n: "PCIe 4.0 ×16", g: 256 }
+    ];
+    const bppMap = {
+      "444": { 8: 24, 10: 30, 12: 36 },
+      "422": { 8: 16, 10: 20, 12: 24 },
+      "420": { 8: 12, 10: 15, 12: 18 }
+    };
+    const state = { res: reses[4], bit: 12, chroma: "444", fps: 60 };
+    const colLabel = { res: "分辨率", bit: "色深", chroma: "采样", fps: "帧率" };
+    function optCol(k, items) {
+      return '<div class="bc-col"><span class="bc-key">' + colLabel[k] + '</span><div class="bc-opts" data-k="' + k + '">' +
+        items.map((it) => '<button type="button" class="bc-opt" data-v="' + it.v + '">' + it.t + '</button>').join("") +
+        '</div></div>';
+    }
+    const fig = document.createElement("figure");
+    fig.className = "enh-block bwcalc";
+    fig.id = "bw-calc";
+    fig.innerHTML =
+      '<div class="enh-head"><span class="enh-tag">交互</span><h3 class="enh-title">未压缩带宽计算器</h3></div>' +
+      '<p class="enh-cap">按像素格式估算「裸流」带宽——不含封装、也不含 HAP / NotchLC 帧内压缩（见表格）。点一遍选项，看单路接口够不够。</p>' +
+      '<div class="bc-grid">' +
+      optCol("res", reses.map((r) => ({ v: r.l, t: r.l }))) +
+      optCol("bit", bits.map((b) => ({ v: b, t: b + " bit" }))) +
+      optCol("chroma", chromas.map((c) => ({ v: c.k, t: c.l }))) +
+      optCol("fps", fpss.map((f) => ({ v: f, t: f + " fps" }))) +
+      '</div>' +
+      '<div class="bc-out"><div class="bc-readout"><b id="bc-value">--</b><span>Gbit/s</span><em id="bc-bytes"></em></div>' +
+      '<div class="bc-formula" id="bc-formula"></div><div class="bc-bars" id="bc-bars"></div>' +
+      '<p class="bc-note" id="bc-note"></p></div>';
+    host.insertAdjacentElement("afterend", fig);
+    fig.querySelector('[data-k="res"]').lastElementChild.classList.add("is-on");
+    fig.querySelectorAll('[data-k="bit"] .bc-opt').forEach((b) => { if (+b.dataset.v === state.bit) b.classList.add("is-on"); });
+    fig.querySelector('[data-k="chroma"]').firstElementChild.classList.add("is-on");
+    fig.querySelectorAll('[data-k="fps"] .bc-opt').forEach((b) => { if (+b.dataset.v === state.fps) b.classList.add("is-on"); });
+    fig.querySelectorAll(".bc-opt").forEach((b) => {
+      b.addEventListener("click", () => {
+        const k = b.parentElement.dataset.k;
+        b.parentElement.querySelectorAll(".bc-opt").forEach((x) => x.classList.remove("is-on"));
+        b.classList.add("is-on");
+        if (k === "res") state.res = reses.find((r) => r.l === b.dataset.v);
+        else if (k === "bit") state.bit = +b.dataset.v;
+        else if (k === "chroma") state.chroma = b.dataset.v;
+        else if (k === "fps") state.fps = +b.dataset.v;
+        compute();
+      });
+    });
+    function compute() {
+      const px = state.res.w * state.res.h;
+      const bpp = bppMap[state.chroma][state.bit];
+      const gbps = px * bpp * state.fps / 1e9;
+      const gbs = gbps / 8;
+      fig.querySelector("#bc-value").textContent = gbps >= 100 ? gbps.toFixed(0) : gbps.toFixed(1);
+      fig.querySelector("#bc-bytes").textContent = "· " + gbs.toFixed(1) + " GB/s";
+      fig.querySelector("#bc-formula").textContent =
+        state.res.w + "×" + state.res.h + " × " + bpp + "bit × " + state.fps + "fps = " +
+        (gbps >= 100 ? gbps.toFixed(0) : gbps.toFixed(1)) + " Gbit/s";
+      fig.querySelector("#bc-bars").innerHTML = refs.map((r) => {
+        const scale = Math.max(gbps, r.g);
+        const fill = Math.min(100, gbps / scale * 100);
+        const tick = r.g / scale * 100;
+        const ok = gbps <= r.g;
+        const need = ok ? "✓ 单路可" : "需 " + Math.ceil(gbps / r.g) + " 路";
+        return '<div class="bc-row"><div class="bc-name">' + r.n + '</div>' +
+          '<div class="bc-rail"><i class="' + (ok ? "" : "over") + '" style="width:' + fill.toFixed(1) + '%"></i>' +
+          '<span class="bc-tick" style="left:' + tick.toFixed(1) + '%"></span></div>' +
+          '<div class="bc-verdict ' + (ok ? "ok" : "no") + '">' + need + '</div></div>';
+      }).join("");
+      let note = "10 分钟连续播放约 " + (gbs * 600 / 1000).toFixed(1) + " TB（未压缩、不含封装）。";
+      if (Math.abs(gbs - 40.8) < 1.2) note += " 这一条与第 09 章表格里的 <b>40.8 GB/s</b>（16K DPX 12bit）对上了。";
+      fig.querySelector("#bc-note").innerHTML = note;
+    }
+    compute();
+  }
+
+  /* §01 像素预算配图 */
+  function initPixelBudget() {
+    const host = document.querySelector("#problem .problem-grid");
+    if (!host) return;
+    const rows = [
+      { l: "1080p · 1920×1080", px: 1920 * 1080 },
+      { l: "4K · 3840×2160", px: 3840 * 2160 },
+      { l: "8K · 7680×4320", px: 7680 * 4320 },
+      { l: "16K · 16384×9216", px: 16384 * 9216 }
+    ];
+    const maxPx = rows[rows.length - 1].px;
+    const W = 560, rowH = 40, gap = 14, x0 = 150, top = 8;
+    const H = top + rows.length * (rowH + gap);
+    let bars = "";
+    rows.forEach((r, i) => {
+      const w = Math.sqrt(r.px / maxPx) * (W - x0);
+      const y = top + i * (rowH + gap);
+      bars += '<g class="pb-row">' +
+        '<text x="4" y="' + (y + rowH / 2 + 4) + '" font-size="12" font-family="monospace" fill="#8c9aab">' + r.l + '</text>' +
+        '<rect x="' + x0 + '" y="' + y + '" width="' + (W - x0) + '" height="' + rowH + '" rx="6" fill="#0e1820" stroke="#243140"/>' +
+        '<rect class="pb-bar" x="' + x0 + '" y="' + y + '" width="' + w.toFixed(1) + '" height="' + rowH + '" rx="6" fill="url(#pbGrad)"/>' +
+        '<text x="' + (x0 + Math.max(w + 8, 6)).toFixed(1) + '" y="' + (y + rowH / 2 + 4) + '" font-size="12" font-family="monospace" fill="#e7eef5">' + (r.px / 1e6).toFixed(1) + 'M px</text></g>';
+    });
+    const markerX = x0 + Math.sqrt(7680 * 4320 / maxPx) * (W - x0);
+    const svg = '<svg class="enh-fig" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="像素预算对比">' +
+      '<defs><linearGradient id="pbGrad" x1="0" x2="1"><stop offset="0" stop-color="#2aa997"/><stop offset="1" stop-color="#3ad7c4"/></linearGradient></defs>' +
+      bars +
+      '<line class="pb-marker" x1="' + markerX.toFixed(1) + '" y1="' + (top - 4) + '" x2="' + markerX.toFixed(1) + '" y2="' + (H - 4) + '"/>' +
+      '<text x="' + (markerX + 6).toFixed(1) + '" y="' + (H - 2) + '" font-size="11" font-family="monospace" fill="#e2a73a">单卡 4×DP1.4 ≈ 一张 8K 屏</text>' +
+      '</svg>';
+    const fig = document.createElement("figure");
+    fig.className = "explain";
+    fig.innerHTML = svg +
+      '<figcaption>条形为平方根刻度，便于同时看到 1080p 与 16K。一台工作站 4 路 DP 的像素预算约 33M px——刚好一张 8K 屏；16K 屏约 151M px，需要约 18 路 4K 口 ≈ 4–5 张显卡 + Mosaic，这就是「多机切片」的来由。</figcaption>';
+    host.insertAdjacentElement("afterend", fig);
+  }
+
+  /* §05 球面屏 UV 展开配图 */
+  function initSphereFigure() {
+    const host = document.querySelector("#mapping .explain");
+    if (!host) return;
+    const svg = '<svg class="enh-fig" viewBox="0 0 760 200" role="img" aria-label="球面屏 UV 展开与切片示意">' +
+      '<g transform="translate(70,100)">' +
+      '<circle r="60" fill="none" stroke="#314557"/>' +
+      '<ellipse rx="60" ry="22" fill="none" stroke="#243140"/><ellipse rx="60" ry="44" fill="none" stroke="#243140"/>' +
+      '<ellipse rx="22" ry="60" fill="none" stroke="#243140"/><ellipse rx="44" ry="60" fill="none" stroke="#243140"/>' +
+      '<line x1="-60" y1="0" x2="60" y2="0" stroke="#243140"/><line x1="0" y1="-60" x2="0" y2="60" stroke="#243140"/>' +
+      '<text y="84" text-anchor="middle" font-size="11" font-family="monospace" fill="#8c9aab">球形屏 · 经纬模组</text></g>' +
+      '<path d="M150 100 h40" stroke="#3ad7c4" stroke-width="2" marker-end="url(#spAr)"/>' +
+      '<g transform="translate(210,40)">' +
+      '<path d="M0 20 L120 0 L120 120 L0 100 Z" fill="none" stroke="#3ad7c4" stroke-width="1.5"/>' +
+      '<path d="M0 40 L120 24 M0 60 L120 48 M0 80 L120 72" stroke="#243140"/>' +
+      '<path d="M30 14 L30 104 M60 8 L60 108 M90 4 L90 112" stroke="#243140"/>' +
+      '<text y="138" text-anchor="middle" font-size="11" font-family="monospace" fill="#8c9aab">UV 展开 · 越靠两极越挤</text></g>' +
+      '<path d="M350 100 h36" stroke="#3ad7c4" stroke-width="2" marker-end="url(#spAr)"/>' +
+      '<g transform="translate(400,40)">' +
+      '<rect x="0" y="0" width="100" height="118" rx="6" fill="#0e1820" stroke="#314557"/>' +
+      '<line x1="33" y1="0" x2="33" y2="118" stroke="#243140"/><line x1="66" y1="0" x2="66" y2="118" stroke="#243140"/>' +
+      '<text y="138" text-anchor="middle" font-size="11" font-family="monospace" fill="#8c9aab">切片 1 / 2 / 3 → 发送卡</text></g>' +
+      '<defs><marker id="spAr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0 0 L6 3 L0 6 Z" fill="#3ad7c4"/></marker></defs>' +
+      '</svg>';
+    const fig = document.createElement("figure");
+    fig.className = "explain";
+    fig.innerHTML = svg +
+      '<figcaption>球形屏不是矩形裁切：每颗灯珠是一个像素，沿纬线 / 经线排布，整球分成顶 / 底 / 侧面，再用非线性映射把像素坐标转到经纬度，才得到「整张 0–1 的 UV」。这一步没有 UV，屏就只剩一张永远采不到的虚拟像素表（见 §06 曲面几何）。</figcaption>' +
+      '<p class="sphere-link">相关专利：<a href="https://www.xjishu.com/zhuanli/55/202510892636.html" target="_blank" rel="noopener">三思 LED 球形屏坐标生成（CN 申请 202510892636）</a> · <a href="https://eureka.patsnap.com/patent-CN113077729A" target="_blank" rel="noopener">CN113077729A 每颗灯珠沿经纬铺满球面</a></p>';
+    host.insertAdjacentElement("afterend", fig);
+  }
+
+  /* §13 四种「缝」形态画廊 */
+  function initSeamGallery() {
+    const host = document.getElementById("tear-list");
+    if (!host) return;
+    const cards = [
+      { id: "frame", h: "整帧错位", d: "相邻箱体帧号差一帧，内容整体错开一条。", tag: "L2 帧身份", tears: ["ntp-only", "genlock-no-id"] },
+      { id: "sub", h: "亚帧相位缝", d: "帧号一致，但扫出相位差一个亚帧，留下一条细缝。", tag: "L3 扫出相位", tears: ["proc-free", "mosaic-edid", "director-out"] },
+      { id: "geo", h: "几何错位", d: "UV / 观察点 / 切片对不上，内容在曲面上扭。", tag: "§06 几何", tears: [] },
+      { id: "drift", h: "缓存 / 黑帧漂移", d: "seek 没换上、长 GOP 抖、时间码漂，画面旧一帧或黑。", tag: "§13 内容", tears: ["seek-prefetch", "ltc-glitch"] }
+    ];
+    const svgFor = {
+      frame: '<svg viewBox="0 0 200 90"><rect x="4" y="4" width="92" height="82" fill="#0e1820" stroke="#3ad7c4"/><rect x="104" y="4" width="92" height="82" fill="#0e1820" stroke="#e36b5c"/><rect x="104" y="20" width="92" height="20" fill="#e36b5c" opacity="0.25"/><line x1="100" y1="4" x2="100" y2="86" stroke="#e36b5c" stroke-width="2"/></svg>',
+      sub: '<svg viewBox="0 0 200 90"><rect x="4" y="4" width="192" height="82" fill="#0e1820" stroke="#3ad7c4"/><line x1="4" y1="30" x2="196" y2="30" stroke="#3ad7c4" stroke-width="2" opacity="0.5"/><line x1="4" y1="60" x2="196" y2="62" stroke="#e2a73a" stroke-width="2" stroke-dasharray="3 3"/></svg>',
+      geo: '<svg viewBox="0 0 200 90"><path d="M4 70 Q100 4 196 70" fill="none" stroke="#3ad7c4" stroke-width="2"/><path d="M4 70 Q100 24 196 70" fill="none" stroke="#e2a73a" stroke-width="2" stroke-dasharray="4 3"/></svg>',
+      drift: '<svg viewBox="0 0 200 90"><rect x="4" y="4" width="192" height="82" fill="#0e1820" stroke="#3ad7c4"/><rect x="4" y="40" width="192" height="14" fill="#e36b5c" opacity="0.3"/><text x="100" y="50" text-anchor="middle" font-size="10" fill="#e36b5c" font-family="monospace">OLD / BLACK</text></svg>'
+    };
+    const fig = document.createElement("figure");
+    fig.className = "enh-block";
+    fig.innerHTML = '<div class="enh-head"><span class="enh-tag">对照</span><h3 class="enh-title">四种「缝」长什么样</h3></div>' +
+      '<p class="enh-cap">点一张卡，下方「撕缝」清单里的对应故障会被高亮。几何错位见 §06。</p>' +
+      '<div class="seam-gallery">' + cards.map((c) =>
+        '<div class="seam-card" data-id="' + c.id + '" data-tears="' + c.tears.join(",") + '" role="button" tabindex="0">' +
+        svgFor[c.id] + '<h4>' + c.h + '</h4><p>' + c.d + '</p><span class="seam-tag">' + c.tag + '</span></div>'
+      ).join("") + '</div>';
+    host.insertAdjacentElement("beforebegin", fig);
+    fig.querySelectorAll(".seam-card").forEach((card) => {
+      const toggle = () => {
+        const active = card.classList.toggle("seam-active");
+        const ids = card.dataset.tears ? card.dataset.tears.split(",") : [];
+        ids.forEach((tid) => {
+          const t = document.querySelector('.tear[data-tear="' + tid + '"]');
+          if (t) t.classList.toggle("seam-hit", active);
+        });
+      };
+      card.addEventListener("click", toggle);
+      card.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); } });
+    });
+  }
