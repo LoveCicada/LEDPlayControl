@@ -1,5 +1,5 @@
 window.SURVEY = {
-  generated: "2026-09-18",
+  generated: "2026-09-23",
   note: "仅基于公开官网、手册、专利与 GitHub。营销词与手册可复核事实分开标注。",
 
   layers: [
@@ -228,7 +228,18 @@ window.SURVEY = {
     { t: "Blackmagic Mini Converter Sync Generator 规格", u: "https://www.blackmagicdesign.com/api/print/to-pdf/products/miniconverters/techspecs/W-CONM-15?filename=mini-converter-sync-generator-techspecs.pdf" },
     { t: "Blackmagic Mini Converters 产品页", u: "https://www.blackmagicdesign.com/products/miniconverters" },
     { t: "Kommander F30 英文规格（Framelock RJ45 + Genlock BNC）", u: "https://en.kystar.net/wp-content/uploads/2025/10/Kommander-F30-Media-Server-Datasheet_2509.pdf" },
-    { t: "PIXERA Genlock / Framelock", u: "https://help.pixera.one/graphic-cards/synchronize-outputs-genlock-framelock-setup" }
+    { t: "PIXERA Genlock / Framelock", u: "https://help.pixera.one/graphic-cards/synchronize-outputs-genlock-framelock-setup" },
+    { t: "disguise Jumping Track Bars（跳转默认延迟 2 帧）", u: "https://help.disguise.one/designer/timeline-tracks-transports/jumping-track-bars" },
+    { t: "7thSense External Control Commands", u: "https://portal.7thsense.one/user-guides/MC255-managing-servers/deltagui_external_control.html" },
+    { t: "7thSense Timing Sources", u: "https://portal.7thsense.one/user-guides/M280-synchronising-delta/tc_timing_sources.html" },
+    { t: "7thSense Seamless Looping", u: "https://portal.7thsense.one/user-guides/M723-delta2_8-user-guide/seamless_looping.html" },
+    { t: "7thSense Delta 2.8 User Guide（Servers Ready / timing packet）", u: "https://portal.7thsense.one/user-guides/pdf-library/Delta%20software%20guides/M723-5%20Delta%202.8%20User%20Guide.pdf" },
+    { t: "WATCHOUT 7 Connecting to Display Servers", u: "https://docs.dataton.com/watchout-7-new/watchout/playback/connecting-to-display-servers.html" },
+    { t: "WATCHOUT Display Control Protocol（6，命令表无生效帧）", u: "https://knowledge.dataton.com/knowledge/watchout-display-control-protocol" },
+    { t: "PIXERA Timecode / TC Jump Preload Delay", u: "https://help.pixera.one/1216391-smpte-timecode" },
+    { t: "Pandoras Box 4.7 User Manual（Video Synchronisation）", u: "https://www.christiedigital.com/globalassets/resources/public/pandorasbox/pandoras-box-help-rev-5771.pdf" },
+    { t: "Pandoras Box SMPTE（只应一处 Receive）", u: "https://pandorasboxhelpfile.com/home/smpte-time-code_config.htm" },
+    { t: "Kompass FX3 Pro 中控协议 V2.6.0", u: "https://en-website001.oss-us-east-1.aliyuncs.com/uploads/2025/11/Multimedia%20Playback%20Software%20%28FX3%20Pro%29%20Control%20Protocol-V2.6.0.pdf" }
   ],
 
   heatmapKeys: [
@@ -251,6 +262,196 @@ window.SURVEY = {
     { id: "spout", label: "Spout" },
     { id: "udp", label: "中控 UDP" }
   ],
+
+  commandModes: [
+    {
+      id: "arrival",
+      index: "01",
+      name: "到达即执行",
+      en: "Fire on arrival",
+      body: "中控包里只有目标时间、Cue 或场景号，没有「在第 N 帧再生效」。各机若在包到达时切，网络抖动就是接缝错开。诺瓦 Kompass 的公开协议是这种外形。GrandShow 播控协议引言同样是对软件下发播放命令，打开的页面里没有生效帧字段。",
+      vendors: ["novastar", "grandshow"]
+    },
+    {
+      id: "chase",
+      index: "02",
+      name: "播放头跟随",
+      en: "Playhead chase",
+      body: "跳转只打到 Leader 或 Director。从机不各自解释中控包，而是跟着主控的播放头：现在播这一帧。7thSense 的 timing packet、WATCHOUT 的播放状态、PIXERA 的 Now 指针、Pandoras Box 堆在 Master 上再按 Master 时钟下发，都是这条。没有 genlock 时，7thSense 写明仍可能差约 1 帧。",
+      vendors: ["7thsense", "watchout", "pixera", "pandoras"]
+    },
+    {
+      id: "deferred",
+      index: "03",
+      name: "延迟生效",
+      en: "Deferred jump",
+      body: "指令现在收下，过若干帧或等预载完成再换画面。这段空档用来让各机对齐，并让解码器先读到跳转点。disguise 从 r30.4 起默认延迟 2 帧。PIXERA 26.3 的 TC Jump Preload Delay 是指针先跳、画面晚切。7thSense 无缝模式下，外部 GOTO 不会立刻切。",
+      vendors: ["disguise", "pixera", "7thsense"]
+    },
+    {
+      id: "take",
+      index: "04",
+      name: "两阶段 Take",
+      en: "Preload then cut",
+      body: "先异步把节目或目标装进各机，等就绪再发一条短指令一起开播。WATCHOUT 是 load、wait、run；7thSense 是 CUE 然后 PLAY，并用 Servers Ready 统计已经 cue 的台数。Kommander / GrandShow 的预监和 KV 跳场景是同一种交互；Take 有没有量化到同步卡帧号，公开页没写。",
+      vendors: ["watchout", "7thsense", "kommander", "grandshow"]
+    }
+  ],
+
+  commandKeys: [
+    { id: "form", label: "外部指令" },
+    { id: "who", label: "谁接收" },
+    { id: "prefetch", label: "延迟 / 预取" },
+    { id: "cut", label: "切画面与 genlock" }
+  ],
+
+  commandRows: [
+    {
+      id: "kommander",
+      modes: ["take"],
+      form: "预案、时间码、OSC/UDP。未检索到生效帧字段。",
+      who: "未检索到是主控转发，还是每台各收一条。",
+      prefetch: "未检索到预取帧数。",
+      cut: "F30 有 Quadro Sync。未写跳转是否落在同步卡帧号上。",
+      evidence: "C"
+    },
+    {
+      id: "novastar",
+      modes: ["arrival"],
+      form: "389 暂停/播放/停止时间线；390 跳到毫秒；10005 按 Cue 序号跳。参数里没有生效帧。",
+      who: "中控打到播控软件。多机何时一起切，协议未写。",
+      prefetch: "未检索到。",
+      cut: "未写跳转依赖 Sync 卡。",
+      evidence: "A"
+    },
+    {
+      id: "hirender",
+      modes: [],
+      form: "时间线 / 窗口双模式。跳转报文未公开。",
+      who: "未检索到。",
+      prefetch: "未检索到。",
+      cut: "联机帧同步要求 Quadro Sync II。未写指令量化到帧号。",
+      evidence: "C"
+    },
+    {
+      id: "grandshow",
+      modes: ["arrival", "take"],
+      form: "场景/播放中控。引言没有跳转 opcode，也没有生效帧。产品页有时间线触发和 KV 跳场景。",
+      who: "中控对软件。GrandShow Sync 的集群报文未公开。",
+      prefetch: "未检索到。",
+      cut: "规格无独立 Frame Lock 口。Take 是否锁到帧号未写。",
+      evidence: "C"
+    },
+    {
+      id: "hecoos",
+      modes: [],
+      form: "Art-Net / TCP / UDP。未检索到 Seek 或生效帧。",
+      who: "Studio 与 Server 分离。跳转如何下到出画机未写。",
+      prefetch: "未检索到。",
+      cut: "未公开。",
+      evidence: "C"
+    },
+    {
+      id: "disguise",
+      modes: ["deferred"],
+      form: "轨道跳转、Cue List 的 GO。外部可以是 DMX。",
+      who: "Director 会话。d3Net 把时间线同步到 Actor。",
+      prefetch: "r30.4 起默认延迟 2 帧，用于跨机对齐和 prefetcher。additionalCommandLatency 可加帧。DMX 另加 Redistribution Delay。",
+      cut: "多机输出要 genlock。延迟帧解决指令和预取，不替代扫出锁相。",
+      evidence: "A"
+    },
+    {
+      id: "watchout",
+      modes: ["chase", "take"],
+      form: "gotoTime 跳到时间位置；gotoControlCue 跳到命名 Control cue；run / halt。命令名来自 WATCHOUT 6 协议页。",
+      who: "WATCHOUT 7：Director 实时广播播放状态，Runner 渲染。",
+      prefetch: "load 之后 wait，等到整个集群建立再 run。公开命令表没有「延迟 N 帧再 Seek」。",
+      cut: "NTP 管钟。LED 墙要 Hardware Sync Group，否则帧号仍可能错。",
+      evidence: "A"
+    },
+    {
+      id: "pixera",
+      modes: ["chase", "deferred"],
+      form: "SMPTE / LTC / Art-Net / MIDI 驱动 Now 指针。26.3 起用阈值区分小漂移和大跳。",
+      who: "USB SMPTE 只能接 Director，Client 不支持。音频 LTC 可以接 Director 或 Client。",
+      prefetch: "TC Jump Preload Delay：指针立刻跳，旧画面继续，预载完成再切。Pause Until 先把指针放到偏移位置，等时码走到才开播。",
+      cut: "这一条写的是播放头。出画锁相仍要 Quadro Sync。",
+      evidence: "A"
+    },
+    {
+      id: "7thsense",
+      modes: ["chase", "deferred", "take"],
+      form: "GOTOFRAME 帧号、GOTOTIME 时码加帧率、GOTOMARKER 标记名，可选接着播放。",
+      who: "这些跳转只对 Leader 有效。Follower 从 Leader 收指令和 timing packet，并应答完成。",
+      prefetch: "无缝模式预缓存跳入点。纯视频至少 5 帧，编码或音频建议 100–200 帧。外部 GOTO 会晚切；关掉无缝则立即跳，时间线会停一帧。CUE 之后等 PLAY。Servers Ready 统计已 cue 的台数。无缝时 Goto/Loop 必须在每台的同一时码上。",
+      cut: "无 genlock 约 ±1 帧，有 genlock 才帧准确。Leader 挂了，全组停。",
+      evidence: "A"
+    },
+    {
+      id: "pandoras",
+      modes: ["chase"],
+      form: "序列 Now 指针。SMPTE Receive 只应开在一个 Multi-User Place。DMX、GPI 本身不带同步。",
+      who: "指令先堆在 Master，经 MediaNet 按 Master 时钟在各 Client 上一起处理。",
+      prefetch: "手册写 frame adaptive，没有公开的延迟帧数。视频必须是基本流，嵌音频会把同步拐到音频上。",
+      cut: "这条网络同步写的是 Master 时钟。多 GPU Mosaic 另要 Sync 卡。",
+      evidence: "A"
+    }
+  ],
+
+  commandDecode: {
+    lead: "切点当帧要能拿出目标画面。帧号约定的是这一拍播哪一帧，屏幕上的像素来自解码器是否已经把那一帧交进显存。7thSense 写纯视频预卷至少 5 帧，编码或音频建议 100–200 帧；disguise 用默认 2 帧延迟让 prefetcher 先读跳转点，避免黑帧。长 GOP 的 H.264/H.265 若没有提前解到切点，各机即使约定了同一帧号，扫出去的仍是黑场或旧画面。",
+    duties: [
+      { t: "生效帧", d: "各机约定这一拍的内容身份：时间线走到哪、Cue 切到哪。Genlock 只把「何时开始扫」锁在一起。" },
+      { t: "可呈现的图", d: "这一拍扫描沿上，显存里已经画好、可以送出去的那张图。解码、上传没完成，帧号对了也看不见新画面。" }
+    ],
+    misses: [
+      { t: "黑场", d: "新纹理还没上传。各机一起闪黑，或只有慢的那几台闪黑。" },
+      { t: "旧画面", d: "解码器还停在上一张成功的图。指针可以已经到了新时间，观众看见的仍是切之前的节目。" },
+      { t: "接缝错开", d: "有的机已经换成新图，有的机还在扫旧图。同步灯是锁上的，箱体接缝仍然撕。" }
+    ],
+    gopLead: "H.264/H.265 为了省码率，一组画面里通常只有一张可以独立解开的 IDR（或 I 帧）。后面的 P 帧、B 帧只记录和参考帧的差别。一组的长度常常是半秒到两秒；60 帧刷新时就是几十到上百帧。这组的长度就是 GOP。跳到时间 T，不能从 T 直接读出一张图。",
+    gopSteps: [
+      "在文件里找到 T 之前最近的那张 IDR。",
+      "从那张 IDR 按解码顺序往后解。P 帧依赖前面的帧，不能跳着解。",
+      "有 B 帧时，显示顺序和解码顺序不一致。要显示出 T，往往还得先解掉 T 后面的参考帧。开放 GOP 的 B 帧还会引用上一组，安全起点比上一张 I 帧更早。",
+      "解出的图上传到 GPU，等下一次扫描把它送出去。输出在这之前仍是旧画面。"
+    ],
+    gopNote: "这段回退加解码就是预卷。7thSense 的 Preroll Frames：纯视频至少 5 帧，编码或音频建议 100–200 帧。5 帧是读盘、解码、上传、排队呈现的最短流水线；时间线若是 60 帧，大约 80 毫秒。100–200 帧大约 1.7–3.3 秒，用来盖住「退回 IDR 再向前解」，以及比视频更长的音频缓冲。音频要无缝接上，下一段得提前在下一个时钟周期 cue 好。这是解码约束，不是某一家没公开的报文。",
+    budgetKeys: [
+      { id: "who", label: "谁" },
+      { id: "budget", label: "留出的时间" },
+      { id: "buys", label: "这段时间在买什么" },
+      { id: "grade", label: "证据" }
+    ],
+    budgets: [
+      { who: "disguise", budget: "r30.4 起默认延迟 2 帧。60 帧下约 33 毫秒。可加 additionalCommandLatency。", buys: "各机收到同一条跳转，并在同一未来帧生效；prefetcher 开始读跳转点，避免第一张是黑场。2 帧只够对齐和起动预取，盖不住一个 2 秒的 GOP。内容重就加帧。外部 DMX 还要另加 Redistribution Delay。", grade: "A" },
+      { who: "PIXERA 26.3", budget: "TC Jump Preload Delay，长度可配。", buys: "Now 指针立刻跳到新位置，画面继续播旧的，预载完成才换输出。小于阈值的时码抖动走漂移校正，不当成跳转。", grade: "A" },
+      { who: "7thSense", budget: "纯视频至少 5 帧；编码或音频 100–200 帧。", buys: "无缝跳转前把跳入点预缓存。外部 GOTO 因此会晚切。关掉无缝则立即跳，时间线会停大约 1 帧。", grade: "A" }
+    ],
+    divergeLead: "同一条 Seek，每台机器解完的时刻并不相同。Genlock 把这些差异原样扫到屏上。",
+    diverge: [
+      { t: "离 IDR 的距离", d: "编码或 GOP 结构不同，退回的帧数就不同。同一条成片的两台拷贝，完成时刻仍会受盘和总线忙闲影响。" },
+      { t: "盘和 PCIe", d: "7thSense 把掉的影片帧单独计数，原因就是读带宽跟不上请求。" },
+      { t: "GPU 队列", d: "一台还在合成上一帧的特效，另一台已经空了。上传深度不同，呈现就差一拍。" },
+      { t: "音频缓冲", d: "音频设备的缓冲通常比视频长。视频切了声音还在旧缓冲里，或者反过来。嵌在视频里的音轨还会把 Pandoras Box 的视频同步拐走。" }
+    ],
+    intraLead: "帧内编码的每一帧自己就能解开。Seek 是读那一帧、解那一帧，不用退回 IDR。切点仍然要走完读、解、上传，所以纯视频仍要至少约 5 帧流水线。它们不需要的是先解完一整组 GOP。",
+    intra: [
+      { t: "序列帧", d: "DPX、TGA、EXR，或按帧号命名的图片。随机访问就是打开对应文件。" },
+      { t: "ProRes", d: "帧内编码，任意帧可以独立解。" },
+      { t: "HAP", d: "按块压成 GPU 能直接解的纹理，媒体服务器用它做随机访问。" },
+      { t: "NotchLC", d: "面向 GPU 的帧内编码，同样不必退回一组 GOP。" }
+    ],
+    intraNote: "长 GOP 的 H.264/H.265 可以连续播。它不能在切点当帧拿出任意位置的画面。要硬切，得在生效帧之前把目标帧解完，或者事先转成上面的帧内格式。中控协议改成「跳到某一毫秒」，不改变这件事。",
+    cutLead: "下面是 60 帧时间线、目标 01:00:00:00、上一张 IDR 在目标前 90 帧时的一次同帧切。现在是第 10000 帧。200 帧大约 3.3 秒，用来盖住 GOP 回退和音频预卷。数字是这个例子的预算，不是某本手册里的固定常数。",
+    cutSteps: [
+      "主控现在就发出跳转，生效帧写成 10200，而不是收到立刻切。",
+      "每台机器立刻把解码器退到那张 IDR，向前解到 01:00:00:00。纹理留在后台，输出仍是当前画面。",
+      "解完的机器回报就绪。没解完的不参与这一拍。",
+      "到第 10200 帧的扫描沿，就绪的机器一起换成新纹理。",
+      "有一台没就绪，整组继续留在旧画面，生效帧往后推。已经解完的那几台不先切。"
+    ]
+  },
 
   rackKeys: [
     { id: "gpu", label: "GPU / 一体机" },
@@ -411,6 +612,15 @@ window.SURVEY = {
       body: "LTC 接收会出现 bi-phase 畸形、丢帧、重复帧、跳变、非法 BCD。WATCHOUT LTC Bridge 把这些分开计数；无效超过约 100 ms 就暂停时间线。正确做法是校验、飞轮、迟滞锁定。LTC 只拉播放头，不能替代 Frame Lock。源自己也要 genlock。",
       vendors: ["watchout", "7thsense", "kommander", "pandoras"],
       layers: ["wallClock"]
+    },
+    {
+      id: "seek-prefetch",
+      name: "跳转到了，目标帧还没换上",
+      grade: "A",
+      symptom: "各机一起黑一帧，或有的机先切、有的机仍停在旧画面。Genlock 灯是锁上的。",
+      body: "扫出相位对齐，只说明各机同一时刻开始扫，不说明扫的是切换后的那一帧。disguise 把轨道跳转默认推迟 2 帧，就是为了让 prefetcher 先读到跳转点，否则出黑帧。7thSense 无缝模式要预缓存跳入点：纯视频至少 5 帧，编码或音频建议 100–200 帧；外部 GOTO 因此会晚切，关掉无缝则立即跳，时间线会停一帧。长 GOP 的 H.264/H.265 若没有提前解到切点，各机即使约定了同一帧号，屏幕上仍是黑帧或旧帧。序列帧和帧内编码可以在切点直接取那一帧。",
+      vendors: ["disguise", "7thsense", "pixera", "watchout"],
+      layers: ["wallClock", "frameId"]
     }
   ],
 
@@ -1647,6 +1857,10 @@ window.SURVEY = {
     {
       t: "Director 与 Display 解耦",
       d: "控制面负责工程、素材、预监；显示节点只解码、映射、present。Director 是否出画决定它要不要进硬件同步组（PIXERA / disguise 均如此）。"
+    },
+    {
+      t: "跳转要预约到某一帧，齐备了再切",
+      d: "对外可以是跳到时间或跳到 Cue。集群内部必须带目标、生效帧和预取截止。任一节点没把目标帧解出来，这一拍不切。Genlock 只锁扫出，不保证各机已经换成新画面。"
     },
     {
       t: "垂直整合是产品策略不是同步策略",

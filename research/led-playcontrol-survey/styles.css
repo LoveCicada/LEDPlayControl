@@ -567,6 +567,18 @@ table.heat {
   gap: 8px;
   margin-bottom: 16px;
 }
+#cmd-decode .ltc-grid { grid-template-columns: 1fr 1fr; }
+#cmd-decode .ltc-grid.decode-miss { grid-template-columns: repeat(3, 1fr); margin-bottom: 8px; }
+#cmd-decode .callout { margin: 8px 0 0; }
+#cmd-decode .plain-table td,
+#cmd-decode .plain-table td:first-child,
+#cmd-decode .plain-table td:nth-child(2) {
+  white-space: normal;
+  width: auto;
+  vertical-align: top;
+  line-height: 1.45;
+}
+#cmd-decode .plain-table td:first-child { width: 108px; color: var(--text); }
 .ltc-item {
   background: var(--elev);
   border: 1px solid var(--line);
@@ -764,7 +776,7 @@ table.heat {
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
 }
-.hop, .tear, .scene {
+.hop, .tear, .scene, .cmd {
   background: var(--elev);
   border: 1px solid var(--line);
   padding: 14px 14px 12px;
@@ -777,24 +789,25 @@ table.heat {
 }
 .hop:hover, .hop.active,
 .tear:hover, .tear.active,
-.scene:hover, .scene.active {
+.scene:hover, .scene.active,
+.cmd:hover, .cmd.active {
   border-color: var(--cyan);
   background: var(--cyan-dim);
 }
-.hop .n, .tear .grade {
+.hop .n, .tear .grade, .cmd .n {
   font-family: var(--mono);
   color: var(--cyan);
   font-size: 11px;
   letter-spacing: 0.12em;
 }
-.hop h3, .tear h3, .scene h3 { margin: 6px 0 4px; font-size: 15px; }
-.hop .en {
+.hop h3, .tear h3, .scene h3, .cmd h3 { margin: 6px 0 4px; font-size: 15px; }
+.hop .en, .cmd .en {
   font-family: var(--mono);
   font-size: 11px;
   color: var(--amber);
   margin-bottom: 6px;
 }
-.hop p, .tear p, .scene p { margin: 0; font-size: 13px; color: var(--muted); }
+.hop p, .tear p, .scene p, .cmd p { margin: 0; font-size: 13px; color: var(--muted); }
 .hop-detail {
   margin-top: 16px;
   padding: 16px 18px;
@@ -813,7 +826,7 @@ table.heat {
   color: var(--text);
   margin-top: 10px;
 }
-.hop-detail .who, .tear .who, .scene .who {
+.hop-detail .who, .tear .who, .scene .who, .cmd .who {
   margin-top: 8px;
   font-size: 12px;
   color: var(--faint);
@@ -821,12 +834,13 @@ table.heat {
 .tears { display: grid; gap: 8px; }
 .tear-head { display: flex; align-items: baseline; gap: 10px; }
 .tear .symptom { color: var(--text); margin: 6px 0 8px; }
-.scenes {
+.scenes, .cmds {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
   margin-bottom: 8px;
 }
+.cmds { grid-template-columns: 1fr 1fr; }
 .geom-modes {
   display: grid;
   grid-template-columns: 1fr;
@@ -1131,8 +1145,8 @@ footer {
   .nav { display: none; }
   .wrap { margin-left: 0; }
   .hero, section, footer { padding-left: 22px; padding-right: 22px; }
-  .problem-grid, .cards, .arch, .oss, .arch-grid, .ui-gallery, .hw-gallery, .hops, .ltc-grid { grid-template-columns: 1fr; }
-  .steps, .scenes { grid-template-columns: 1fr 1fr; }
+  .problem-grid, .cards, .arch, .oss, .arch-grid, .ui-gallery, .hw-gallery, .hops, .ltc-grid, #cmd-decode .ltc-grid, #cmd-decode .ltc-grid.decode-miss { grid-template-columns: 1fr; }
+  .steps, .scenes, .cmds { grid-template-columns: 1fr 1fr; }
   .geom-split, .shows, .geom-glossary, .show-split { grid-template-columns: 1fr; }
   .patent { grid-template-columns: 1fr; }
   .stats { grid-template-columns: 1fr 1fr; }

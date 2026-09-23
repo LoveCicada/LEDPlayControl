@@ -62,6 +62,7 @@
   let activeTear = null;
   let activeScene = null;
   let activeGeom = null;
+  let activeCmd = null;
 
   function vendorById(id) {
     return S.vendors.find((v) => v.id === id);
@@ -90,6 +91,10 @@
       if (!mode || !mode.vendors.length) return null;
       return mode.vendors;
     }
+    if (activeCmd) {
+      const mode = (S.commandModes || []).find((c) => c.id === activeCmd);
+      return mode ? mode.vendors : [];
+    }
     return null;
   }
 
@@ -98,6 +103,7 @@
     if (keep !== "tear") activeTear = null;
     if (keep !== "scene") activeScene = null;
     if (keep !== "geom") activeGeom = null;
+    if (keep !== "cmd") activeCmd = null;
     document.querySelectorAll(".hop").forEach((n) => {
       n.classList.remove("active");
       n.setAttribute("aria-pressed", "false");
@@ -111,6 +117,10 @@
       n.setAttribute("aria-pressed", "false");
     });
     document.querySelectorAll(".geom-mode").forEach((n) => {
+      n.classList.remove("active");
+      n.setAttribute("aria-pressed", "false");
+    });
+    document.querySelectorAll(".cmd").forEach((n) => {
       n.classList.remove("active");
       n.setAttribute("aria-pressed", "false");
     });
@@ -188,6 +198,118 @@
       });
       root.appendChild(btn);
     });
+  }
+
+  function renderCommands() {
+    const root = document.getElementById("cmd-list");
+    if (root && S.commandModes) {
+      S.commandModes.forEach((mode) => {
+        const btn = el("button", { class: "cmd", type: "button", "data-cmd": mode.id, "aria-pressed": "false" });
+        btn.innerHTML =
+          `<div class="n">${mode.index}</div><h3>${mode.name}</h3>` +
+          `<div class="en">${mode.en}</div><p>${mode.body}</p>` +
+          `<div class="who">${mode.vendors.map(vendorLabel).join(" · ")}</div>`;
+        btn.addEventListener("click", () => {
+          const same = activeCmd === mode.id;
+          clearHighlightSources("cmd");
+          if (same) {
+            activeCmd = null;
+          } else {
+            activeCmd = mode.id;
+            btn.classList.add("active");
+            btn.setAttribute("aria-pressed", "true");
+          }
+          applyFilters();
+        });
+        root.appendChild(btn);
+      });
+    }
+
+    renderDecode();
+
+    const table = document.getElementById("command-table");
+    if (!table || !S.commandRows || !S.commandKeys) return;
+    const thead = table.querySelector("thead");
+    const tbody = table.querySelector("tbody");
+    thead.innerHTML = "";
+    tbody.innerHTML = "";
+    const trh = document.createElement("tr");
+    trh.appendChild(el("th", null, "产品"));
+    S.commandKeys.forEach((k) => trh.appendChild(el("th", null, k.label)));
+    trh.appendChild(el("th", null, "证据"));
+    thead.appendChild(trh);
+    S.commandRows.forEach((row) => {
+      const v = vendorById(row.id);
+      const tr = document.createElement("tr");
+      tr.dataset.id = row.id;
+      tr.dataset.modes = (row.modes || []).join(",");
+      if (v) {
+        tr.dataset.region = v.region;
+        tr.dataset.depth = v.depth;
+        tr.dataset.layers = (v.layers || []).join(",");
+      }
+      const name = document.createElement("td");
+      name.innerHTML = `<strong>${vendorLabel(row.id)}</strong>`;
+      tr.appendChild(name);
+      S.commandKeys.forEach((k) => {
+        tr.appendChild(el("td", { class: "cell-text" }, row[k.id] || "未检索到"));
+      });
+      tr.appendChild(el("td", null, row.evidence || "—"));
+      bindRowClick(tr, row.id);
+      tbody.appendChild(tr);
+    });
+  }
+
+  function renderDecode() {
+    const root = document.getElementById("cmd-decode");
+    const D = S.commandDecode;
+    if (!root || !D) return;
+    const items = (list) => list.map((x) =>
+      `<article class="ltc-item"><h4>${x.t}</h4><p>${x.d}</p></article>`).join("");
+    const steps = (list) => list.map((s, i) =>
+      `<li><span class="n">${i + 1}</span>${s}</li>`).join("");
+    const budgetHead = D.budgetKeys.map((k) => `<th>${k.label}</th>`).join("");
+    const budgetBody = D.budgets.map((row) =>
+      `<tr><td>${row.who}</td><td>${row.budget}</td><td>${row.buys}</td><td>${row.grade}</td></tr>`).join("");
+    root.innerHTML =
+      `<h3 class="subhead">解码跟不上，帧号对了也看不见</h3>` +
+      `<p class="sec-lead">${D.lead}</p>` +
+      `<div class="problem-grid">` +
+        D.duties.map((x) => `<div class="panel"><h3>${x.t}</h3><p>${x.d}</p></div>`).join("") +
+      `</div>` +
+      `<h3 class="subhead">帧号对了，扫出去的仍可能是错图</h3>` +
+      `<div class="ltc-grid decode-miss">${items(D.misses)}</div>` +
+      `<h3 class="subhead">长 GOP 的 Seek 实际在解什么</h3>` +
+      `<p class="sec-lead">${D.gopLead}</p>` +
+      `<ol class="ltc-steps">${steps(D.gopSteps)}</ol>` +
+      `<p class="callout">${D.gopNote}</p>` +
+      `<h3 class="subhead">三家留出的时间各买什么</h3>` +
+      `<div class="table-wrap"><table class="plain-table"><thead><tr>${budgetHead}</tr></thead><tbody>${budgetBody}</tbody></table></div>` +
+      `<p class="caption">2 帧是命令对齐和开始预取的预算。它不是「任意 H.265 都能在两帧内解完」。</p>` +
+      `<h3 class="subhead">各机为什么会差一帧</h3>` +
+      `<p class="sec-lead">${D.divergeLead}</p>` +
+      `<div class="ltc-grid">${items(D.diverge)}</div>` +
+      `<h3 class="subhead">什么样的素材可以当帧切</h3>` +
+      `<p class="sec-lead">${D.intraLead}</p>` +
+      `<div class="ltc-grid">${items(D.intra)}</div>` +
+      `<p class="callout">${D.intraNote}</p>` +
+      `<h3 class="subhead">一次同帧切画面</h3>` +
+      `<p class="sec-lead">${D.cutLead}</p>` +
+      `<div class="chain-svg"><svg viewBox="0 0 980 132" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="发令、预卷、生效帧">` +
+        `<rect width="980" height="132" fill="#0d1218"/>` +
+        `<g font-family="Microsoft YaHei UI, PingFang SC, Noto Sans SC, Segoe UI, sans-serif" font-size="13" fill="#e7eef5">` +
+          `<rect x="20" y="28" width="200" height="72" fill="#121922" stroke="#e2a73a"/>` +
+          `<text x="40" y="58">现在发令</text>` +
+          `<text x="40" y="80" fill="#8c9aab" font-size="12">第 10000 帧</text>` +
+          `<rect x="250" y="28" width="460" height="72" fill="#121922" stroke="#3ad7c4"/>` +
+          `<text x="270" y="58">预卷：退回 IDR，解到目标</text>` +
+          `<text x="270" y="80" fill="#8c9aab" font-size="12">输出仍是旧画面</text>` +
+          `<rect x="740" y="28" width="220" height="72" fill="#121922" stroke="#3ad7c4"/>` +
+          `<text x="760" y="58">生效帧一起换</text>` +
+          `<text x="760" y="80" fill="#8c9aab" font-size="12">第 10200 帧</text>` +
+          `<path d="M220 64 H250 M710 64 H740" stroke="#314557"/>` +
+        `</g></svg></div>` +
+      `<ol class="ltc-steps">${steps(D.cutSteps)}</ol>`;
   }
 
   function renderScenes() {
@@ -937,7 +1059,7 @@
 
   function applyFilters() {
     const hits = highlightIds();
-    document.querySelectorAll("#heat-table tbody tr, #rack-table tbody tr, #codec-table tbody tr, #control-table tbody tr, #geom-table tbody tr").forEach((tr) => {
+    document.querySelectorAll("#heat-table tbody tr, #rack-table tbody tr, #codec-table tbody tr, #control-table tbody tr, #geom-table tbody tr, #command-table tbody tr").forEach((tr) => {
       const visible = rowVisible(tr);
       const matched = !hits || hits.includes(tr.dataset.id);
       tr.classList.toggle("dim", !visible || !matched);
@@ -1232,6 +1354,7 @@
   renderUiGallery();
   renderHops();
   renderTears();
+  renderCommands();
   renderScenes();
   renderGeom();
   renderRack();
