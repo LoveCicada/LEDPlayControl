@@ -4,13 +4,15 @@
 
 页面对照国内外媒体服务器怎么把一块超大、异形的 LED 屏播成同一帧：连续播放怎么锁，跳转和 Seek 在哪一帧切，球形和折面的像素从哪张几何来。结论按公开资料分级，未公开的集群报文不补字段。
 
+同日调研页在 23 章定稿之后又补了两块，章节数没有增加：第 16 章内的 [ST 2110 深读](research/led-playcontrol-survey/index.html#st2110)，以及可离线看的主界面截图和各章讲解动画。仓库没有单独的更新记录，增量都写在下面。
+
 静态调研站：[research/led-playcontrol-survey/index.html](research/led-playcontrol-survey/index.html)
 
 双击该 HTML 即可本地打开，不依赖外网字体或构建工具。
 
 ## 调研做了什么
 
-样本是 18 家产品：深潜 7 家播控，对照 11 家，其中 Brompton Tessera 与诺瓦 MX/COEX 是处理器，用来钉屏端同步，不是时间线播控。国内名称已对齐：kCommander 即 Kommander，hecos 即 hecoos / 澜景。
+样本是 18 家产品。深潜 7 家：国内 Kommander、Kompass、HiRender、GrandShow、hecoos，加上 disguise、WATCHOUT。对照 11 家：VMEET、PIXERA、7thSense Delta、Hippotizer、Resolume Arena、nDisplay、TouchDesigner、Pandoras Box、Screenberry，以及处理器 Brompton Tessera、诺瓦 MX/COEX。后两家用来钉屏端同步，不是时间线播控。国内名称已对齐：kCommander 即 Kommander，hecos 即 hecoos / 澜景。
 
 章节入口（链到调研页锚点）：
 
@@ -29,7 +31,7 @@
 13. [撕缝](research/led-playcontrol-survey/index.html#tears)
 14. [主备容灾](research/led-playcontrol-survey/index.html#failover)
 15. [场景控制](research/led-playcontrol-survey/index.html#scenes)
-16. [实时交互](research/led-playcontrol-survey/index.html#interactive)
+16. [实时交互](research/led-playcontrol-survey/index.html#interactive)，其中 [ST 2110 深读](research/led-playcontrol-survey/index.html#st2110) 仍在本章内，不是第 24 章
 17. [对比矩阵](research/led-playcontrol-survey/index.html#matrix)
 18. [厂商](research/led-playcontrol-survey/index.html#vendors)
 19. [专利](research/led-playcontrol-survey/index.html#patents)
@@ -38,6 +40,8 @@
 22. [Commissioning](research/led-playcontrol-survey/index.html#commission)
 23. [出处](research/led-playcontrol-survey/index.html#refs)
 
+主界面一章带离线截图（`ui/*.webp`）：Kommander、Kompass、HiRender、GrandShow、disguise、WATCHOUT、PIXERA。各章另有讲解用的 SVG 动画。截图和动画都不是新章节。
+
 ### 多机怎么锁在同一帧
 
 把各家都叫「帧同步」的说法收成四层，后面的厂商卡和热图都映射到这里：
@@ -45,7 +49,7 @@
 1. **时间对齐**：NTP、LTC、厂商时码包。管节目进度，不管 GPU 何时扫出。
 2. **帧身份**：这一拍 present 哪一帧。WATCHOUT 写明 Genlock 只锁扫描相位，不锁内容帧号。
 3. **扫描相位**：NVIDIA Quadro Sync II / RTX PRO Sync、外置 house-sync。同步口是 CAT5 直连，不进交换机。
-4. **传输时钟**：PTP / ST 2110。只服务 IP 视频包，第一版 DP/HDMI 播控不做这一层。
+4. **传输时钟**：PTP / ST 2110。只服务 IP 视频包，不替代前面三层。第一版 DP/HDMI 播控不做这一层，标准族和为什么跳过见 [ST 2110 深读](#st-2110-深读)。
 
 硬件图按公开接口绘制：Sync II 与 RTX PRO Sync 是同一块板的更名；旧文档里的 G-Sync II 单独标出，不和现役卡混。国内三家「帧同步」只写到能核到的物理层：KFS / Kommander F30 可落到 NVIDIA Frame Lock，GrandShow Sync 推断走以太网，Kompass Lora 是无线对时。应用层报文仍是 C。
 
@@ -96,9 +100,9 @@ HiRender、hecoos、KFS、GrandShow Sync 的集群跳转报文没有公开文本
 
 ### 网络拓扑与内容准备
 
-16K@60、DPX 12bit 序列帧单帧约 680 MB，60 fps 约 40.8 GB/s，走本地 NVMe RAID，不进网络。同分辨率 HAP 约 1.5–3 Gb/s，多机分发走节目网。8K@60 ProRes 422 HQ 约 3.3 Gb/s，本地 SSD 够用。工程同步是 load 时一次性拉取，典型 5–50 MB，走控制网。Art-Net 流量很小，但要低延迟。NDI HX3 4K 约 125–250 Mb/s。ST 2110 单路 2160p59.94、10bit 4:4:4 约 12 Gb/s，第一版不做。
+16K@60、DPX 12bit 序列帧单帧约 680 MB，60 fps 约 40.8 GB/s，走本地 NVMe RAID，不进网络。同分辨率 HAP 约 1.5–3 Gb/s，多机分发走节目网。8K@60 ProRes 422 HQ 约 3.3 Gb/s，本地 SSD 够用。工程同步是 load 时一次性拉取，典型 5–50 MB，走控制网。Art-Net 流量很小，但要低延迟。NDI HX3 4K 约 125–250 Mb/s。ST 2110 单路 2160p59.94、10bit 4:4:4 约 12 Gb/s，带宽和设施要求见 [ST 2110 深读](#st-2110-深读)，第一版不做。
 
-网分成三条，Sync 口不进任何一条：
+第一版只建控制网和节目网。上 L4 才另建第四条 **视频网**（25 / 100 GbE），并且不进下面任何一条。Sync 口也不进网：
 
 - **控制网**（1 GbE）：Director 与 Display 的心跳、OSC / UDP、Art-Net、Pad。
 - **节目网**（10 GbE）：素材分发、NDI、工程同步。
@@ -119,11 +123,41 @@ HiRender、hecoos、KFS、GrandShow Sync 的集群跳转报文没有公开文本
 
 - **Spout / Syphon**：Notch、TouchDesigner、Unreal 同机共享纹理，延迟小于 1 帧。注入画面和播控画面在同一 GPU 上合成，present 仍走同一条 barrier。
 - **NDI**：编码、网络、解码大约 1–3 帧。流本身不带帧锁，按当前 VBlank 采样，可能比本机内容晚 1–2 帧。
-- **ST 2110**：PTP 对齐后延迟通常在 1 帧内。这是传输时钟那一层，第一版不做。
+- **ST 2110**：广播级 IP 视频，PTP 对齐后延迟通常在 1 帧内。它是传输时钟那一层，详见下一小节。
 - **传感器**：手势、雷达、DMX 触发 JumpTo。从事件到指令的延迟取决于接收方式，用中断或推送，不用轮询。
 - **实时渲染引擎**：引擎做背景、播控叠前景时，两边帧率必须一致，否则合成会抖。nDisplay 里引擎和播控是同一个进程。
 
 XR 从摄像机到屏幕的预算：跟踪到引擎 5–15 ms，渲染一帧 8–16 ms，等 VBlank 0–16 ms，处理器到箱体 16–33 ms，合计 45–80 ms。
+
+### ST 2110 深读
+
+调研页把这一块挂在第 16 章里（[ST 2110 深读](research/led-playcontrol-survey/index.html#st2110)），不是新的一章。下面是对照表和选型的摘要，图留在调研页。
+
+ST 2110 是广播设施级的无压缩专业媒体 over IP。SDI 被拆成视频、音频、辅助数据后，在 IP 网上按同一时钟重组。对 LED 播控，它是 L4 传输时钟的候选来源，不替代 L1 的 NTP、L2 的帧号、L3 的 Genlock。
+
+标准族：
+
+- **ST 2110-10**：系统定义。按 essence 拆流，RTP 时间戳基准是 PTP / ST 2059。
+- **ST 2110-20**：无压缩视频。2160p59.94、10bit 4:4:4 约 12 Gb/s。
+- **ST 2110-21**：流量整形。N / NL / W 三类，约束恒定码率抖动，决定交换机怎么选。
+- **ST 2110-22**：浅压缩（JPEG XS / VC-2 / TICO）。带宽大约降到 1/3–1/10，10GbE 可以跑多路。
+- **ST 2110-30**：PCM 音频，48 kHz / 24bit，单流最多 16 通道。
+- **ST 2110-40**：辅助数据，时间码、字幕等。
+- **ST 2022-7**：A/B 双网无缝冗余，链路故障无感切换。
+- **NMOS**：IS-04 发现设备，IS-05 管连接。
+- **ST 2059-2**：基于 IEEE 1588-2008 的广播 PTP profile，全局 grandmaster。
+
+带宽量级：NDI HX3 4K 约 0.25 Gb/s；ST 2110-22 浅压缩 4K 约 1.5 Gb/s；ST 2110-20 无压缩 4K 约 12 Gb/s，要 25GbE；无压缩 8K 约 48 Gb/s，要 100GbE。
+
+相对 NDI：2110 是 PTP 硬同步，对时后延迟通常在 1 帧内（60 fps 下小于 16.7 ms，50 fps 下小于 20 ms），要专用网和专用网卡；NDI 是软同步，大约 1–3 帧，1GbE 即插即用。
+
+设施上它是第四条网：25 / 100 GbE 视频网，与控制网、节目网、Sync 菊花链物理隔离。网卡要有 PTP 硬件时间戳，普通网卡抓包会偏，不能当接收。交换机要做 Boundary Clock 或 Transparent Clock，否则抖动会累积。2110-21 的 N 型按严格恒定码率设计，缓冲区在 21 ms 量级。
+
+产品对照不计入那 18 家样本：disguise 用 IP-VFC 收 ST 2110-22；AJA IP25-R 做 ST 2110 与 12G-SDI / HDMI 的双向网关；Matrox 有 ConvertIP 和 ST 2110 网卡；Colorlight 等处理器厂开始做 ST 2110 / IPMX；7thSense 和传统广播周边也能收发，但不是 LED 专用。
+
+选型按源来：转播车或总控已经在 PTP 域里，或要长距离、多源、集中路由，走 ST 2110（L4）。现场要快开，走 NDI（L2 / L3）。处理器就在旁边的点对点 LED 墙，走 DP / HDMI 加 Genlock（L3）。
+
+第一版仍然跳过 L4。需要独立的 L4 PTP 域、专用 25/100G 视频网和 ST 2110 网卡；它和 DP 输出的 L3 genlock 是两套时序域。第一版 DP/HDMI 点对点先把 L1–L3 做对，多机联机帧同步用 NVIDIA Frame Lock 已满足多数 LED 播控，上 ST 2110 的复杂度和收益不匹配。
 
 ### 主备与容灾
 
@@ -138,7 +172,7 @@ XR 从摄像机到屏幕的预算：跟踪到引擎 5–15 ms，渲染一帧 8�
 ### 现场其余对照
 
 - **播出全链路**：素材 → 播控 → GPU → LED 处理器 → 接收卡 → 箱体。处理器没进同一 house-sync 时，服务器锁了屏端仍撕。
-- **主界面**：窗口/预案、时间线、3D 舞台三种骨架，配有可离线看的手册截图或布局示意。
+- **主界面**：窗口/预案、时间线、3D 舞台三种骨架。离线截图覆盖 Kommander、Kompass、HiRender、GrandShow、disguise、WATCHOUT、PIXERA；各章讲解动画只帮助阅读，不改变结论。
 - **机柜与编码**：GPU、Sync 卡、输出口、H.264/H.265、ProRes、序列帧。核不到的格子留空。
 - **撕缝清单**：NTP 不等于扫出、Mosaic/EDID、主备切错对象、Leader 丢失、LTC 毛刺、跳转已到但目标帧还没换上。
 - **场景与外部控制**：展厅、巡演、XR、球幕、楼宇。热图覆盖 Art-Net、OSC、MIDI、LTC、NDI、Spout、中控 UDP。
