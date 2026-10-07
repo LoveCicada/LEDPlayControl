@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "lang": "zh",
+  "project": "LEDPlayControl 调研页",
+  "brief": "核对多机如何锁在同一帧：导语、证据分级、第 01 章问题、第 02 章四层同步。",
+  "round": "01",
+  "candidates": [
+    {
+      "id": "baseline",
+      "name": "现状",
+      "concept": "先读一句问题，再顺着左栏往下翻。",
+      "typography": "微软雅黑标题 40px，正文 15px，章号 Cascadia Mono",
+      "palette": ["#080b10", "#3ad7c4", "#e2a73a"],
+      "traits": ["左侧章节栏", "首屏大标题加四格统计", "青色强调"],
+      "kind": "html",
+      "source": "baseline.html",
+      "baseline": true
+    },
+    {
+      "id": "sheet",
+      "name": "图纸",
+      "concept": "在灯光明亮的图纸桌上核对一张同步接线图。",
+      "typography": "宋体正文 16px，标注 Cascadia Mono 11px，图名 22px",
+      "palette": ["#f3efe6", "#1c1b16", "#c4312a"],
+      "traits": ["标题栏加右侧引线", "四层线框是主角", "套准红只标证据"],
+      "kind": "html",
+      "source": "sheet.html"
+    },
+    {
+      "id": "rundown",
+      "name": "播出单",
+      "concept": "左边点一条 cue，中间读这一条，右边监视器只报当前结论。",
+      "typography": "等线界面字，正文 15px，监视器结论 20px，数字 Consolas",
+      "palette": ["#14120e", "#e6a317", "#9cba7a"],
+      "traits": ["三栏节目单", "打开即第 01 章", "绿色只用于在播"],
+      "kind": "html",
+      "source": "rundown.html"
+    },
+    {
+      "id": "proceedings",
+      "name": "会刊",
+      "concept": "像会议论文，一次只读一栏，图是编号插图。",
+      "typography": "Palatino 章节号 120px，中文仿宋 17px，行长约 66 字",
+      "palette": ["#f6f6f4", "#161616", "#1d3fbf"],
+      "traits": ["无侧栏无卡片", "超大章节号", "钴蓝只用于等级和链接"],
+      "kind": "html",
+      "source": "proceedings.html"
+    }
+  ]
+}

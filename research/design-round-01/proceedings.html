@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>会刊 · LED 播控调研</title>
+  <style>
+    :root {
+      --paper: #f6f6f4;
+      --ink: #161616;
+      --cobalt: #1d3fbf;
+      --mute: #4a4a46;
+      --latin: "Palatino Linotype", Palatino, "Book Antiqua", serif;
+      --fang: FangSong, STFangsong, "FangSong_GB2312", SimSun, serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--fang); font-size: 17px; line-height: 1.75; }
+    .run { display: flex; justify-content: space-between; max-width: 680px; margin: 0 auto; padding: 18px 0 0; border-bottom: 1px solid var(--ink); font-family: var(--latin); font-size: 12px; letter-spacing: .04em; }
+    article { max-width: 640px; margin: 0 auto; padding: 28px 8px 72px; }
+    .chap { font-family: var(--latin); font-size: 120px; line-height: .8; margin: 12px 0 8px; font-weight: 400; }
+    h1 { font-family: var(--latin); font-weight: 400; font-size: 28px; line-height: 1.25; margin: 0 0 18px; }
+    h2 { font-family: var(--latin); font-weight: 400; font-size: 20px; margin: 28px 0 8px; }
+    a { color: var(--cobalt); }
+    .grade { font-family: var(--latin); color: var(--cobalt); font-style: italic; }
+    figure { margin: 22px 0; }
+    figcaption { font-family: var(--latin); font-size: 13px; color: var(--mute); margin-top: 6px; }
+    svg { width: 100%; height: auto; }
+    ol { padding-left: 1.2em; }
+    .next { font-family: var(--latin); font-size: 13px; margin-top: 28px; }
+  </style>
+</head>
+<body>
+  <div class="run"><span>LEDPlayControl Proceedings</span><span>2026.09.23</span><span>1</span></div>
+  <article>
+    <div class="chap">01</div>
+    <h1>一台机器带不动的屏幕，怎么同步地播</h1>
+    <p>超分辨 LED 不是多开几路 HDMI。单机的解码与输出口先撞墙，行业改用多机切片。真正要核对的是两件事：相邻箱体是否在同一帧、同一扫出相位上会合；球形和折面的像素来自哪张几何。样本 18 家，章节 23。结论按公开资料分级。<span class="grade">A</span> 手册可复核，<span class="grade">B</span> 规格可推断，<span class="grade">C</span> 协议未公开。</p>
+    <p>超 8K / 16K、超长卷、球形屏，单台工作站的解码、PCIe、DP 口数量和 Mosaic 桌面都会先不够。多机只是把空间切开。只切片、不锁帧时，奇数箱体还在 1042，偶数箱体已经走到 1043。</p>
+    <ol>
+      <li>解码带宽不是再插一块消费级卡就能满。</li>
+      <li>一块 GPU 的 DP 口有上限。</li>
+      <li>球形和折面不是矩形裁切。</li>
+      <li>LED 处理器还要和服务器锁在同一基准上。</li>
+    </ol>
+    <p>常见失败不是机器不够快，而是只做了空间切片，没做帧身份和扫出相位，或只做了 NTP，就把相邻箱体交给发送卡自己对齐。</p>
+    <h2>02　四层</h2>
+    <p>各家都叫帧同步的说法，收成四层。后面的厂商记录都映射到这里。</p>
+    <figure>
+      <svg viewBox="0 0 560 88" role="img" aria-label="四层同步">
+        <g font-family="Palatino Linotype, Palatino, serif" font-size="15" fill="#161616">
+          <text x="0" y="22">I</text><text x="28" y="22">时间</text><text x="28" y="44" font-size="13" fill="#4a4a46">NTP / LTC</text>
+          <text x="150" y="22">II</text><text x="180" y="22">帧号</text><text x="180" y="44" font-size="13" fill="#4a4a46">present 哪一帧</text>
+          <text x="310" y="22">III</text><text x="346" y="22">扫描</text><text x="346" y="44" font-size="13" fill="#4a4a46">Sync II</text>
+          <text x="450" y="22" fill="#4a4a46">IV</text><text x="480" y="22" fill="#4a4a46">PTP</text><text x="480" y="44" font-size="13" fill="#4a4a46">本版不做</text>
+        </g>
+        <path d="M0 68 H560" stroke="#161616" fill="none"/>
+      </svg>
+      <figcaption>图 1. 四层同步。IV 不替代前三层。WATCHOUT 写明 Genlock 只锁扫描相位，不锁内容帧号。<span class="grade">A</span></figcaption>
+    </figure>
+    <p class="next">下页 · 指令在哪一帧生效</p>
+  </article>
+</body>
+</html>

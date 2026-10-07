@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>现状 · LED 播控调研</title>
+  <style>
+    :root {
+      --bg: #080b10;
+      --elev: #121922;
+      --line: #243140;
+      --cyan: #3ad7c4;
+      --amber: #e2a73a;
+      --text: #e7eef5;
+      --muted: #8c9aab;
+      --faint: #5c6b7c;
+      --mono: "Cascadia Mono", Consolas, monospace;
+      --sans: "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background:
+        radial-gradient(900px 420px at 12% -10%, rgba(58,215,196,.08), transparent 50%),
+        var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.65;
+    }
+    a { color: var(--cyan); text-decoration: none; }
+    .nav {
+      position: fixed; top: 0; left: 0; bottom: 0; width: 196px;
+      padding: 24px 16px; border-right: 1px solid var(--line);
+      background: rgba(8,11,16,.94);
+    }
+    .brand { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--cyan); text-transform: uppercase; }
+    .brand small { display: block; margin-top: 4px; color: var(--muted); letter-spacing: .16em; font-size: 10px; font-weight: 400; }
+    .nav a { display: block; color: var(--muted); font-size: 12px; padding: 4px 0; }
+    .nav a.on { color: var(--cyan); }
+    .idx { font-family: var(--mono); font-size: 10px; color: var(--faint); margin-right: 8px; }
+    .legend { margin-top: 16px; font-size: 11px; color: var(--faint); line-height: 1.5; }
+    .wrap { margin-left: 196px; }
+    .hero { padding: 56px 48px 36px; border-bottom: 1px solid var(--line); max-width: 980px; }
+    .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--cyan); }
+    h1 { font-size: 40px; line-height: 1.2; font-weight: 700; margin: 12px 0; letter-spacing: 0; }
+    .lede { color: var(--muted); max-width: 68ch; margin: 0 0 18px; }
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+    .chip { border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; font-size: 12px; color: var(--muted); }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .stat { background: var(--elev); border: 1px solid var(--line); padding: 14px 12px; }
+    .stat b { display: block; font-family: var(--mono); font-size: 28px; color: var(--cyan); font-weight: 500; }
+    .stat span { color: var(--faint); font-size: 12px; }
+    section { padding: 36px 48px 8px; max-width: 980px; }
+    .sec-num { font-family: var(--mono); color: var(--cyan); font-size: 12px; margin-right: 8px; }
+    h2 { display: inline; font-size: 22px; }
+    .lead { color: var(--muted); }
+    .grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; margin: 16px 0 28px; }
+    .panel { background: var(--elev); border: 1px solid var(--line); padding: 16px; }
+    h3 { margin: 0 0 8px; font-size: 15px; }
+    ol { margin: 0; padding-left: 18px; color: var(--muted); }
+    .callout { border-left: 2px solid var(--amber); padding-left: 12px; color: var(--text); }
+    .layers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 14px; }
+    .layer { border: 1px solid var(--line); padding: 12px; background: var(--elev); }
+    .layer.off { opacity: .55; }
+    .layer i { display: block; font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--cyan); margin-bottom: 6px; }
+    .layer.off i { color: var(--faint); }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">LEDPlayControl<small>Survey 2026.09</small></div>
+    <a class="on" href="#problem"><span class="idx">01</span>问题</a>
+    <a href="#stack"><span class="idx">02</span>四层同步</a>
+    <a href="#problem"><span class="idx">03</span>指令生效</a>
+    <a href="#problem"><span class="idx">04</span>音频与帧率</a>
+    <a href="#problem"><span class="idx">05</span>异形切片</a>
+    <a href="#problem"><span class="idx">06</span>三种 3D</a>
+    <a href="#problem"><span class="idx">07</span>主界面</a>
+    <div class="legend"><b style="color:#8c9aab">证据</b><br>A 手册可复核<br>B 规格可推断<br>C 协议未公开</div>
+  </nav>
+  <div class="wrap">
+    <header class="hero">
+      <div class="kicker">LED media server · frame sync</div>
+      <h1>一台机器带不动的屏幕，<br>怎么同步地播</h1>
+      <p class="lede">超分辨 LED 不是「多开几路 HDMI」。单机 GPU 与解码带宽撑不住时，行业的解法是多机多显卡切片输出。相邻箱体必须在同一帧、同一扫出相位上会合。</p>
+      <div class="chips">
+        <span class="chip">kCommander = Kommander</span>
+        <span class="chip">资料截止 2026-09-23</span>
+        <span class="chip">离线可打开</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>18</b><span>产品样本，深潜 7 + 对照 11</span></div>
+        <div class="stat"><b>4</b><span>同步层：钟 / 帧号 / 扫出 / PTP</span></div>
+        <div class="stat"><b>5</b><span>异形：模型到锁帧</span></div>
+        <div class="stat"><b>23</b><span>章节</span></div>
+      </div>
+    </header>
+    <section id="problem">
+      <div><span class="sec-num">01</span><h2>问题定义</h2></div>
+      <p class="lead">超 8K / 16K、超长卷、球形屏，单台工作站的解码、PCIe、DP 口和 Mosaic 会先撞墙。多机是扩空间；同步和几何才是扩完之后还像一块屏。</p>
+      <div class="grid">
+        <div class="panel">
+          <h3>单机为什么不够</h3>
+          <ol>
+            <li>解码：超 8K@60 或无损序列帧，一张消费级卡吃不满带宽。</li>
+            <li>输出：一块 GPU 的 DP 口有上限，Mosaic 拼出来的桌面很脆。</li>
+            <li>几何：球形和折面不是矩形裁切。</li>
+            <li>链路：LED 处理器还要和服务器锁在同一基准上。</li>
+          </ol>
+        </div>
+        <div class="panel">
+          <p class="callout">常见失败不是「机器不够快」，而是只做了空间切片，没做帧身份和扫出相位，或只做了 NTP，就把相邻箱体交给发送卡自己对齐。</p>
+          <p>WATCHOUT 写明 Genlock 只锁扫描相位，不锁内容帧号。证据 A。</p>
+        </div>
+      </div>
+    </section>
+    <section id="stack">
+      <div><span class="sec-num">02</span><h2>四层同步</h2></div>
+      <p class="lead">后面每张厂商卡都映射到这四层，而不是各说各的「帧同步」。</p>
+      <div class="layers">
+        <div class="layer"><i>L1 时间对齐</i>NTP、LTC。管节目进度，不管 GPU 何时扫出。</div>
+        <div class="layer"><i>L2 帧身份</i>这一拍 present 哪一帧。</div>
+        <div class="layer"><i>L3 扫描相位</i>Quadro Sync II / RTX PRO Sync。同步口是 CAT5，不进交换机。</div>
+        <div class="layer off"><i>L4 传输时钟</i>PTP / ST 2110。第一版 DP/HDMI 不做这一层。</div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

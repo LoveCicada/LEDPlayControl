@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>图纸 · LED 播控调研</title>
+  <style>
+    :root {
+      --paper: #f3efe6;
+      --ink: #1c1b16;
+      --red: #c4312a;
+      --rule: #1c1b16;
+      --mute: #5c564c;
+      --mono: "Cascadia Mono", Consolas, "Courier New", monospace;
+      --song: SimSun, "Songti SC", "NSimSun", serif;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: var(--song);
+      font-size: 16px;
+      line-height: 1.7;
+    }
+    .sheet { padding: 28px 36px 64px; }
+    .titleblock {
+      display: grid;
+      grid-template-columns: 1.4fr .8fr .7fr;
+      border: 1.5px solid var(--ink);
+    }
+    .titleblock div { padding: 8px 12px; border-right: 1px solid var(--ink); }
+    .titleblock div:last-child { border-right: 0; }
+    .lbl { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; color: var(--mute); }
+    .titleblock strong { display: block; font-weight: 400; font-size: 22px; line-height: 1.3; margin-top: 4px; }
+    .marks { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10px; margin: 8px 0 18px; }
+    .cross { color: var(--red); }
+    .stage { display: grid; grid-template-columns: 1fr 220px; gap: 28px; align-items: start; }
+    svg { width: 100%; height: auto; display: block; }
+    .note { font-family: var(--mono); font-size: 11px; line-height: 1.55; border-left: 1px solid var(--ink); padding-left: 10px; }
+    .note p { margin: 0 0 10px; }
+    .note b { font-weight: 400; color: var(--red); }
+    h2 { font-size: 18px; font-weight: 400; margin: 28px 0 8px; }
+    .num { font-family: var(--mono); font-size: 12px; margin-right: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border-bottom: 1px solid var(--ink); text-align: left; padding: 8px 6px; vertical-align: top; font-weight: 400; }
+    th { font-family: var(--mono); font-size: 11px; }
+    .grade { font-family: var(--mono); color: var(--red); }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <header class="titleblock">
+      <div><span class="lbl">图名</span><strong>一台机器带不动的屏幕，怎么同步地播</strong></div>
+      <div><span class="lbl">项目 / 图号</span><strong>LEDPlayControl<br>SURVEY-01</strong></div>
+      <div><span class="lbl">资料截止</span><strong>2026-09-23<br>18 样本 · 23 章</strong></div>
+    </header>
+    <div class="marks"><span class="cross">+</span><span>比例 1:1　印刷于本机　不依赖外网字体</span><span class="cross">+</span></div>
+    <div class="stage">
+      <svg viewBox="0 0 640 280" role="img" aria-label="四层同步线框">
+        <rect x="8" y="8" width="624" height="264" fill="none" stroke="#1c1b16"/>
+        <g fill="none" stroke="#1c1b16" stroke-width="1.25">
+          <rect x="36" y="36" width="250" height="70"/>
+          <rect x="36" y="122" width="250" height="70"/>
+          <rect x="36" y="208" width="168" height="40"/>
+          <path d="M286 71 H360 M286 157 H360"/>
+          <path d="M204 248 H360"/>
+        </g>
+        <g font-family="SimSun, serif" font-size="15" fill="#1c1b16">
+          <text x="48" y="64">L1 时间对齐</text>
+          <text x="48" y="86" font-size="13" fill="#5c564c">NTP / LTC · 节目进度</text>
+          <text x="48" y="150">L2 帧身份</text>
+          <text x="48" y="172" font-size="13" fill="#5c564c">这一拍 present 哪一帧</text>
+          <text x="48" y="232" font-size="13">L3 扫描相位</text>
+        </g>
+        <g font-family="Cascadia Mono, Consolas, monospace" font-size="12" fill="#c4312a">
+          <text x="368" y="68">①</text>
+          <text x="368" y="154">②</text>
+          <text x="368" y="244">③</text>
+        </g>
+        <g fill="none" stroke="#1c1b16" stroke-dasharray="4 3">
+          <rect x="430" y="36" width="180" height="176"/>
+        </g>
+        <text x="446" y="64" font-family="SimSun, serif" font-size="14" fill="#5c564c">L4 传输时钟</text>
+        <text x="446" y="88" font-family="SimSun, serif" font-size="13" fill="#5c564c">PTP / ST 2110</text>
+        <text x="446" y="112" font-family="SimSun, serif" font-size="13" fill="#5c564c">第一版保持虚线</text>
+      </svg>
+      <aside class="note">
+        <p><b>①</b> 钟只管节目走到哪，不管 GPU 何时扫出。</p>
+        <p><b>②</b> WATCHOUT：Genlock 不锁内容帧号。证据 A。</p>
+        <p><b>③</b> Sync II 与 RTX PRO Sync 同一块板的更名。同步口 CAT5 直连，不进交换机。</p>
+        <p>A 手册可复核<br>B 规格可推断<br>C 协议未公开</p>
+      </aside>
+    </div>
+    <h2><span class="num">01</span>问题</h2>
+    <p>超 8K / 16K、超长卷、球形屏，单台工作站的解码、PCIe、DP 口和 Mosaic 会先撞墙。多机是扩空间；同步和几何才是扩完之后还像一块屏。只切片、不锁帧时，相邻箱体一边还在 1042，另一边已经走到 1043。</p>
+    <h2><span class="num">02</span>四层，后面的厂商卡都映射到这里</h2>
+    <table>
+      <thead><tr><th>层</th><th>管什么</th><th>公开边界</th><th>证据</th></tr></thead>
+      <tbody>
+        <tr><td>L1</td><td>NTP、LTC、厂商时码</td><td>坏的 LTC 要校验和飞轮，不能直接推播放头</td><td class="grade">A</td></tr>
+        <tr><td>L2</td><td>这一拍是哪一帧</td><td>帧号对齐不等于显存里已经有那一帧</td><td class="grade">A</td></tr>
+        <tr><td>L3</td><td>何时开始扫</td><td>国内三家能核到的物理层：Frame Lock、以太网、LoRa</td><td class="grade">B</td></tr>
+        <tr><td>L4</td><td>IP 视频包的钟</td><td>不替代前三层。DP/HDMI 第一版不做</td><td class="grade">A</td></tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
