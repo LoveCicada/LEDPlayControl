@@ -51,7 +51,7 @@
 3. **扫描相位**：NVIDIA Quadro Sync II / RTX PRO Sync、外置 house-sync。同步口是 CAT5 直连，不进交换机。
 4. **传输时钟**：PTP / ST 2110。只服务 IP 视频包，不替代前面三层。第一版 DP/HDMI 播控不做这一层，标准族和为什么跳过见 [ST 2110 深读](#st-2110-深读)。
 
-硬件图按公开接口绘制：Sync II 与 RTX PRO Sync 是同一块板的更名；旧文档里的 G-Sync II 单独标出，不和现役卡混。国内三家「帧同步」只写到能核到的物理层：KFS / Kommander F30 可落到 NVIDIA Frame Lock，GrandShow Sync 推断走以太网，Kompass Lora 是无线对时。应用层报文仍是 C。
+硬件图按公开接口绘制：Sync II 与 RTX PRO Sync 是同一块板的更名；旧文档里的 G-Sync II 单独标出，不和现役卡混。国内集群报文先留缺口卡：KFS / Kommander F30 可落到 NVIDIA Frame Lock，GrandShow Sync 推断走以太网且中控 UDP 不是帧同步，Kompass Lora 是无线对时、中控方法号里没有生效帧，HiRender 写了需要 Quadro Sync II，hecoos 只公开到 Art-Net / TCP / UDP / DMX。应用层载荷留空，等以后补原文。若摘公开手册，摘句仅供个人研究，不用于商用。
 
 LTC 单独写了接收侧：坏帧要校验、飞轮、迟滞锁定，不能直接驱动播放头。
 
@@ -80,7 +80,7 @@ HiRender、hecoos、KFS、GrandShow Sync 的集群跳转报文没有公开文本
 
 收成的做法：播控自己维护音频时钟，不从视频 VBlank 派生。跳转时先 mute 或做交叉淡入，新画面稳定后再出声。多机出声走同一张声卡或同一条数字链路。LTC 驱动时间线时，预卷取视频和音频里更深的那一档。
 
-帧率有六层，要对齐，或把转换写进工程：工程帧率、GPU 输出、Genlock 参考、处理器输入、箱体刷新、源素材。工程帧率与 GPU 输出必须相等。Quadro Sync 的帧计数按输出刷新率走；工程 25 fps、输出 60 Hz 时，每 3 帧里有一帧是重复的。BNC 进来的 house-sync 必须等于输出刷新率或它的整数倍（MX40 Pro 约 23.98–60 Hz，Brompton 约 23.98–250 Hz）。箱体刷新率是输入帧率乘扫描深度的整数倍；输入和参考不一致时，Tessera 会加倍或丢帧。
+帧率有六层，要对齐，或把转换写进工程：工程帧率、GPU 输出、Genlock 参考、处理器输入、箱体刷新、源素材。工程帧率与 GPU 输出必须相等。Quadro Sync 的帧计数按输出刷新率走；工程 25 fps、输出 60 Hz 时，每 3 帧里有一帧是重复的。调研页可以拨这一条：对齐时三帧各不相同，拨到 25 fps 对 60 Hz 时第三帧标成重复。BNC 进来的 house-sync 必须等于输出刷新率或它的整数倍（MX40 Pro 约 23.98–60 Hz，Brompton 约 23.98–250 Hz）。箱体刷新率是输入帧率乘扫描深度的整数倍；输入和参考不一致时，Tessera 会加倍或丢帧。
 
 59.94 / 29.97 是 drop-frame。LTC 必须区分 DF / NDF，否则长节目大约漂 3.6 秒/小时。24→29.97 的 3:2、24→60 的重复帧放在转码阶段做完。播出时帧率已经一致，不做实时 pulldown。
 
@@ -174,7 +174,7 @@ ST 2110 是广播设施级的无压缩专业媒体 over IP。SDI 被拆成视频
 - **disguise Understudy**：实时镜像 Director 的时间线和渲染参数，持有完整工程。Director 故障时接管输出，手册写切换可能丢 1–2 帧。不跑渲染时 GPU 是冷的，建议 Understudy 也进同步组。
 - **WATCHOUT 多 Runner**：Director 广播播放状态，Runner 各自渲染自己的切片，本地有 load 时拉下的 show。Director 挂了，Runner 继续播当前节目，新指令下不去。这是控制面单点，巡演常配双 Director，手动切。
 - **7thSense Leader-Follower**：Follower 跟 Leader 的播放头，本地有素材，缺的是时间参考。Leader 挂了全组停。要避开这个单点，得外接 LTC 或 GPS。
-- **国内主备（Kommander / HiRender）**：一主一备，备端同步主端操作，宣称无缝切换。丢帧数、心跳超时、切换时是否等到 Sync 卡帧号，公开页没写。同步窗口里工程可能不一致，备端是否进同步组也未公开。
+- **国内主备（Kommander / HiRender）**：一主一备，备端同步主端操作，宣称无缝切换。丢帧数、心跳超时、切换时是否等到 Sync 卡帧号，公开页没写。同步窗口里工程可能不一致，备端是否进同步组也未公开。现场只记四项：心跳超时、备端当时在不在 Sync 组、观众位丢了几帧、工程修订是否相同。测不到留空。对照表里未公开的格子仍不填数字，旁边写要问的一句：切换时观众位丢了几帧，备端在不在 Sync 组。跳转对照里国内证据 C 的空行同样问：手册哪一章写了生效帧。
 - **拼接器环路（卡莱特 / 诺瓦）**：发送卡网口做环路，断线在接收卡层切，恢复在亚帧。只覆盖一台发送卡或一段网线。播控机本身挂了，不在这条路径里。
 
 ### 现场其余对照
@@ -218,13 +218,13 @@ ST 2110 是广播设施级的无压缩专业媒体 over IP。SDI 被拆成视频
 - **Control API**：OSC / UDP / Art-Net / HTTP。在 Director 进程。
 - **Project Store**：工程读写、版本、素材清单。在 Director 进程。
 
-Display 是三线程。Render 为 TIME_CRITICAL，在 `QueuePresent` 前等 `syncBarrier.wait(targetFrame)`。Decode 为 HIGH，解完通知该帧可用。Sync Control 为 REAL_TIME（或 HIGH），读 Sync 卡帧计数、维护 barrier、收集各节点 ready。解码和渲染用无锁环形缓冲交换纹理指针。
+Display 是三线程。Render 为 TIME_CRITICAL，在 `QueuePresent` 前等 `syncBarrier.wait(targetFrame)`。Decode 为 HIGH，解完通知该帧可用。Sync Control 为 REAL_TIME（或 HIGH），读 Sync 卡帧计数、维护 barrier、收集各节点 ready。解码和渲染用无锁环形缓冲交换纹理指针。调研页把这三条画成泳道：Decode 把纹理放进环，Sync 读帧号，Render 在屏障前等，没等到就不 present。
 
 GPU 第一版用 DX11 flip model：NVIDIA Sync 的 swap barrier 在这条驱动上最成熟，disguise、WATCHOUT、PIXERA 当前主力也是 DX11。DX12 / Vulkan 留到第二版评估。OpenGL 不作为候选，专业 GL 驱动更新已经变弱，present 粒度也粗。
 
 有 Quadro Sync II / RTX PRO Sync 时，经 NVIDIA Sync API 加入 swap group，渲染线程等到当前帧号等于目标帧才 present。没有卡时，用 VBlank 相位加 UDP 广播帧号：同机多 GPU 约 ±1 行，跨机约 ±半帧。这个精度适合展厅长卷，不适合巡演级 LED 墙。
 
-跳转状态机：IDLE → RECEIVED → PREFETCHING → READY_WAIT → BARRIER_HOLD → COMMITTED / ABORTED。Director 发出 `JumpTo(targetTime, effectiveFrame, prefetchDeadline)`。有节点没把目标帧解出来，整组保持旧画面，生效帧往后推。超时大约 `2×GOP + 200 ms`：告警，继续播旧画面，不黑屏。
+跳转状态机：IDLE → RECEIVED → PREFETCHING → READY_WAIT → BARRIER_HOLD → COMMITTED / ABORTED。Director 发出 `JumpTo(targetTime, effectiveFrame, prefetchDeadline)`。有节点没把目标帧解出来，整组保持旧画面，生效帧往后推。超时大约 `2×GOP + 200 ms`：告警，继续播旧画面，不黑屏。调研页可以在同一张图上拨：齐备走到 COMMITTED；有一台没就绪则同一拍停在 ABORTED，`effectiveFrame` 往后推。这是自研约定，不挂到厂商报文上。
 
 工程是可 diff 的 JSON，素材分开存放，带 `schemaVersion`，升级写 migration：
 
@@ -232,13 +232,13 @@ GPU 第一版用 DX11 flip model：NVIDIA Sync 的 swap barrier 在这条驱动�
 - `screens/`：glTF/OBJ 与 UV
 - `media/`：按哈希命名，不依赖文件名
 - `sync.json`：哪些 GPU 进哪个 swap group
-- `layout.json`：`outputId`、viewport 像素矩形、`cabinets`（发送卡、网口、接收卡序号、原点、宽高、旋转；数组顺序即走线）。灯板抽点留在接收卡配置里，不编造厂商连接关系的私有字段。GrandMapping 能导入卡莱特连接关系文件，但字段未公开；诺瓦的走线在 SmartLCT，和 Kompass 节目不是同一张表。
+- `layout.json`：`outputId`、viewport 像素矩形、`cabinets`（发送卡、网口、接收卡序号、原点、宽高、旋转；数组顺序即走线）。灯板抽点留在接收卡配置里，不编造厂商连接关系的私有字段。GrandMapping 能导入卡莱特连接关系文件，但字段未公开；诺瓦的走线在 SmartLCT，和 Kompass 节目不是同一张表。页上有一份两路输出的示例，箱体按数组顺序点亮。
 
 规模上限写在排期里：Quadro Sync II 是 4 GPU/卡、2 卡/机，每机 8 GPU。再往上要多机 Frame Lock 菊花链，建议不超过 8 个节点，CAT5 宜短于 5 m，不能用交换机扩。24-bit 帧计数在 60 fps 下大约 3 天溢出；WATCHOUT 写溢出复位时大约 4 帧毛刺，长时间展览要留复位窗口。节点再多时，present barrier 用组播。超过 8 台、或要做广播级 IP 输出时，传输时钟那一层才变成必选项。
 
 ### Commissioning 检查清单
 
-从开箱到演出就绪 8 个阶段，每步看一个信号，完整勾选在调研页里：
+从开箱到演出就绪 8 个阶段，每步看一个信号，完整勾选在调研页里。勾选记在本机，刷新还在：
 
 1. **硬件上架**：GPU 数量、Sync 排线、BNC、CAT5 不进交换机、输出口编号对上切片。看 NVIDIA 控制面板里的 Sync 卡状态灯。
 2. **系统配置**：各机分辨率和刷新率一致，EDID 统一，驱动版本一致。用 dxdiag / nvidia-smi 确认。

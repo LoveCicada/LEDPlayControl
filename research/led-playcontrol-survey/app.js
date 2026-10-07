@@ -253,7 +253,9 @@
       name.innerHTML = `<strong>${vendorLabel(row.id)}</strong>`;
       tr.appendChild(name);
       S.commandKeys.forEach((k) => {
-        tr.appendChild(el("td", { class: "cell-text" }, row[k.id] || "未检索到"));
+        let html = row[k.id] || "未检索到";
+        if (row.ask && k.id === "form") html += `<span class="ask">${row.ask}</span>`;
+        tr.appendChild(el("td", { class: "cell-text" }, html));
       });
       tr.appendChild(el("td", null, row.evidence || "—"));
       bindRowClick(tr, row.id);
@@ -1263,13 +1265,21 @@
   function renderWireProtocols() {
     const root = document.getElementById("wire-protocols");
     if (!root || !S.wireProtocols) return;
-    const vendorMap = { kfs: "kommander", "grandshow-sync": "grandshow", "kompass-lora": "novastar" };
+    const vendorMap = {
+      kfs: "kommander",
+      "grandshow-sync": "grandshow",
+      "kompass-lora": "novastar",
+      "hirender-sync": "hirender",
+      "hecoos-sync": "hecoos"
+    };
     S.wireProtocols.forEach((p) => {
       const article = el("article", { class: "proto", dataset: { vendor: vendorMap[p.id] || "" } });
       article.innerHTML =
         `<header><div class="kind">${p.also}</div><h3>${p.name}</h3><div class="zones">${p.vendor} · 证据 ${p.evidence}</div></header>` +
-        `<dl><dt>物理 / 介质</dt><dd>${p.phy}</dd>` +
-        `<dt>应用层</dt><dd>${p.app}</dd>` +
+        `<dl><dt>已公开的层</dt><dd>${p.phy}</dd>` +
+        `<dt>公开页对报文的说法</dt><dd>${p.app}</dd>` +
+        `<dt>应用层载荷</dt><dd class="payload-empty">留空</dd>` +
+        `<dt>以后补</dt><dd>${p.later || "以后补原文。这一格在原文到达前留空。"}</dd>` +
         `<dt>落在哪一层</dt><dd>${p.layer}</dd>` +
         `<dt>不要写成</dt><dd>${p.note}</dd></dl>`;
       article.addEventListener("click", () => {
@@ -1377,32 +1387,24 @@
     const lead = document.getElementById("audio-lead");
     if (lead) lead.textContent = A.lead;
     placeExplain(lead, "audio-explain",
-      `<svg viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="视频缓冲短，音频缓冲更长；素材帧率会漂开再拉回">
-        <rect width="640" height="210" fill="#0d1218"/>
+      `<svg viewBox="0 0 640 188" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="视频缓冲短，音频缓冲更长，多出来的一段先被听成错位">
+        <rect width="640" height="188" fill="#0d1218"/>
         <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">
-          <text x="24" y="32" fill="#3ad7c4">视频缓冲</text>
-          <rect x="120" y="18" width="360" height="16" fill="#121922" stroke="#314557"/>
-          <rect class="mot buf-video" x="120" y="18" width="150" height="16" fill="#3ad7c4"/>
-          <text x="24" y="68" fill="#e2a73a">音频缓冲</text>
-          <rect x="120" y="54" width="360" height="16" fill="#121922" stroke="#314557"/>
-          <rect class="mot buf-audio" x="120" y="54" width="320" height="16" fill="#e2a73a"/>
-          <text x="24" y="112">六层帧率</text>
-          <g>
-            <text x="120" y="108">工程</text><circle cx="138" cy="128" r="5" fill="#3ad7c4"/>
-            <text x="190" y="108">GPU</text><circle cx="206" cy="128" r="5" fill="#3ad7c4"/>
-            <text x="250" y="108">Genlock</text><circle cx="278" cy="128" r="5" fill="#3ad7c4"/>
-            <text x="330" y="108">处理器</text><circle cx="352" cy="128" r="5" fill="#3ad7c4"/>
-            <text x="410" y="108">箱体</text><circle cx="428" cy="128" r="5" fill="#3ad7c4"/>
-          </g>
-          <g class="mot drift-tick">
-            <text x="490" y="108" fill="#e2a73a">素材</text>
-            <circle cx="508" cy="128" r="5" fill="#e2a73a"/>
-          </g>
-          <text x="24" y="176">29.97 drop-frame 大约漂 3.6 秒/小时。播出不做实时 pulldown。</text>
+          <text x="24" y="36" fill="#3ad7c4">视频 1–3 帧</text>
+          <rect x="150" y="22" width="420" height="18" fill="#121922" stroke="#314557"/>
+          <rect x="150" y="22" width="150" height="18" fill="#3ad7c4"/>
+          <text x="24" y="78" fill="#e2a73a">音频 + 声卡</text>
+          <rect x="150" y="64" width="420" height="18" fill="#121922" stroke="#314557"/>
+          <rect x="150" y="64" width="150" height="18" fill="#e2a73a"/>
+          <rect class="mot aud-gap" x="300" y="64" width="168" height="18" fill="#e2a73a"/>
+          <line x1="300" y1="14" x2="300" y2="92" stroke="#e7eef5" stroke-width="1"/>
+          <text x="308" y="112" fill="#e2a73a">这一段还在声卡里，画面已经换了</text>
+          <text x="24" y="148">多机声卡不同，这段差可以到 10 ms 以上。接缝还没撕，耳朵已经听到。</text>
+          <text x="24" y="170">六层帧率的对齐在下面的表里。29.97 的漂移不在这张图上。</text>
         </g>
       </svg>`,
-      "音频缓冲比视频长。素材刻度会相对另外五层慢慢漂开，再被拉回。",
-      "<p><strong>声画错位比接缝更先被听出来。</strong>视频大约 1–3 帧，声卡还要再垫 5–20 ms。</p><p>嵌在视频里的音频会把同步拐到音频钟上。第一版不把 Dante 的 PTP 域引进来。</p>");
+      "竖线是这一拍画面已经 present 的位置。琥珀色多出来的一段还在声卡缓冲里。",
+      "<p><strong>声画错位比接缝更先被听出来。</strong>视频大约 1–3 帧（16–50 ms），USB / ASIO 还要再垫 5–20 ms。</p><p>嵌在视频里的音频会把同步拐到音频钟上。第一版不把 Dante 的 PTP 域引进来。</p>");
     const issues = document.getElementById("audio-issues");
     if (issues) {
       issues.innerHTML = A.issues.map(item =>
@@ -1427,6 +1429,51 @@
         `<tr><td>${c.pair}</td><td>${c.rule}</td></tr>`
       ).join("");
     }
+    const demo = document.getElementById("fr-demo");
+    if (demo) {
+      const rule = (F.constraints[0] && F.constraints[0].rule) || "";
+      demo.innerHTML =
+        `<div class="fig-tools">` +
+          `<button type="button" class="st-tg" data-fps="aligned" aria-pressed="false">帧率对齐</button>` +
+          `<button type="button" class="st-tg on" data-fps="dup" aria-pressed="true">25 fps 对 60 Hz</button>` +
+        `</div>` +
+        `<div class="fps-demo is-dup">` +
+          `<svg viewBox="0 0 640 168" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="三格输出。错位时第三格是重复帧，对齐后三格各不相同">` +
+            `<rect width="640" height="168" fill="#0d1218"/>` +
+            `<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">` +
+              `<text x="24" y="28" fill="#8c9aab">GPU 输出的连续三帧</text>` +
+              `<rect x="24" y="44" width="160" height="72" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text x="84" y="86">帧 1</text>` +
+              `<rect x="208" y="44" width="160" height="72" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text x="268" y="86">帧 2</text>` +
+              `<rect class="fps-third" x="392" y="44" width="160" height="72" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text class="fps-aligned" x="452" y="86">帧 3</text>` +
+              `<text class="fps-dup" x="428" y="78" fill="#e2a73a">帧 2</text>` +
+              `<text class="fps-dup" x="428" y="98" fill="#e2a73a">重复</text>` +
+            `</g>` +
+          `</svg>` +
+          `<p class="caption fps-readout"></p>` +
+        `</div>`;
+      const box = demo.querySelector(".fps-demo");
+      const readout = demo.querySelector(".fps-readout");
+      function setFps(mode) {
+        const dup = mode === "dup";
+        box.classList.toggle("is-dup", dup);
+        box.classList.toggle("is-aligned", !dup);
+        demo.querySelectorAll("[data-fps]").forEach((b) => {
+          const on = b.getAttribute("data-fps") === mode;
+          b.classList.toggle("on", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        readout.textContent = dup
+          ? rule
+          : "工程帧率和 GPU 输出是同一个刷新率。这三帧各不相同，没有重复帧。";
+      }
+      demo.querySelectorAll("[data-fps]").forEach((b) => {
+        b.addEventListener("click", () => setFps(b.getAttribute("data-fps")));
+      });
+      setFps("dup");
+    }
     const notes = document.getElementById("fr-notes");
     if (notes) notes.innerHTML = `<p class="callout">${F.dropFrame}</p><p class="caption">${F.pulldown}</p>`;
   }
@@ -1437,28 +1484,49 @@
     const lead = document.getElementById("net-lead");
     if (lead) lead.textContent = N.lead;
     placeExplain(lead, "net-explain",
-      `<svg viewBox="0 0 680 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="控制网和节目网有数据包，Sync 的网线不进交换机">
-        <rect width="680" height="230" fill="#0d1218"/>
+      `<svg viewBox="0 0 720 292" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="控制网和节目网进交换机，Sync 的 CAT5 和 BNC 不进，ST 2110 视频网第一版不接">
+        <rect width="720" height="292" fill="#0d1218"/>
         <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">
-          <text x="20" y="36" fill="#3ad7c4">控制网 · 1 GbE</text>
-          <line x1="150" y1="32" x2="620" y2="32" stroke="#314557"/>
-          <rect class="mot lane-pkt" y="26" width="14" height="8" fill="#3ad7c4"/>
-          <rect class="mot lane-pkt d2" y="26" width="14" height="8" fill="#3ad7c4"/>
-          <text x="20" y="84" fill="#e2a73a">节目网 · 10 GbE</text>
-          <line x1="150" y1="80" x2="620" y2="80" stroke="#314557"/>
-          <rect class="mot lane-pkt wide" y="74" width="28" height="10" fill="#e2a73a"/>
-          <rect class="mot lane-pkt wide d3" y="74" width="28" height="10" fill="#e2a73a"/>
-          <text x="20" y="140" fill="#e7eef5">Sync · CAT5</text>
-          <line x1="150" y1="136" x2="430" y2="136" stroke="#3ad7c4" stroke-width="2"/>
-          <rect x="470" y="112" width="70" height="48" fill="#121922" stroke="#e36b5c"/>
-          <path d="M482 124 L528 148 M528 124 L482 148" stroke="#e36b5c"/>
-          <text x="552" y="140">交换机</text>
-          <text x="20" y="188">16K 序列帧约 40.8 GB/s，走本机 NVMe，不进这三张网。</text>
-          <text x="20" y="210">House-sync 另走 75Ω BNC，也不进交换机。</text>
+          <text x="24" y="22" fill="#e7eef5">CAT5 Frame Lock · 不进交换机</text>
+          <line x1="78" y1="36" x2="548" y2="36" stroke="#3ad7c4" stroke-width="2"/>
+          <circle class="mot net-hop" cy="36" r="4" fill="#e7eef5"/>
+          <line x1="310" y1="36" x2="310" y2="58" stroke="#e36b5c" stroke-dasharray="3 3"/>
+          <path d="M302 52 L318 68 M318 52 L302 68" stroke="#e36b5c"/>
+          <rect x="24" y="78" width="118" height="40" fill="#121922" stroke="#3ad7c4"/>
+          <text x="46" y="102" fill="#e7eef5">Director</text>
+          <rect x="230" y="78" width="118" height="40" fill="#121922" stroke="#3ad7c4"/>
+          <text x="252" y="102" fill="#e7eef5">Display A</text>
+          <rect x="436" y="78" width="118" height="40" fill="#121922" stroke="#3ad7c4"/>
+          <text x="458" y="102" fill="#e7eef5">Display B</text>
+          <line x1="83" y1="118" x2="230" y2="168" stroke="#3ad7c4"/>
+          <line x1="96" y1="118" x2="242" y2="176" stroke="#e2a73a"/>
+          <line x1="270" y1="118" x2="270" y2="168" stroke="#3ad7c4"/>
+          <line x1="286" y1="118" x2="286" y2="176" stroke="#e2a73a"/>
+          <line x1="495" y1="118" x2="340" y2="168" stroke="#3ad7c4"/>
+          <line x1="508" y1="118" x2="328" y2="176" stroke="#e2a73a"/>
+          <rect class="mot net-ip" x="150" y="140" width="10" height="6" fill="#3ad7c4"/>
+          <rect class="mot net-media" x="170" y="148" width="16" height="6" fill="#e2a73a"/>
+          <rect x="200" y="168" width="150" height="32" fill="#121922" stroke="#314557"/>
+          <text x="246" y="188" fill="#e7eef5">交换机</text>
+          <text x="24" y="186" fill="#3ad7c4">VLAN 10 控制</text>
+          <text x="24" y="204" fill="#e2a73a">VLAN 20 节目</text>
+          <rect x="560" y="78" width="136" height="40" fill="none" stroke="#5c6b7c" stroke-dasharray="5 4"/>
+          <text x="572" y="102" fill="#7a8796">ST 2110 不接</text>
+          <line x1="24" y1="222" x2="696" y2="222" stroke="#243140"/>
+          <text x="24" y="246" fill="#e7eef5">75Ω BNC，不进交换机</text>
+          <rect x="250" y="254" width="72" height="26" fill="#121922" stroke="#e7eef5"/>
+          <text x="264" y="272" fill="#e7eef5">House</text>
+          <line x1="322" y1="267" x2="660" y2="267" stroke="#e7eef5"/>
+          <line x1="400" y1="267" x2="400" y2="252" stroke="#e7eef5"/>
+          <line x1="500" y1="267" x2="500" y2="252" stroke="#e7eef5"/>
+          <line x1="600" y1="267" x2="600" y2="252" stroke="#e7eef5"/>
+          <text x="386" y="248">Dir</text>
+          <text x="492" y="248">A</text>
+          <text x="592" y="248">B</text>
         </g>
       </svg>`,
-      "控制网和节目网在走包。Sync 卡的菊花链是一根直连网线，画成断开的交换机表示它不进交换。",
-      "<p><strong>三条网，外加一根不许进交换机的线。</strong>心跳、OSC、Art-Net 走控制网；素材和 NDI 走节目网。</p><p>Frame Lock 的 CAT5 物理隔离。16K 无损序列帧留在本地盘。</p>");
+      "青色和琥珀色的包只走向交换机。CAT5 在岔下去之前被划掉。BNC 画在分隔线下面，自己一路。虚线框没有连线。",
+      "<p><strong>进交换机的只有两张网。</strong>VLAN 10 走心跳、OSC、Art-Net。VLAN 20 走素材和 NDI。</p><p>Frame Lock 的 CAT5 和 house-sync 的 BNC 都不进这台交换机。ST 2110 的视频网第一版不建。16K 无损序列帧留在本机 NVMe。</p>");
     const bwTable = document.getElementById("bw-table");
     if (bwTable) {
       const thead = bwTable.querySelector("thead");
@@ -1486,28 +1554,32 @@
     const lead = document.getElementById("panel-lead");
     if (lead) lead.textContent = P.lead;
     placeExplain(lead, "panel-explain",
-      `<svg viewBox="0 0 640 210" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="八扫逐行点亮并带快门黑条，对照是整帧保持">
-        <rect width="640" height="210" fill="#0d1218"/>
+      `<svg viewBox="0 0 640 220" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="一个输入帧里有多行 PWM 扫描，快门窗口切在帧的中间，对不齐帧边界">
+        <rect width="640" height="220" fill="#0d1218"/>
         <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">
-          <text x="36" y="28" fill="#e2a73a">1/8 扫</text>
+          <text x="36" y="28" fill="#3ad7c4">输入帧 · 60 Hz</text>
+          <rect x="36" y="40" width="250" height="140" fill="none" stroke="#3ad7c4"/>
           <g>
-            <rect class="mot scan-row" x="36" y="40" width="220" height="12" fill="#e2a73a"/>
-            <rect class="mot scan-row" x="36" y="56" width="220" height="12" fill="#e2a73a"/>
-            <rect class="mot scan-row" x="36" y="72" width="220" height="12" fill="#e2a73a"/>
-            <rect class="mot scan-row" x="36" y="88" width="220" height="12" fill="#e2a73a"/>
-            <rect class="mot scan-row" x="36" y="104" width="220" height="12" fill="#e2a73a"/>
-            <rect class="mot scan-row" x="36" y="120" width="220" height="12" fill="#e2a73a"/>
-            <rect class="mot scan-row" x="36" y="136" width="220" height="12" fill="#e2a73a"/>
-            <rect class="mot scan-row" x="36" y="152" width="220" height="12" fill="#e2a73a"/>
+            <rect class="mot scan-row" x="48" y="52" width="226" height="8" fill="#e2a73a"/>
+            <rect class="mot scan-row" x="48" y="66" width="226" height="8" fill="#e2a73a"/>
+            <rect class="mot scan-row" x="48" y="80" width="226" height="8" fill="#e2a73a"/>
+            <rect class="mot scan-row" x="48" y="94" width="226" height="8" fill="#e2a73a"/>
+            <rect class="mot scan-row" x="48" y="108" width="226" height="8" fill="#e2a73a"/>
+            <rect class="mot scan-row" x="48" y="122" width="226" height="8" fill="#e2a73a"/>
+            <rect class="mot scan-row" x="48" y="136" width="226" height="8" fill="#e2a73a"/>
+            <rect class="mot scan-row" x="48" y="150" width="226" height="8" fill="#e2a73a"/>
           </g>
-          <rect class="mot shutter" x="36" y="40" width="220" height="14" fill="#080b10"/>
-          <text x="300" y="28" fill="#3ad7c4">整帧保持</text>
-          <rect x="300" y="40" width="220" height="124" fill="#12312d" stroke="#3ad7c4"/>
-          <text x="36" y="196">刷新率是 PWM，输入帧率是整帧到达。两者要成整数倍。</text>
+          <rect class="mot pwm-gate" x="48" y="94" width="226" height="28" fill="#080b10" opacity="0.72"/>
+          <text x="320" y="64" fill="#e2a73a">刷新 · PWM</text>
+          <text x="320" y="88">3840 / 7680 Hz</text>
+          <text x="320" y="120">快门窗口落在帧的中段，</text>
+          <text x="320" y="140">对上的是这几行扫描，</text>
+          <text x="320" y="160">不是青色框的整帧边界。</text>
+          <text x="36" y="204">两者要成整数倍。对不齐时，Tessera 会加倍或丢帧。</text>
         </g>
       </svg>`,
-      "左边一行一行点亮，快门会切出一条黑带。右边整帧亮到下一帧替换。",
-      "<p><strong>箱体不是显示器终端。</strong>1/8 扫配合摄像机 rolling shutter，会拍到扫描黑条。</p><p>MX40 的低延迟和 Genlock 不能同时开。要低延迟时，帧同步留在 NVIDIA Sync 卡上。</p>");
+      "青色框是一整帧输入。框里的横线是灯珠 PWM。黑条是摄像机快门，它不跟帧边对齐。",
+      "<p><strong>刷新率和输入帧率不是同一个钟。</strong>1/8 扫配合 rolling shutter，拍到的是扫描行，不是节目帧。</p><p>MX40 的低延迟和 Genlock 不能同时开。要低延迟时，帧同步留在 NVIDIA Sync 卡上。</p>");
     const chars = document.getElementById("panel-chars");
     if (chars) {
       chars.innerHTML = P.characteristics.map(c =>
@@ -1602,8 +1674,20 @@
       const keys = ["dimension", "understudy", "multiRunner", "leaderFollower", "cnHotStandby", "ringBackup"];
       thead.innerHTML = "<tr>" + cols.map(c => `<th>${c}</th>`).join("") + "</tr>";
       tbody.innerHTML = F.comparison.map(row =>
-        "<tr>" + keys.map(k => `<td>${row[k] || "—"}</td>`).join("") + "</tr>"
+        "<tr>" + keys.map(k => {
+          const text = row[k] || "—";
+          const ask = (k === "cnHotStandby" && row.ask) ? `<span class="ask">${row.ask}</span>` : "";
+          return `<td>${text}${ask}</td>`;
+        }).join("") + "</tr>"
       ).join("");
+    }
+    const observeHost = document.getElementById("fail-observe");
+    if (observeHost && F.observe) {
+      observeHost.innerHTML =
+        `<h3 class="subhead">现场要记的四项</h3><p class="sec-lead">${F.observe.lead}</p>` +
+        `<div class="table-wrap"><table class="plain-table"><thead><tr><th>记下</th><th>怎么记</th></tr></thead><tbody>` +
+        F.observe.rows.map(p => `<tr><td>${p.item}</td><td>${p.rule}</td></tr>`).join("") +
+        `</tbody></table></div><p class="caption">${F.observe.note}</p>`;
     }
   }
 
@@ -2054,6 +2138,28 @@
     if (thr) {
       const T = A.threading;
       thr.innerHTML = `<h3 class="subhead">线程模型</h3><p class="sec-lead">${T.lead}</p>` +
+        `<div class="explain"><figure class="explain-fig"><svg viewBox="0 0 720 248" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="三条泳道。Render 在屏障前等待，没等到就不 present">` +
+          `<rect width="720" height="248" fill="#0d1218"/>` +
+          `<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">` +
+            `<text x="16" y="22" fill="#e2a73a">Decode · HIGH</text>` +
+            `<rect class="mot decode-pkt" x="16" y="36" width="36" height="16" fill="#e2a73a"/>` +
+            `<rect x="200" y="30" width="120" height="28" fill="#121922" stroke="#e2a73a"/>` +
+            `<text x="232" y="48" fill="#e2a73a">纹理环</text>` +
+            `<text x="16" y="92" fill="#3ad7c4">Sync · REAL_TIME</text>` +
+            `<rect x="200" y="74" width="150" height="28" fill="#121922" stroke="#3ad7c4"/>` +
+            `<text x="228" y="92">读帧号 10200</text>` +
+            `<text x="16" y="140" fill="#e7eef5">Render · TIME_CRITICAL</text>` +
+            `<rect class="mot render-hold" x="16" y="152" width="300" height="28" fill="#121922" stroke="#e7eef5"/>` +
+            `<text x="28" y="170" fill="#e2a73a">等 syncBarrier.wait</text>` +
+            `<line x1="460" y1="12" x2="460" y2="210" stroke="#e36b5c" stroke-width="2"/>` +
+            `<text x="476" y="36" fill="#e36b5c">屏障</text>` +
+            `<text x="476" y="92">targetFrame</text>` +
+            `<text x="476" y="160">没等到</text>` +
+            `<text x="476" y="180">不 QueuePresent</text>` +
+            `<text x="16" y="230" fill="#8c9aab">Decode 把纹理交进环。Sync 读帧号。Render 在屏障前停住。</text>` +
+          `</g>` +
+        `</svg><figcaption>琥珀色的块停在红线左边。线的右边才是 present。这一拍没等到，就不把新画面送出去。</figcaption></figure>` +
+        `<div class="explain-copy"><p><strong>渲染线程在 QueuePresent 前等。</strong>调用的是 syncBarrier.wait(targetFrame)。帧号还没到，或者纹理还没进环，这一拍不 present。</p><p>Sync 线程只读帧号、收 ready。它不负责把画面送出去。</p></div></div>` +
         `<div class="table-wrap"><table class="plain-table"><thead><tr><th>线程</th><th>优先级</th><th>职责</th><th>同步点</th></tr></thead><tbody>` +
         T.threads.map(t => `<tr><td>${t.name}</td><td>${t.priority}</td><td>${t.duty}</td><td>${t.sync}</td></tr>`).join("") +
         `</tbody></table></div>` +
@@ -2077,43 +2183,118 @@
     const jump = document.getElementById("arch-jump");
     if (jump) {
       const J = A.jumpImpl;
+      const fieldRow = (J.fields || []).map(f =>
+        `<div class="panel"><h3><code>${f.name}</code></h3><p>${f.detail}</p></div>`
+      ).join("");
       jump.innerHTML = `<h3 class="subhead">跳转状态机</h3><p class="sec-lead">${J.lead}</p>` +
-        `<div class="explain"><figure class="explain-fig"><svg viewBox="0 0 920 168" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="跳转状态从空闲走到提交；未齐备则停在中止并保持旧画面">
-          <rect width="920" height="168" fill="#0d1218"/>
-          <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#e7eef5">
-            <rect class="mot sm-node sm-on" x="16" y="28" width="110" height="40" fill="#121922" stroke="#3ad7c4"/>
-            <text x="48" y="52">IDLE</text>
-            <rect class="mot sm-node sm-on sm-d1" x="150" y="28" width="110" height="40" fill="#121922" stroke="#3ad7c4"/>
-            <text x="168" y="52">RECEIVED</text>
-            <rect class="mot sm-node sm-on sm-d2" x="284" y="28" width="120" height="40" fill="#121922" stroke="#3ad7c4"/>
-            <text x="296" y="52">PREFETCH</text>
-            <rect class="mot sm-node sm-on sm-d3" x="428" y="28" width="120" height="40" fill="#121922" stroke="#3ad7c4"/>
-            <text x="444" y="52">READY</text>
-            <rect class="mot sm-node sm-on sm-d4" x="572" y="28" width="120" height="40" fill="#121922" stroke="#e2a73a"/>
-            <text x="586" y="52">BARRIER</text>
-            <rect class="mot sm-commit" x="716" y="16" width="120" height="36" fill="#121922" stroke="#3ad7c4"/>
-            <text x="732" y="38">COMMITTED</text>
-            <rect class="mot sm-abort" x="716" y="64" width="120" height="36" fill="#121922" stroke="#e36b5c"/>
-            <text x="740" y="86">ABORTED</text>
-            <rect class="mot old-hold" x="716" y="112" width="120" height="28" fill="#18222d" stroke="#e2a73a"/>
-            <text x="736" y="130" fill="#e2a73a">旧画面</text>
-            <path d="M126 48 H150 M260 48 H284 M404 48 H428 M548 48 H572 M692 48 H716" stroke="#314557"/>
-          </g>
-        </svg><figcaption>节点依次点亮。这一轮如果有机器没就绪，就停在 ABORTED，继续播旧画面。</figcaption></figure>
-        <div class="explain-copy"><p><strong>没就绪不切，也不黑屏。</strong>超时大约是 2×GOP 再加 200 ms，然后告警，画面留在上一帧。</p><p>对外仍是跳到时间或跳到 Cue。集群内部带的是目标、生效帧和预取截止。</p></div></div>` +
+        `<div class="fig-tools">` +
+          `<button type="button" class="st-tg on" data-jump="commit" aria-pressed="true">齐备，一起切</button>` +
+          `<button type="button" class="st-tg" data-jump="abort" aria-pressed="false">有一台没就绪</button>` +
+        `</div>` +
+        `<div class="jump-sm is-commit">` +
+          `<svg viewBox="0 0 920 250" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="JumpTo 三个字段。齐备走到提交；有一台没就绪则停在中止并保持旧画面">` +
+            `<rect width="920" height="250" fill="#0d1218"/>` +
+            `<g font-family="Cascadia Mono, Consolas, Microsoft YaHei UI, sans-serif" font-size="12" fill="#e7eef5">` +
+              `<text x="16" y="22" fill="#8c9aab">JumpTo · 自研约定</text>` +
+              `<rect x="16" y="34" width="286" height="46" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text x="28" y="54" fill="#3ad7c4">targetTime</text>` +
+              `<text x="28" y="70" fill="#8c9aab">时间线位置</text>` +
+              `<rect x="316" y="34" width="286" height="46" fill="#121922" stroke="#e2a73a"/>` +
+              `<text x="328" y="54" fill="#e2a73a">effectiveFrame</text>` +
+              `<text class="only-commit" x="328" y="70" fill="#8c9aab">这一拍一起切</text>` +
+              `<text class="only-abort" x="328" y="70" fill="#e2a73a">没齐就往后推</text>` +
+              `<rect x="616" y="34" width="286" height="46" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text x="628" y="54" fill="#3ad7c4">prefetchDeadline</text>` +
+              `<text x="628" y="70" fill="#8c9aab">预取截止</text>` +
+              `<rect x="16" y="104" width="100" height="36" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text x="46" y="126">IDLE</text>` +
+              `<rect x="132" y="104" width="112" height="36" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text x="148" y="126">RECEIVED</text>` +
+              `<rect x="260" y="104" width="116" height="36" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text x="276" y="126">PREFETCH</text>` +
+              `<rect x="392" y="104" width="100" height="36" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text x="416" y="126">READY</text>` +
+              `<rect x="508" y="104" width="112" height="36" fill="#121922" stroke="#e2a73a"/>` +
+              `<text x="524" y="126">BARRIER</text>` +
+              `<rect class="only-commit" x="680" y="96" width="210" height="36" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text class="only-commit" x="724" y="118">COMMITTED</text>` +
+              `<rect class="only-commit" x="680" y="144" width="210" height="32" fill="#121922" stroke="#3ad7c4"/>` +
+              `<text class="only-commit" x="744" y="164">新画面</text>` +
+              `<rect class="only-abort" x="680" y="96" width="210" height="36" fill="#121922" stroke="#e36b5c"/>` +
+              `<text class="only-abort" x="736" y="118">ABORTED</text>` +
+              `<rect class="only-abort" x="680" y="144" width="210" height="32" fill="#18222d" stroke="#e2a73a"/>` +
+              `<text class="only-abort" x="744" y="164" fill="#e2a73a">旧画面</text>` +
+              `<path d="M116 122 H132 M244 122 H260 M376 122 H392 M492 122 H508 M620 122 H680" stroke="#314557"/>` +
+              `<text x="16" y="214" fill="#8c9aab">自研字段。不挂到 HiRender、hecoos、KFS、GrandShow、Kompass 名下。</text>` +
+              `<text class="only-commit" x="16" y="236" fill="#3ad7c4">全部 READY，这一拍提交新画面。</text>` +
+              `<text class="only-abort" x="16" y="236" fill="#e2a73a">有一台没就绪。整组留在旧画面，生效帧往后推。</text>` +
+            `</g>` +
+          `</svg>` +
+          `<p class="caption jump-readout"></p>` +
+        `</div>` +
+        `<div class="problem-grid">${fieldRow}</div>` +
         `<p class="callout">${J.states.join(" → ")}</p>` +
         `<ol class="ltc-steps">${J.steps.map((s,i)=>`<li><span class="n">${i+1}</span>${s}</li>`).join("")}</ol>` +
         `<p class="caption">${J.timeout}</p>`;
+      const machine = jump.querySelector(".jump-sm");
+      const readout = jump.querySelector(".jump-readout");
+      function setJump(mode) {
+        const abort = mode === "abort";
+        machine.classList.toggle("is-abort", abort);
+        machine.classList.toggle("is-commit", !abort);
+        jump.querySelectorAll("[data-jump]").forEach((b) => {
+          const on = b.getAttribute("data-jump") === mode;
+          b.classList.toggle("on", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+        readout.textContent = abort ? J.abortReadout : J.commitReadout;
+      }
+      jump.querySelectorAll("[data-jump]").forEach((b) => {
+        b.addEventListener("click", () => setJump(b.getAttribute("data-jump")));
+      });
+      setJump("commit");
     }
     const proj = document.getElementById("arch-project");
     if (proj) {
       const P = A.projectFormat;
       const L = P.layoutShape;
+      const sample = L && L.sample;
+      let sampleHtml = "";
+      if (sample) {
+        let n = 0;
+        const cells = sample.map((out, oi) => {
+          const ox = oi === 0 ? 24 : 400;
+          const head = `<text x="${ox}" y="28" fill="#e7eef5">${out.outputId}</text>`;
+          const boxes = out.cabinets.map((c, i) => {
+            n += 1;
+            const x = ox + (oi === 0 ? i * 86 : 0);
+            const y = 44 + (oi === 0 ? 0 : i * 78);
+            const delay = ((n - 1) * 0.7).toFixed(2);
+            return `<rect x="${x}" y="${y}" width="74" height="66" fill="#121922" stroke="#314557"/>` +
+              `<rect class="mot cab-on" style="animation-delay:${delay}s" x="${x}" y="${y}" width="74" height="66" fill="#1c4a44" stroke="#3ad7c4"/>` +
+              `<text x="${x + 10}" y="${y + 28}" fill="#e7eef5">${n}</text>` +
+              `<text x="${x + 10}" y="${y + 48}" fill="#8c9aab" font-size="11">${c.id}</text>`;
+          }).join("");
+          return head + boxes;
+        }).join("");
+        const json = JSON.stringify(sample, null, 2).replace(/[&<>]/g, (ch) => (
+          { "&": "&amp;", "<": "&lt;", ">": "&gt;" }[ch]
+        ));
+        sampleHtml =
+          `<h3 class="subhead">两路输出的例子</h3>` +
+          `<p class="sec-lead">数组顺序就是该网口上的走线。格子按 1 到 5 点亮。字段只使用上面这张表，没有卡莱特或诺瓦连接文件的私有项。</p>` +
+          `<div class="explain"><figure class="explain-fig"><svg viewBox="0 0 720 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="两路输出的箱体按数组顺序点亮">${
+            `<rect width="720" height="230" fill="#0d1218"/>` +
+            `<g font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="12" fill="#8c9aab">${cells}</g>`
+          }</svg><figcaption>左路三块从左到右，右路两块从上到下。数字是 cabinets 数组里的次序。</figcaption></figure>` +
+          `<pre class="sample-json">${json}</pre></div>`;
+      }
       const layoutHtml = L
         ? `<h3 class="subhead">切片到接收卡走线</h3><p class="sec-lead">${L.lead}</p>` +
           `<div class="table-wrap"><table class="plain-table"><thead><tr><th>字段</th><th>写什么</th></tr></thead><tbody>` +
           L.fields.map(f => `<tr><td><code>${f.name}</code></td><td>${f.detail}</td></tr>`).join("") +
           `</tbody></table></div>` +
+          sampleHtml +
           `<div class="problem-grid">${L.split.map(s =>
             `<div class="panel"><h3>${s.who}</h3><p>${s.detail}</p><p><a href="${s.url}" target="_blank" rel="noopener">${s.source}</a></p></div>`
           ).join("")}</div>`
@@ -2144,15 +2325,29 @@
     if (lead) lead.textContent = C.lead;
     const steps = document.getElementById("comm-steps");
     if (steps) {
-      steps.style.gridTemplateColumns = "repeat(4, 1fr)";
+      const key = "led-survey-commission";
+      let saved = [];
+      try { saved = JSON.parse(localStorage.getItem(key)) || []; } catch (e) { saved = []; }
       steps.innerHTML = C.steps.map((s, i) =>
-        `<article class="step" style="min-height:auto">
+        `<article class="step${saved[i] ? " is-done" : ""}" style="min-height:auto">
           <div class="n">PHASE ${i + 1}</div>
           <h3>${s.phase}</h3>
           <ul style="margin:8px 0;padding-left:16px;font-size:12px;color:var(--muted)">${s.items.map(it=>`<li>${it}</li>`).join("")}</ul>
           <p style="font-size:12px;color:var(--cyan);margin:0">验证：${s.verify}</p>
+          <label class="phase-check"><input type="checkbox" data-phase="${i}"${saved[i] ? " checked" : ""}> 这一步已核对</label>
         </article>`
       ).join("");
+      steps.addEventListener("change", (ev) => {
+        const input = ev.target;
+        if (!input.matches || !input.matches("input[data-phase]")) return;
+        const i = Number(input.getAttribute("data-phase"));
+        let next = [];
+        try { next = JSON.parse(localStorage.getItem(key)) || []; } catch (e) { next = []; }
+        next[i] = input.checked;
+        try { localStorage.setItem(key, JSON.stringify(next)); } catch (e) {}
+        const card = input.closest(".step");
+        if (card) card.classList.toggle("is-done", input.checked);
+      });
     }
     const proof = document.getElementById("frame-proof");
     const F = C.frameProof;

@@ -168,6 +168,7 @@ window.SURVEY = {
       vendor: "Kommander / 凯视达",
       phy: "F30：Quadro Sync II。英文规格 2x RJ45 Framelock + 1x BNC Genlock。Frame Lock 是 NVIDIA 专有时序，CAT5 直连，不是 TCP/IP。",
       app: "KFS 是软件品牌名。帧同步报文、是否还在以太网上传 playhead，公开页未写。",
+      later: "以后补 KFS 集群跳转原文。这一格在原文到达前留空。",
       layer: "F30 的 L3 可落到 NVIDIA Frame Lock；KFS 本身仍是 L2 宣称",
       evidence: "硬件 A/B · 软件 C",
       note: "不要把 KFS 三个字母当成已公开的线协议。"
@@ -177,8 +178,9 @@ window.SURVEY = {
       name: "GrandShow Sync",
       also: "卡莱特 CS 系列多机",
       vendor: "Colorlight / 卡莱特",
-      phy: "CS20-8K 规格只列 2.5GbE RJ45，没有独立 Frame Lock 口。推断走机器以太网，可以进交换机。",
-      app: "专有，未公开。卡莱特「GrandShow 播控协议」是场景/播放 UDP 中控，不是帧同步协议。",
+      phy: "CS20-8K 规格只列 2.5GbE RJ45，没有独立 Frame Lock 口。推断走机器以太网，可以进交换机。卡莱特「GrandShow 播控协议」是场景/播放 UDP 中控，不是帧同步协议。",
+      app: "GrandShow Sync 的应用层报文未公开。",
+      later: "以后补 GrandShow Sync 集群原文。这一格在原文到达前留空。",
       layer: "营销写按帧同步（L2 宣称）；L3 扫出未写 NVIDIA Sync",
       evidence: "介质 B · 报文 C",
       note: "中控协议公开，不能用来推断 Sync 的报文。"
@@ -188,11 +190,36 @@ window.SURVEY = {
       name: "Kompass Lora",
       also: "LoRa 无线模块",
       vendor: "诺瓦 Kompass FX1/FX2/FX3 V3.13",
-      phy: "无线 LoRa（Semtech CSS），不是网线。诺瓦 Taurus 手册把 LoRa 写成 NTP 主从校时：同一 Group ID、一主多从、主机可跟 NTP。",
+      phy: "无线 LoRa（Semtech CSS），不是网线。诺瓦 Taurus 手册把 LoRa 写成 NTP 主从校时：同一 Group ID、一主多从、主机可跟 NTP。中控方法号 389 暂停/播放/停止、390 跳到毫秒、10005 按 Cue 序号跳，参数里没有生效帧。那是对一台软件的中控，不是这份 LoRa 载荷。",
       app: "Kompass 更新说明只写「多机同步方式新增 Lora 模块」。载荷格式未公开。",
+      later: "以后补 LoRa 载荷原文。这一格在原文到达前留空。",
       layer: "L1 时间对齐，毫秒级。不能当 L3 扫出锁。",
       evidence: "PHY 名称 A · 载荷 C",
       note: "精度与有线 Frame Lock 不在同一量级。"
+    },
+    {
+      id: "hirender-sync",
+      name: "HiRender 联机帧同步",
+      also: "S3 4.5.0",
+      vendor: "Hirender",
+      phy: "S3 4.5.0 更新说明写明：联机帧同步需要 NVIDIA Quadro Sync II。原文没写跳转是否落在该卡的帧号上。",
+      app: "时间线 / 窗口双模式。集群跳转报文没有公开字段表。",
+      later: "以后补联机跳转原文。这一格在原文到达前留空。",
+      layer: "L3 卡型已写；应用层仍是 C",
+      evidence: "卡型 A · 报文 C",
+      note: "不要把「需要 Sync II」写成已经公开的跳转报文。"
+    },
+    {
+      id: "hecoos-sync",
+      name: "hecoos 多机",
+      also: "Studio / Server",
+      vendor: "澜景 hecoos",
+      phy: "公开控制面是 Art-Net、TCP、UDP、DMX。Studio 不出画，Server 才出画。未写 Sync 卡或 Frame Lock 口。",
+      app: "Seek、生效帧、帧屏障没有公开字段。",
+      later: "以后补多机帧同步原文。这一格在原文到达前留空。",
+      layer: "控制协议名 B；帧同步 C",
+      evidence: "控制面 B · 报文 C",
+      note: "设计端和播放端分开，不等于已经有集群跳转报文。"
     }
   ],
 
@@ -313,6 +340,7 @@ window.SURVEY = {
       who: "未检索到是主控转发，还是每台各收一条。",
       prefetch: "未检索到预取帧数。",
       cut: "F30 有 Quadro Sync。未写跳转是否落在同步卡帧号上。",
+      ask: "问对方：手册哪一章写了生效帧？",
       evidence: "C"
     },
     {
@@ -331,6 +359,7 @@ window.SURVEY = {
       who: "未检索到。",
       prefetch: "未检索到。",
       cut: "联机帧同步要求 Quadro Sync II。未写指令量化到帧号。",
+      ask: "问对方：手册哪一章写了生效帧？",
       evidence: "C"
     },
     {
@@ -340,6 +369,7 @@ window.SURVEY = {
       who: "中控对软件。GrandShow Sync 的集群报文未公开。",
       prefetch: "未检索到。",
       cut: "规格无独立 Frame Lock 口。Take 是否锁到帧号未写。",
+      ask: "问对方：手册哪一章写了生效帧？",
       evidence: "C"
     },
     {
@@ -349,6 +379,7 @@ window.SURVEY = {
       who: "Studio 与 Server 分离。跳转如何下到出画机未写。",
       prefetch: "未检索到。",
       cut: "未公开。",
+      ask: "问对方：手册哪一章写了生效帧？",
       evidence: "C"
     },
     {
@@ -1923,7 +1954,14 @@ window.SURVEY = {
       ]
     },
     jumpImpl: {
-      lead: "跳转是一个带截止时间的状态机。核心原则：没就绪不切。",
+      lead: "跳转是一个带截止时间的状态机。核心原则：没就绪不切。下面这张图是第一版自己的约定，不是厂商报文。",
+      fields: [
+        { name: "targetTime", detail: "要跳到的时间线位置。" },
+        { name: "effectiveFrame", detail: "这一拍约定一起 present 的帧号。有节点没就绪时，这个号往后推，整组仍播旧画面。" },
+        { name: "prefetchDeadline", detail: "预取截止。到点还没齐，进入 ABORTED：告警，继续播旧画面，不黑屏。" }
+      ],
+      commitReadout: "齐备。同一拍走到 COMMITTED，各节点在 effectiveFrame 上 present 新画面。",
+      abortReadout: "有一台没就绪。同一拍停在 ABORTED，整组留在旧画面，effectiveFrame 往后推。",
       states: ["IDLE → RECEIVED → PREFETCHING → READY_WAIT → BARRIER_HOLD → COMMITTED / ABORTED"],
       steps: [
         "Director 发出 JumpTo(targetTime, effectiveFrame, prefetchDeadline)。effectiveFrame 通常 = 当前帧 + 预卷帧数。",
@@ -1951,6 +1989,25 @@ window.SURVEY = {
           { name: "viewport", detail: "相对该口帧缓冲的像素矩形：x、y、宽、高。" },
           { name: "cabinets", detail: "箱体列表。每项有 id、发送卡、网口、接收卡序号、像素原点、宽、高、旋转。数组顺序就是该网口上的走线顺序。" },
           { name: "source", detail: "manual，或导入文件的文件名。文件内部字段以对方公开说明为准，这里不补。" }
+        ],
+        sample: [
+          {
+            outputId: "display-a/gpu0/dp1",
+            viewport: { x: 0, y: 0, w: 384, h: 128 },
+            cabinets: [
+              { id: "A1", sender: 1, port: 1, receiver: 1, x: 0, y: 0, w: 128, h: 128, rotation: 0 },
+              { id: "A2", sender: 1, port: 1, receiver: 2, x: 128, y: 0, w: 128, h: 128, rotation: 0 },
+              { id: "A3", sender: 1, port: 1, receiver: 3, x: 256, y: 0, w: 128, h: 128, rotation: 0 }
+            ]
+          },
+          {
+            outputId: "display-b/gpu0/dp1",
+            viewport: { x: 0, y: 0, w: 128, h: 256 },
+            cabinets: [
+              { id: "B1", sender: 2, port: 1, receiver: 1, x: 0, y: 0, w: 128, h: 128, rotation: 0 },
+              { id: "B2", sender: 2, port: 1, receiver: 2, x: 0, y: 128, w: 128, h: 128, rotation: 0 }
+            ]
+          }
         ],
         split: [
           { who: "GrandMapping", detail: "产品页写明导入 Colorlight 发送端连接关系文件，用来把切片接到硬件。文件里有哪些字段，公开页没写。", url: "https://colorlightinside.com/product/special/6255", source: "GrandMapping 产品页" },
@@ -2005,11 +2062,21 @@ window.SURVEY = {
       }
     ],
     comparison: [
-      { dimension: "恢复时间", understudy: "1–2 帧", multiRunner: "0（Runner 不停）", leaderFollower: "全停", cnHotStandby: "未公开，宣称无缝", ringBackup: "亚帧（接收卡层）" },
+      { dimension: "恢复时间", understudy: "1–2 帧", multiRunner: "0（Runner 不停）", leaderFollower: "全停", cnHotStandby: "未公开，宣称无缝", ringBackup: "亚帧（接收卡层）", ask: "问对方：切换时观众位丢了几帧？数不到就留空。" },
       { dimension: "工程一致性", understudy: "完整镜像", multiRunner: "本地缓存", leaderFollower: "本地有素材缺时间源", cnHotStandby: "同步窗口内可能不一致", ringBackup: "不涉及" },
       { dimension: "控制面单点", understudy: "Director 挂后 Understudy 接管", multiRunner: "Director 挂后无法下发新指令", leaderFollower: "Leader 挂后全停", cnHotStandby: "主端挂后切备端", ringBackup: "无控制面" },
-      { dimension: "是否进同步组", understudy: "建议进", multiRunner: "Runner 已在", leaderFollower: "Follower 已在", cnHotStandby: "备端是否进 Sync 组未公开", ringBackup: "不相关" }
-    ]
+      { dimension: "是否进同步组", understudy: "建议进", multiRunner: "Runner 已在", leaderFollower: "Follower 已在", cnHotStandby: "备端是否进 Sync 组未公开", ringBackup: "不相关", ask: "问对方：切换那一拍，备端在不在 Sync 组？" }
+    ],
+    observe: {
+      lead: "国内主备的丢帧数、心跳超时、备端是否进 Sync 组，公开页没写。下面是现场要测的项。测不到就空着，不把「宣称无缝」写成数字。",
+      rows: [
+        { item: "心跳超时", rule: "记下主端停止回应到备端开始接管的毫秒数。厂商没写阈值就留空。" },
+        { item: "备端是否在 Sync 组", rule: "切换那一拍，备端 GPU 在不在 Framelock / swap group 里。公开页没写的记「未测」，不写成已经在组内。" },
+        { item: "观众位丢帧", rule: "用测试图上的帧号数两侧差了几帧，或用 240 fps 拍摄。数不到就空着。" },
+        { item: "工程是否一致", rule: "记下切换时主备工程修订是否相同。同步窗口里改过工程，就记不一致。" }
+      ],
+      note: "disguise 手册写的 1–2 帧留在上面的对照表。Kommander / HiRender 这一列不填数字。"
+    }
   },
 
   audioSync: {

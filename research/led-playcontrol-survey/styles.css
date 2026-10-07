@@ -553,7 +553,7 @@ table.heat {
 .proto .zones { font-size: 12px; color: var(--muted); }
 .proto dl {
   display: grid;
-  grid-template-columns: 108px 1fr;
+  grid-template-columns: 148px 1fr;
   gap: 6px 12px;
   margin: 0;
   font-size: 13px;
@@ -1288,6 +1288,11 @@ footer {
 .sm-abort { opacity: 1; animation: sm-abort 9s linear infinite; }
 .old-hold { opacity: 1; animation: sm-abort 9s linear infinite; }
 .lane-pkt { x: 560; animation: lane-pkt 6s linear infinite; }
+.net-hop { cx: 70; animation: net-hop 4.8s linear infinite; }
+.net-ip { animation: net-ip 3.6s linear infinite; }
+.net-media { animation: net-media 4.2s linear infinite; }
+.aud-gap { opacity: 0.35; animation: aud-gap 2.4s ease-in-out infinite; }
+.pwm-gate { transform-box: fill-box; transform-origin: center; animation: pwm-gate 2.2s ease-in-out infinite; }
 
 @keyframes clock-spin { to { stroke-dashoffset: -100; } }
 @keyframes frame-tick {
@@ -1411,6 +1416,28 @@ footer {
   88% { opacity: 1; }
   100% { x: 560; opacity: 0; }
 }
+@keyframes net-hop {
+  0% { cx: 78; }
+  100% { cx: 530; }
+}
+@keyframes net-ip {
+  0% { x: 110; y: 124; opacity: 0; }
+  20% { opacity: 1; }
+  100% { x: 248; y: 152; opacity: 0.3; }
+}
+@keyframes net-media {
+  0% { x: 130; y: 128; opacity: 0; }
+  20% { opacity: 1; }
+  100% { x: 260; y: 158; opacity: 0.3; }
+}
+@keyframes aud-gap {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 0.9; }
+}
+@keyframes pwm-gate {
+  0%, 100% { transform: translateY(-28px); }
+  50% { transform: translateY(24px); }
+}
 
 .scan-row:nth-child(1) { animation-delay: 0s; }
 .scan-row:nth-child(2) { animation-delay: 0.2s; }
@@ -1481,11 +1508,71 @@ footer {
 .lane-pkt.d3 { animation-delay: -3.5s; animation-duration: 4.5s; }
 .lane-pkt.wide { animation-duration: 7.5s; }
 
+.fig-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 12px; }
+.jump-sm svg,
+.fps-demo svg { width: 100%; height: auto; display: block; }
+.ask {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--amber);
+}
+.payload-empty {
+  font-family: var(--mono);
+  color: var(--faint);
+}
+.sample-json {
+  margin: 0;
+  max-height: 360px;
+  overflow: auto;
+  padding: 12px 14px;
+  background: #0d1218;
+  border: 1px solid var(--line);
+  color: #c5d0dc;
+  font: 12px/1.45 var(--mono);
+  white-space: pre;
+}
+.jump-sm.is-commit .only-abort,
+.jump-sm.is-abort .only-commit { display: none; }
+.fps-demo .fps-dup { display: none; }
+.fps-demo.is-dup .fps-aligned { display: none; }
+.fps-demo.is-dup .fps-dup { display: inline; }
+.fps-demo.is-dup .fps-third { fill: #3a2e16; stroke: #e2a73a; }
+.cab-on { opacity: 0; animation: cab-on 5.4s linear infinite; animation-fill-mode: backwards; }
+.decode-pkt { animation: decode-in 3.6s ease-in-out infinite; }
+.render-hold { animation: wait-pulse 2.2s ease-in-out infinite; }
+.phase-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  color: var(--cyan);
+}
+.phase-check input { accent-color: #3ad7c4; }
+.step.is-done { border-color: var(--cyan); }
+@keyframes cab-on {
+  0%, 12% { opacity: 0; }
+  18%, 100% { opacity: 1; }
+}
+@keyframes decode-in {
+  0% { x: 16; opacity: 0; }
+  18% { opacity: 1; }
+  62%, 100% { x: 230; opacity: 1; }
+}
+@keyframes wait-pulse {
+  0%, 100% { stroke: #e7eef5; }
+  50% { stroke: #e2a73a; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mot { animation: none !important; }
   .tick-b, .fnum-bad { opacity: 0 !important; }
   .tick-a, .fnum-good, .sm-abort, .old-hold, .lat-seg, .phase, .run-keep, .seam-miss, .pipe-dot { opacity: 1 !important; }
-  .tear-shift, .drift-tick, .shutter { transform: none !important; }
+  .tear-shift, .drift-tick, .shutter, .pwm-gate, .net-hop { transform: none !important; }
+  .aud-gap { opacity: 0.85 !important; }
+  .net-ip, .net-media { opacity: 1 !important; }
   .scan-row { opacity: 0.16 !important; }
   .scan-row:nth-child(8) { opacity: 1 !important; }
   .us-main, .lead-die, .follow-die, .hot-a { fill: #314557 !important; }
@@ -1493,6 +1580,8 @@ footer {
   .ring-a { stroke: #e36b5c !important; }
   .ring-b { stroke: #3ad7c4 !important; }
   .sm-commit, .sm-on { opacity: 0.35 !important; }
+  .cab-on, .decode-pkt { opacity: 1 !important; }
+  .render-hold { stroke: #e2a73a !important; }
   .jump-svg.mode-arrival .scene-barrier .mot,
   .jump-svg.mode-barrier .scene-arrival .mot { opacity: 1; }
 }
