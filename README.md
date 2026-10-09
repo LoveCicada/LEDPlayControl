@@ -8,7 +8,9 @@
 
 静态调研站：[research/led-playcontrol-survey/index.html](research/led-playcontrol-survey/index.html)
 
-双击该 HTML 即可本地打开，不依赖外网字体或构建工具。
+同帧短片：[research/one-frame/index.html](research/one-frame/index.html)。带语音讲解，每段等这句读完再切，按顺序讲一块屏怎么锁成同一帧。
+
+双击调研页或短片的 HTML 即可本地打开，不依赖外网字体或构建工具。
 
 ## 调研做了什么
 
