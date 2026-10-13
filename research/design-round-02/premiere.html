@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>首映 · 一台机器带不动的屏幕</title>
+<style>
+  :root {
+    --bg: #07080c;
+    --ink: #f4efe6;
+    --muted: #9a9186;
+    --amber: #e2a73a;
+    --cyan: #3ad7c4;
+    --sans: "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
+    --mono: "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); }
+  body { font-family: var(--sans); min-height: 100vh; }
+  .opening { padding: 72px 7vw 0; }
+  .kicker {
+    margin: 0 0 28px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: .28em;
+    color: var(--amber);
+  }
+  h1 {
+    margin: 0;
+    max-width: 12em;
+    font-size: 64px;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: 0;
+  }
+  .wall { margin: 48px 5vw 0; }
+  svg { display: block; width: 100%; height: auto; }
+  .beam { animation: sweep 5.6s ease-in-out infinite; }
+  @keyframes sweep {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(520px); }
+  }
+  figcaption {
+    margin: 22px 5vw 0;
+    max-width: 28em;
+    font-size: 18px;
+    line-height: 1.7;
+    color: var(--muted);
+  }
+  .marks {
+    display: grid;
+    grid-template-columns: repeat(4, max-content);
+    justify-content: space-between;
+    gap: 32px;
+    padding: 88px 7vw 96px;
+  }
+  .marks b {
+    display: block;
+    font-family: var(--mono);
+    font-size: 42px;
+    font-weight: 400;
+    color: var(--amber);
+  }
+  .marks span {
+    display: block;
+    max-width: 11em;
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--muted);
+  }
+  @media (max-width: 800px) {
+    h1 { font-size: 40px; }
+    .marks { grid-template-columns: 1fr 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .beam { animation: none; transform: translateX(70px); }
+  }
+</style>
+</head>
+<body>
+  <header class="opening">
+    <p class="kicker">LED 播控调研</p>
+    <h1>一台机器带不动的屏幕，<br>怎么同步地播</h1>
+  </header>
+  <figure class="wall">
+    <svg viewBox="0 0 1200 560" role="img" aria-label="两块箱体，帧号分别是 10240 和 10241，一道光扫过接缝">
+      <rect width="1200" height="560" fill="#07080c"/>
+      <g font-family="Microsoft YaHei UI, PingFang SC, sans-serif">
+        <text x="80" y="48" fill="#9a9186" font-size="16">箱体 A</text>
+        <text x="660" y="48" fill="#9a9186" font-size="16">箱体 B</text>
+      </g>
+      <g>
+        <rect x="80" y="70" width="460" height="400" fill="#10141c" stroke="#3ad7c4" stroke-width="2"/>
+        <g fill="#14352f">
+          <rect x="108" y="150" width="404" height="22"/>
+          <rect x="108" y="196" width="404" height="22"/>
+          <rect x="108" y="242" width="404" height="22"/>
+          <rect x="108" y="288" width="404" height="22"/>
+          <rect x="108" y="334" width="404" height="22"/>
+          <rect x="108" y="380" width="404" height="22"/>
+        </g>
+        <text x="310" y="118" text-anchor="middle" fill="#3ad7c4" font-family="Cascadia Mono, Consolas, monospace" font-size="56">10240</text>
+      </g>
+      <g>
+        <rect x="660" y="70" width="460" height="400" fill="#14110c" stroke="#e2a73a" stroke-width="2"/>
+        <g fill="#3a2c14">
+          <rect x="688" y="150" width="404" height="22"/>
+          <rect x="688" y="196" width="404" height="22"/>
+          <rect x="688" y="242" width="404" height="22"/>
+          <rect x="688" y="288" width="404" height="22"/>
+          <rect x="688" y="334" width="404" height="22"/>
+          <rect x="688" y="380" width="404" height="22"/>
+        </g>
+        <text x="890" y="118" text-anchor="middle" fill="#e2a73a" font-family="Cascadia Mono, Consolas, monospace" font-size="56">10241</text>
+      </g>
+      <g class="beam">
+        <rect x="500" y="70" width="90" height="400" fill="#e2a73a" opacity="0.28"/>
+        <rect x="542" y="70" width="6" height="400" fill="#f4efe6"/>
+      </g>
+      <text x="600" y="520" text-anchor="middle" fill="#9a9186" font-family="Microsoft YaHei UI, PingFang SC, sans-serif" font-size="16">接缝</text>
+    </svg>
+    <figcaption>相邻箱体上的帧号不是同一个数。接缝会撕开。连续播放要先把这一拍锁成同一个号。</figcaption>
+  </figure>
+  <section class="marks" aria-label="调研规模">
+    <div><b>18</b><span>产品样本，深潜 7，对照 11</span></div>
+    <div><b>4</b><span>同步层：钟、帧号、扫出、PTP</span></div>
+    <div><b>5</b><span>异形：模型、UV、投影、切片、锁帧</span></div>
+    <div><b>23</b><span>章节，资料截止 2026-09-23</span></div>
+  </section>
+</body>
+</html>

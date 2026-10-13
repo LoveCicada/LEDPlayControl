@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>现状 · LED 播控调研</title>
+<style>
+  :root {
+    --bg: #080b10;
+    --elev: #121922;
+    --line: #243140;
+    --cyan: #3ad7c4;
+    --amber: #e2a73a;
+    --text: #e7eef5;
+    --muted: #8c9aab;
+    --faint: #7a8796;
+    --mono: "Cascadia Mono", Consolas, monospace;
+    --sans: "Microsoft YaHei UI", "PingFang SC", "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  a { color: var(--cyan); text-decoration: none; }
+  .nav {
+    position: fixed; top: 0; left: 0; bottom: 0; width: 196px;
+    padding: 22px 14px; border-right: 1px solid var(--line);
+    background: #080b10;
+  }
+  .brand { font-size: 12px; font-weight: 700; letter-spacing: .08em; color: var(--cyan); }
+  .brand small { display: block; margin-top: 4px; color: var(--muted); letter-spacing: .14em; font-size: 10px; font-weight: 400; }
+  .nav a { display: block; color: var(--muted); font-size: 12px; padding: 3px 0; }
+  .nav a.on { color: var(--cyan); }
+  .idx { font-family: var(--mono); font-size: 10px; color: var(--faint); margin-right: 8px; }
+  .legend { margin-top: 14px; font-size: 11px; color: var(--faint); line-height: 1.45; }
+  .wrap { margin-left: 196px; }
+  .hero { padding: 36px 36px 22px; border-bottom: 1px solid var(--line); }
+  .kicker { margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: var(--cyan); }
+  h1 { font-size: 34px; line-height: 1.25; font-weight: 700; margin: 10px 0; }
+  .lede { color: var(--muted); max-width: 62ch; margin: 0 0 12px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 12px; color: var(--muted); }
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .stat { background: var(--elev); border: 1px solid var(--line); padding: 10px; }
+  .stat b { display: block; font-family: var(--mono); font-size: 26px; color: var(--cyan); font-weight: 500; }
+  .stat span { color: var(--faint); font-size: 12px; }
+  section { padding: 22px 36px 8px; }
+  h2 { display: inline; font-size: 20px; }
+  .sec-num { font-family: var(--mono); color: var(--cyan); font-size: 12px; margin-right: 8px; }
+  .lead { color: var(--muted); }
+  .layers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0 24px; }
+  .layer { border: 1px solid var(--line); padding: 10px; background: var(--elev); font-size: 13px; color: var(--muted); }
+  .layer i { display: block; font-style: normal; font-family: var(--mono); font-size: 11px; color: var(--cyan); margin-bottom: 6px; }
+  .layer.off { opacity: .6; }
+  .layer.off i { color: var(--faint); }
+  svg { width: 100%; height: auto; display: block; margin-top: 8px; }
+</style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="brand">LEDPlayControl<small>Survey 2026.09</small></div>
+    <a class="on" href="#problem"><span class="idx">01</span>问题</a>
+    <a href="#stack"><span class="idx">02</span>四层同步</a>
+    <a href="#problem"><span class="idx">03</span>指令生效</a>
+    <a href="#problem"><span class="idx">04</span>音频与帧率</a>
+    <a href="#problem"><span class="idx">05</span>异形切片</a>
+    <a href="#problem"><span class="idx">06</span>三种 3D</a>
+    <a href="#problem"><span class="idx">07</span>主界面</a>
+    <div class="legend"><b style="color:#8c9aab">证据</b><br>A 手册可复核<br>B 规格可推断<br>C 协议未公开</div>
+  </nav>
+  <div class="wrap">
+    <header class="hero">
+      <p class="kicker">LED media server · frame sync</p>
+      <h1>一台机器带不动的屏幕，<br>怎么同步地播</h1>
+      <p class="lede">超分辨 LED 不是多开几路 HDMI。相邻箱体必须在同一帧、同一扫出相位上会合。</p>
+      <div class="chips">
+        <span class="chip">kCommander = Kommander</span>
+        <span class="chip">资料截止 2026-09-23</span>
+        <span class="chip">离线可打开</span>
+      </div>
+      <div class="stats">
+        <div class="stat"><b>18</b><span>产品样本</span></div>
+        <div class="stat"><b>4</b><span>同步层</span></div>
+        <div class="stat"><b>5</b><span>异形步骤</span></div>
+        <div class="stat"><b>23</b><span>章节</span></div>
+      </div>
+    </header>
+    <section id="problem">
+      <div><span class="sec-num">01</span><h2>问题定义</h2></div>
+      <p class="lead">多机是扩空间。同步和几何才是扩完之后还像一块屏。</p>
+      <svg viewBox="0 0 640 120" role="img" aria-label="两块小箱体，帧号 10240 与 10241">
+        <rect width="640" height="120" fill="#0d1218"/>
+        <rect x="16" y="16" width="140" height="88" fill="#121922" stroke="#3ad7c4"/>
+        <text x="86" y="68" text-anchor="middle" fill="#3ad7c4" font-family="Cascadia Mono, Consolas, monospace" font-size="18">10240</text>
+        <rect x="168" y="16" width="140" height="88" fill="#121922" stroke="#e2a73a"/>
+        <text x="238" y="68" text-anchor="middle" fill="#e2a73a" font-family="Cascadia Mono, Consolas, monospace" font-size="18">10241</text>
+      </svg>
+    </section>
+    <section id="stack">
+      <div><span class="sec-num">02</span><h2>四层同步</h2></div>
+      <div class="layers">
+        <div class="layer"><i>L1 时间</i>NTP、LTC。管节目进度。</div>
+        <div class="layer"><i>L2 帧号</i>这一拍 present 哪一帧。</div>
+        <div class="layer"><i>L3 扫出</i>CAT5 直连，不进交换机。</div>
+        <div class="layer off"><i>L4 传输</i>PTP / ST 2110。第一版不做。</div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>

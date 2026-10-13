@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>展厅 · 四层同步</title>
+<style>
+  :root {
+    --wall: #141210;
+    --brass: #c6a36a;
+    --heart: #0c0b09;
+    --ink: #f3ecdf;
+    --quiet: #a39888;
+    --cyan: #3ad7c4;
+    --song: SimSun, "Songti SC", "STSong", serif;
+    --fang: FangSong, STFangsong, SimSun, serif;
+    --mono: "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--wall); color: var(--ink); }
+  body { min-height: 100vh; }
+  .room {
+    min-height: 100vh;
+    display: grid;
+    grid-template-columns: minmax(0, 1.45fr) minmax(220px, 0.55fr);
+    gap: 72px;
+    align-items: center;
+    padding: 64px 72px 80px;
+  }
+  .frame {
+    background: #2a241c;
+    padding: 18px;
+    border: 16px solid var(--brass);
+    box-shadow: 0 36px 80px rgba(0, 0, 0, .45);
+  }
+  .heart { position: relative; background: var(--heart); overflow: hidden; }
+  svg { display: block; width: 100%; height: auto; }
+  .wash {
+    position: absolute;
+    left: 0; right: 0;
+    height: 28%;
+    background: linear-gradient(180deg, rgba(198, 163, 106, .28), transparent);
+    animation: fall 7s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes fall {
+    0% { top: -30%; }
+    100% { top: 110%; }
+  }
+  .plate { font-family: var(--fang); }
+  h1 {
+    margin: 0 0 22px;
+    font-family: var(--song);
+    font-size: 34px;
+    font-weight: 400;
+    line-height: 1.35;
+    letter-spacing: .04em;
+  }
+  .plate p {
+    margin: 0;
+    max-width: 16em;
+    font-size: 22px;
+    line-height: 1.85;
+  }
+  .evidence {
+    margin: 36px 0 0;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    letter-spacing: .04em;
+    color: var(--quiet);
+  }
+  @media (max-width: 900px) {
+    .room { grid-template-columns: 1fr; gap: 40px; padding: 32px 20px 48px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wash { animation: none; top: 0; height: 18%; }
+  }
+</style>
+</head>
+<body>
+  <main class="room">
+    <figure class="frame">
+      <div class="heart">
+        <div class="wash" aria-hidden="true"></div>
+        <svg viewBox="0 0 880 640" role="img" aria-label="四层同步。L1 时间，L2 帧号，L3 扫出，L4 传输标成第一版不做">
+          <rect width="880" height="640" fill="#0c0b09"/>
+          <g font-family="SimSun, Songti SC, serif" font-size="22" fill="#f3ecdf">
+            <rect x="48" y="36" width="784" height="120" fill="none" stroke="#3ad7c4" stroke-width="1.5"/>
+            <text x="72" y="78">L1　时间</text>
+            <text x="72" y="118" fill="#a39888" font-family="FangSong, STFangsong, SimSun, serif" font-size="18">NTP、LTC。管节目进度，不管 GPU 何时扫出。</text>
+            <rect x="48" y="180" width="784" height="120" fill="none" stroke="#3ad7c4" stroke-width="1.5"/>
+            <text x="72" y="222">L2　帧号</text>
+            <text x="72" y="262" fill="#a39888" font-family="FangSong, STFangsong, SimSun, serif" font-size="18">这一拍 present 哪一帧。Genlock 不锁内容帧号。</text>
+            <rect x="48" y="324" width="784" height="120" fill="none" stroke="#3ad7c4" stroke-width="1.5"/>
+            <text x="72" y="366">L3　扫出</text>
+            <text x="72" y="406" fill="#a39888" font-family="FangSong, STFangsong, SimSun, serif" font-size="18">Quadro Sync。CAT5 直连，不进交换机。</text>
+            <rect x="48" y="468" width="784" height="120" fill="none" stroke="#6a6256" stroke-width="1.5" stroke-dasharray="7 6"/>
+            <text x="72" y="510" fill="#8a8072">L4　传输</text>
+            <text x="72" y="550" fill="#6a6256" font-family="FangSong, STFangsong, SimSun, serif" font-size="18">PTP / ST 2110。第一版不做。</text>
+          </g>
+        </svg>
+      </div>
+    </figure>
+    <div class="plate">
+      <h1>四层叠在同一面墙上</h1>
+      <p>时间、帧号、扫出相位叠在一起。第四层只服务 IP 视频包。第一版 DP/HDMI 不做这一层。</p>
+      <p class="evidence">A 手册可复核<br>B 规格可推断<br>C 协议未公开</p>
+    </div>
+  </main>
+</body>
+</html>

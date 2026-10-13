@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "lang": "zh",
+  "project": "LED 播控调研",
+  "brief": "同一段结论的三种更疏、更华丽的首屏：开场字幕、展厅灯箱、演出海报。读者来核对多机如何锁成同一帧。",
+  "round": "02",
+  "candidates": [
+    {
+      "id": "baseline",
+      "name": "现状",
+      "concept": "像现在这份调研站，左栏跳章，标题下紧贴芯片和四格统计。",
+      "typography": "微软雅黑 UI 34px 标题，正文 15px，章号 Cascadia Mono 10–12px",
+      "palette": ["#080b10", "#3ad7c4", "#e2a73a"],
+      "traits": ["左栏 196px", "四格统计挤在标题下", "箱体图缩在章节里"],
+      "kind": "html",
+      "source": "baseline.html",
+      "baseline": true
+    },
+    {
+      "id": "premiere",
+      "name": "首映",
+      "concept": "像开场字幕打在一整面黑墙上，先读那一句，再看见接缝上两个帧号。",
+      "typography": "微软雅黑 UI 64px 标题，帧号 Cascadia Mono 56px，说明 18px",
+      "palette": ["#07080c", "#e2a73a", "#3ad7c4"],
+      "traits": ["标题单独占上半屏", "箱体 SVG 占下半屏", "四枚刻度彼此拉开"],
+      "kind": "html",
+      "source": "premiere.html"
+    },
+    {
+      "id": "gallery",
+      "name": "展厅",
+      "concept": "像在深色展厅里看一幅灯箱，四层同步是画，说明站在画旁边。",
+      "typography": "仿宋 22px 说明，宋体 22px 层名，行长约 16 字",
+      "palette": ["#141210", "#c6a36a", "#3ad7c4"],
+      "traits": ["厚黄铜画框", "四周是墙", "证据是画框下的小字"],
+      "kind": "html",
+      "source": "gallery.html"
+    },
+    {
+      "id": "poster",
+      "name": "海报",
+      "concept": "像剧场门口的海报，竖排标题和箱体各站一边，中间是一整块空的红。",
+      "typography": "宋体 48px 两列竖排，字距 0.16em，帧号 Cascadia Mono",
+      "palette": ["#8e1e28", "#f3e6c8", "#7dffe8"],
+      "traits": ["竖排标题", "中间留空", "箱体从右边出血"],
+      "kind": "html",
+      "source": "poster.html"
+    }
+  ]
+}

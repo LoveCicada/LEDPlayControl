@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>海报 · 一台机器带不动的屏幕</title>
+<style>
+  :root {
+    --red: #8e1e28;
+    --paper: #f3e6c8;
+    --muted: #e7c9a4;
+    --cyan: #7dffe8;
+    --amber: #ffc56a;
+    --song: SimSun, "Songti SC", "STSong", serif;
+    --mono: "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--red); color: var(--paper); overflow: hidden; }
+  body { min-height: 100vh; }
+  .sheet {
+    height: 100vh;
+    display: grid;
+    grid-template-columns: 210px minmax(80px, 1fr) minmax(320px, 42%);
+  }
+  .title {
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: flex-start;
+    gap: 4px;
+    margin: 0;
+    padding: 56px 0 56px 28px;
+    font-family: var(--song);
+    font-weight: 400;
+  }
+  .title span {
+    writing-mode: vertical-rl;
+    font-size: 48px;
+    line-height: 1.05;
+    letter-spacing: .16em;
+  }
+  .void { height: 100%; }
+  .bleed {
+    position: relative;
+    height: 100%;
+    overflow: hidden;
+    background: #14090b;
+  }
+  svg { display: block; width: 100%; height: 100%; }
+  .seam { animation: glow 4.8s ease-in-out infinite; }
+  @keyframes glow {
+    0%, 100% { opacity: .35; }
+    50% { opacity: 1; }
+  }
+  .aside { display: none; }
+  @media (max-width: 800px) {
+    .sheet { grid-template-columns: 72px 1fr; }
+    .title { font-size: 28px; padding-left: 16px; }
+    .void { display: none; }
+    .bleed { margin-right: 0; grid-column: 2; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .seam { animation: none; opacity: .85; }
+  }
+</style>
+</head>
+<body>
+  <main class="sheet">
+    <h1 class="title"><span>一台机器带不动的屏幕</span><span>怎么同步地播</span></h1>
+    <div class="void" aria-hidden="true"></div>
+    <figure class="bleed">
+      <svg viewBox="0 0 640 900" preserveAspectRatio="xMinYMid slice" role="img" aria-label="箱体 A 帧号 10240，箱体 B 帧号 10241，右侧箱体出血">
+        <rect width="640" height="900" fill="#14090b"/>
+        <g font-family="SimSun, Songti SC, serif" font-size="18" fill="#e7c9a4">
+          <text x="36" y="88">箱体 A</text>
+          <text x="300" y="88">箱体 B</text>
+        </g>
+        <rect x="28" y="116" width="240" height="620" fill="#1c1014" stroke="#7dffe8" stroke-width="2"/>
+        <g fill="#143832">
+          <rect x="48" y="250" width="200" height="26"/>
+          <rect x="48" y="308" width="200" height="26"/>
+          <rect x="48" y="366" width="200" height="26"/>
+          <rect x="48" y="424" width="200" height="26"/>
+          <rect x="48" y="482" width="200" height="26"/>
+          <rect x="48" y="540" width="200" height="26"/>
+          <rect x="48" y="598" width="200" height="26"/>
+        </g>
+        <text x="148" y="196" text-anchor="middle" fill="#7dffe8" font-family="Cascadia Mono, Consolas, monospace" font-size="36">10240</text>
+        <rect x="292" y="116" width="460" height="620" fill="#1a120c" stroke="#ffc56a" stroke-width="2"/>
+        <g fill="#3a2814">
+          <rect x="312" y="250" width="420" height="26"/>
+          <rect x="312" y="308" width="420" height="26"/>
+          <rect x="312" y="366" width="420" height="26"/>
+          <rect x="312" y="424" width="420" height="26"/>
+          <rect x="312" y="482" width="420" height="26"/>
+          <rect x="312" y="540" width="420" height="26"/>
+          <rect x="312" y="598" width="420" height="26"/>
+        </g>
+        <text x="400" y="196" text-anchor="middle" fill="#ffc56a" font-family="Cascadia Mono, Consolas, monospace" font-size="36">10241</text>
+        <rect class="seam" x="276" y="116" width="4" height="620" fill="#f3e6c8"/>
+        <text x="36" y="820" fill="#e7c9a4" font-family="SimSun, Songti SC, serif" font-size="20">相邻箱体不是同一帧。接缝会撕开。</text>
+      </svg>
+    </figure>
+  </main>
+</body>
+</html>
